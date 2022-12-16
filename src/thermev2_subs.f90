@@ -388,6 +388,10 @@ MODULE THERMEV2_SUBS
 !=======================================================================
     SUBROUTINE TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
 !   --------------------------------------------------------------------
+!   ESTA SUBRUTINA IMPRIME EL AÑO, MES, DIA, HORA, MINUTOS Y SEGUNDOS
+!   COMO CARACTERES PARA INCLUIRLOS EN LOS NOMBRES DEL ARCHIVO DE SALIDA
+!   Y DEL PERFIL DE TEMPERATURAS.
+!   --------------------------------------------------------------------
         IMPLICIT NONE
 !       ----------------------------------------------------------------
         INTEGER :: TVALS(8),ANIO,MES,DIA,HORA,MINS,SEGS
