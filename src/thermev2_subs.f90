@@ -386,15 +386,13 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     END SUBROUTINE LEER_ENTRADA
 !=======================================================================
-    SUBROUTINE CREAR_ARCHIVO_SALIDA()
-!   -------------------------------------------------------------------
+    SUBROUTINE TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
+!   --------------------------------------------------------------------
         IMPLICIT NONE
-!       ---------------------------------------------------------------
+!       ----------------------------------------------------------------
         INTEGER :: TVALS(8),ANIO,MES,DIA,HORA,MINS,SEGS
-        CHARACTER (LEN=10) REO,CHIDFIT,CHTIDE,CHRADC,CHRADM
-        CHARACTER (LEN=4) CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS
-!       ---------------------------------------------------------------
-!       ARCHIVO DE SALIDA
+        CHARACTER (LEN=4), INTENT(OUT) :: CHANIO,CHMES,CHDIA,CHHORA, &
+                                          CHMINS,CHSEGS
 !       ---------------------------------------------------------------
         CALL DATE_AND_TIME(VALUES=TVALS)
         ANIO = TVALS(1)
@@ -440,7 +438,20 @@ MODULE THERMEV2_SUBS
         ELSE
             WRITE(CHSEGS,'(I2)') SEGS
         END IF
+!   --------------------------------------------------------------------
+    END SUBROUTINE TIMESTAMP
+!=======================================================================
+    SUBROUTINE CREAR_ARCHIVO_SALIDA()
+!   -------------------------------------------------------------------
+        IMPLICIT NONE
 !       ---------------------------------------------------------------
+        CHARACTER (LEN=10) :: REO,CHIDFIT,CHTIDE,CHRADC,CHRADM
+        CHARACTER (LEN=4) :: CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS
+!       ---------------------------------------------------------------
+!       ARCHIVO DE SALIDA
+!       ---------------------------------------------------------------
+        CALL TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
+!       ----------------------------------------------------------------
         IF (IDREO.EQ.1) THEN
             REO = 'ELAST'
         ELSE IF (IDREO.EQ.2) THEN
@@ -462,7 +473,7 @@ MODULE THERMEV2_SUBS
         WRITE(CHTIDE,'(I1)') TIDEFL
         WRITE(CHRADC,'(I1)') RADCFL
         WRITE(CHRADM,'(I1)') RADMFL
-        OPEN(UNIT=11,FILE='../salida/THERMEVDB_'//TRIM(REO)//'_DEMID_'// &
+        OPEN(UNIT=11,FILE='../out/THERMEVDB_'//TRIM(REO)//'_DEMID_'// &
             TRIM(CHIDFIT)//'_TIDE_'//TRIM(CHTIDE)//'_RADC_'//TRIM(CHRADC)// &
             '_RADM_'//TRIM(CHRADM)//'_'//TRIM(CHANIO)//'-'//TRIM(CHMES)//'-' &
             //TRIM(CHDIA)//'_'//TRIM(CHHORA)//'_'//TRIM(CHMINS)//'_' &
@@ -472,33 +483,39 @@ MODULE THERMEV2_SUBS
 !=======================================================================
     SUBROUTINE IMPRIMIR_PERFIL(TPRINT,AVGTC,DLM,AVGTM,DUM)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
-!   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: TPRINT,AVGTC,DLM,AVGTM,DUM
-    REAL (KIND=DP) :: R,TDR
-    CHARACTER (LEN=4) :: CHTPRINT
-!   --------------------------------------------------------------------
-!   IMPRESIÓN DE LOS PERFILES DE TEMPERATURA A LO LARGO DE LA INTEGRACIÓN
-!   --------------------------------------------------------------------
-    IF (TPRINT.EQ.0.D0) THEN
-        WRITE(CHTPRINT,'(I1)') INT(TPRINT)
-    ELSE IF(TPRINT.LT.1.D0) THEN
-        WRITE(CHTPRINT,'(I3)') INT(TPRINT*1.D3)
-    ELSE
-        WRITE(CHTPRINT,'(I4)') INT(TPRINT*1.D3)
-    END IF
-!   --------------------------------------------------------------------
-    OPEN(UNIT=12,FILE='../salida/TEMPROFILE'//TRIM(CHTPRINT)//'.OUT',STATUS='UNKNOWN')
-!   --------------------------------------------------------------------
-    R = 0.D0
-    DO WHILE (R.LE.RT)
-        TDR = TPROF(AVGTC,AVGTM,DLM,DUM,R)
-        WRITE(12,*) R,TDR,VISC(TDR)
-        R = R + DR
-    END DO
-!   --------------------------------------------------------------------
-    CLOSE(12)
-!   --------------------------------------------------------------------
+        IMPLICIT NONE
+!       ----------------------------------------------------------------
+        REAL (KIND=DP), INTENT(IN) :: TPRINT,AVGTC,DLM,AVGTM,DUM
+        CHARACTER (LEN=4) :: CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS
+        REAL (KIND=DP) :: R,TDR
+        CHARACTER (LEN=4) :: CHTPRINT
+!       ----------------------------------------------------------------
+!       IMPRESIÓN DE LOS PERFILES DE TEMPERATURA A LO LARGO DE LA 
+!       INTEGRACIÓN
+!       ----------------------------------------------------------------
+        CALL TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
+!       ----------------------------------------------------------------
+        IF (TPRINT.EQ.0.D0) THEN
+            WRITE(CHTPRINT,'(I1)') INT(TPRINT)
+        ELSE IF(TPRINT.LT.1.D0) THEN
+            WRITE(CHTPRINT,'(I3)') INT(TPRINT*1.D3)
+        ELSE
+            WRITE(CHTPRINT,'(I4)') INT(TPRINT*1.D3)
+        END IF
+!       ----------------------------------------------------------------
+        OPEN(UNIT=12,FILE='../out/TEMPROFILE'//TRIM(CHTPRINT)//'_'//TRIM(CHANIO)// &
+        '-'//TRIM(CHMES)//'-'//TRIM(CHDIA)//'_'//TRIM(CHHORA)//'_'//TRIM(CHMINS)//'_' &
+        //TRIM(CHSEGS)//'.OUT',STATUS='UNKNOWN')
+!       ----------------------------------------------------------------
+        R = 0.D0
+        DO WHILE (R.LE.RT)
+            TDR = TPROF(AVGTC,AVGTM,DLM,DUM,R)
+            WRITE(12,*) R,TDR,VISC(TDR)
+            R = R + DR
+        END DO
+    !   --------------------------------------------------------------------
+        CLOSE(12)
+    !   --------------------------------------------------------------------
     END SUBROUTINE IMPRIMIR_PERFIL
 !=======================================================================
     SUBROUTINE REOLOGIA(L,W,ID,ETA,KR,KI)
@@ -1458,4 +1475,4 @@ MODULE THERMEV2_SUBS
     END
 !=======================================================================
 
-END MODULE THERMEV2DB_SUBS
+END MODULE THERMEV2_SUBS
