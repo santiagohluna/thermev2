@@ -196,7 +196,8 @@ MODULE THERMEV2_SUBS
         RAST = RAST + DR
     END DO
 !   --------------------------------------------------------------------
-!   CALCULO DEL NUMERO DE STEFAN
+!   CALCULO DE LOS VALORES MEDIOS DE LAS TEMPERATURAS DE SOLIDUS Y 
+!   LIQUIDUS
 !   --------------------------------------------------------------------
     A1 = RAST
     A2 = RT - DUBL
@@ -205,6 +206,9 @@ MODULE THERMEV2_SUBS
     TSOLM = 3.D0*INT/DEN
     CALL QROMB(TLIQR2,A1,A2,INT)
     TLIQM = 3.D0*INT/DEN
+!   --------------------------------------------------------------------
+!   CALCULO DEL NUMERO DE STEFAN
+!   --------------------------------------------------------------------
 !   PRINT '(A7,1X,F7.2)','TSOLM =',TSOLM
 !   PRINT '(A7,1X,F7.2)','TLIQM = ',TLIQM
     DTMELT = TLIQM - TSOLM
@@ -952,13 +956,16 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     REAL (KIND=DP), INTENT(IN) :: T
     REAL (KIND=DP) :: VISC
+!   --------------------------------------------------------------------
+    REAL (KIND=DP), PARAMETER ::   ACT0 = 5.2D4     ! ACTIVATION TEMPERATURE
+    REAL (KIND=DP), PARAMETER ::  VISC0 = 4.D3      ! REFERENCE VISCOSITY (SCHUBERT ET AL, 2001)
+!   --------------------------------------------------------------------
     REAL (KIND=DP), PARAMETER ::   RGAS = 8.31447D0 ! GAS CONSTANT
     REAL (KIND=DP), PARAMETER ::   EACT = 3.D5      ! VISCOSITY ACTIVATION ENERGY
-    REAL (KIND=DP), PARAMETER ::  VISC0 = 2.5D11     ! REFERENCE VISCOSITY
-    REAL (KIND=DP), PARAMETER :: ETAREF = 2.5D18    ! REFERENCE VISCOSITY (STAMENKOVIC, 2012)
-    REAL (KIND=DP), PARAMETER ::   TREF = 2337.D0   ! REFERENCE TEMPERATURE
+    REAL (KIND=DP), PARAMETER :: ETAREF = 1.D21     ! REFERENCE VISCOSITY (STAMENKOVIC ET AL, 2012)
+    REAL (KIND=DP), PARAMETER ::   TREF = 1600.D0   ! REFERENCE TEMPERATURE
 !   --------------------------------------------------------------------
-    VISC = VISC0*DEXP(EACT/(RGAS*T))
+    VISC = VISC0*DEXP(ACT0/T)
     ! VISC = ETAREF*DEXP(EACT*(1.D0/T - 1.D0/TREF)/RGAS)
 !   --------------------------------------------------------------------
     END FUNCTION VISC
