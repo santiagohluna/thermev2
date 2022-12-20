@@ -279,13 +279,13 @@ MODULE THERMEV2_SUBS
     IF (LSTRUC) THEN
         DYDT(1) = 0.D0
     ELSE
-    DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - AIC*RHOIC*ETAC*DRICDT*(LFE+EG))
+        DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - AIC*RHOIC*ETAC*DRICDT*(LFE+EG))
     END IF
     IF (LTHERM) THEN
         DYDT(2) = (QCMB + QRADM - QCONV - QMELT)*GA/(MM*CM)
     ELSE
         DYDT(2) = (QCMB + QRADM + QTIDAL - QCONV - QMELT)*GA/ &
-                  (MM*CM + RHOM*LMELT*DVLDTM)
+                  (MM*CM*(1.D0 + ST))
     END IF
 !   --------------------------------------------------------------------
     END SUBROUTINE DERIVS
