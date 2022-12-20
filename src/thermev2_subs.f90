@@ -62,7 +62,8 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER ::  QRAD0 = 13.D12        ! PRESENT-DAY MANTLE RADIOGENIC HEAT FLOW
     REAL (KIND=DP), PARAMETER :: QRAD0C = 2.D12         ! PRESENT-DAY MANTLE RADIOGENIC HEAT FLOW
     REAL (KIND=DP), PARAMETER ::     RM = 4.925D6       ! RADIUS TO AVERAGE MANTLE TEMPERATURE
-    REAL (KIND=DP), PARAMETER ::    RAC = 660.D0        ! CRITICAL RAYLEIGH NUMBER
+    REAL (KIND=DP), PARAMETER ::   RACR = 660.D0        ! CRITICAL RAYLEIGH NUMBER
+    REAL (KIND=DP), PARAMETER :: RACRCMB = 2000.D0      ! CRITICAL RAYLEIGH NUMBER AT THE CMB
     REAL (KIND=DP), PARAMETER ::   RHOC = 11900.D0      ! CORE DENSITY
     REAL (KIND=DP), PARAMETER ::  RHOIC = 13000.D0      ! INNER CORE DENSITY
     REAL (KIND=DP), PARAMETER ::   RHOM = 4800.D0       ! MANTLE DENSITY
@@ -73,7 +74,7 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER :: TAURAD = 2.94D0        ! MANTLE RADIOACTIVE DECAY TIME SCALE
     REAL (KIND=DP), PARAMETER :: TAURDC = 1.2D0         ! CORE RADIOACTIVE DECAY TIME SCALE
     REAL (KIND=DP), PARAMETER :: PHIDIS = 0.6D0         ! DISGREGATION POINT
-    REAL (KIND=DP), PARAMETER :: DEN = 2.D0*(1.D0 - 1.D0/(3.D0*GRUN))*(DN/DFE)**2 - 1.D0
+    REAL (KIND=DP), PARAMETER :: DENRIC = 2.D0*(1.D0 - 1.D0/(3.D0*GRUN))*(DN/DFE)**2 - 1.D0
 !   --------------------------------------------------------------------
 !   PARAMETROS DE INTEGRACION
 !   --------------------------------------------------------------------
@@ -106,7 +107,7 @@ MODULE THERMEV2_SUBS
 !   PARAMETROS DE ELEMENTOS RADIOGENICOS
 !   TABLA 4.2 DE TURCOTTE & SCHUBERT (2014)
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: H = (/ 9.46D-5, 5.69D-4, 2.64D-5, 2.92D-5 /)
+    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: HI = (/ 9.46D-5, 5.69D-4, 2.64D-5, 2.92D-5 /)
     REAL (KIND=DP), PARAMETER, DIMENSION(4) :: TAU = (/ 4.47D9*AA/GA, 7.04D8*AA/GA, 1.40D10*AA/GA, 1.25D9*AA/GA /)
     REAL (KIND=DP), PARAMETER, DIMENSION(4) :: LAM = (/ DLOG(2.D0)/TAU(1), DLOG(2.D0)/TAU(2), & 
                                                         LOG(2.D0)/TAU(3), DLOG(2.D0)/TAU(4) /)
@@ -131,11 +132,12 @@ MODULE THERMEV2_SUBS
     LOGICAL LDEM1,LDEM2,LDEM3,LTIDE,LRADC,LRADM,LTHERM,LSTRUC
 !   --------------------------------------------------------------------
     INTEGER, PARAMETER :: LMAXP = 3,QMAXP = 10
-    REAL (KIND=DP) :: FFI(LMAXP,0:LMAXP,0:LMAXP),GGE(LMAXP,0:LMAXP,-QMAXP:QMAXP),ALM(LMAXP,0:LMAXP)
+    REAL (KIND=DP) :: FFI(LMAXP,0:LMAXP,0:LMAXP), &
+                      GGE(LMAXP,0:LMAXP,-QMAXP:QMAXP),ALM(LMAXP,0:LMAXP)
 !   --------------------------------------------------------------------
     CHARACTER (LEN=50) ALGO
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: TSUP,E,I,DTPRINT
+    REAL (KIND=DP) :: TSUP,E,I,DTPRINT,RAST
     INTEGER :: IDREO,DEMID,LMAX,QMAX,TIDEFL,RADCFL,RADMFL,THERMFL, &
                STRUCFL,NTERMS
 !   --------------------------------------------------------------------
@@ -152,57 +154,78 @@ MODULE THERMEV2_SUBS
     INTEGER :: K
     REAL (KIND=DP),INTENT(IN) :: T,Y(2)
     REAL (KIND=DP),INTENT(OUT) :: DYDT(2)
-    REAL (KIND=DP) :: AVGTC,AVGTM,DTM,TUBL,RIC,DRICDT,DLM,DUM,AIC,DTLM,DTMELT, &
-                      ZMELT,FVOL,MMELTP,QCMB,QCONV,QMELT,QRADM,QRADC,TCMB, &
-                      TLBL,TMELT,VM,VUM,MELTF,DVUPDT,QTIDAL,VLM,SUMAQ, &
-                      A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG,ZUM
-    REAL (KIND=DP), ALLOCATABLE :: ASUMAQ(:)
-    COMMON /PRINTOUT/ A,LOD,DUM,DLM,UR,URTOT,QCMB,QCONV,QMELT, &
+    REAL (KIND=DP) :: AVGTC,AVGTM,DTUBL,TUBL,RIC,DRICDT,DLBL,DUBL,AIC, &
+                      DTLBL,DTMELT,ZMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
+                      QRADC,TCMB,TLBL,TMELT,VM,MELTF,DVUPDT,QTIDAL,SUMAQ, &
+                      A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG,ZUM, &
+                      RA,ST,DEN,TSOLM,TLIQM
+    REAL (KIND=DP) :: ASUMAQ(4)
+    COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
                       QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTF
 !   --------------------------------------------------------------------
     AVGTC = Y(1)
     AVGTM = Y(2)
 !   --------------------------------------------------------------------
-!   CALCULO DE VUM Y VLM
+!   CALCULO DE TCMB, TUBL Y TLBL
 !   --------------------------------------------------------------------
-    VM = VISC(AVGTM)
-!   --------------------------------------------------------------------
-!   CALCULO DE QCMB
-!   --------------------------------------------------------------------    
     TCMB = ETAC*AVGTC
     TLBL = ETALM*AVGTM
-    DTLM = TCMB - TLBL
-     DLM = ((KAPM*VLM*RAC)/(ALFAM*GLM*DTLM))**(1.D0/3.D0)
-    QCMB = AC*KLM*DTLM/DLM
+    TUBL = ETAUM*AVGTM
+!   --------------------------------------------------------------------
+!   CALCULO DE LOS SALTOS DE TEMPERATURA
+!   --------------------------------------------------------------------
+    DTLBL = TCMB - TLBL
+    DTUBL = TUBL - TSUP
+!   --------------------------------------------------------------------
+!   CALCULO DE QCMB
+!   --------------------------------------------------------------------
+    DLBL = (RACRCMB*KAPM*VISC(0.5D0*(TLBL + TCMB))/(GLM*ALPHA*DTLBL))**(1.D0/3.D0)
+    QCMB = AC*KLM*DTLBL/DLBL
 !   --------------------------------------------------------------------
 !   CALCULO DE QCONV
 !   --------------------------------------------------------------------    
-      DTM = AVGTM - TSUP
-      DUM = ((KAPM*VUM*RAC)/(ALFAM*GUM*ETAUM*DTM))**BETA
-    QCONV = AT*KUM*ETAUM*DTM/DUM
+    RA = GUM*ALPHA*(DTUBL + DTLBL)*(RT - RC)**3/(KAPM*VISC(TUBL))
+    DUBL = (RT - RC)*(RACR/RA)**BETA
+    QCONV = AT*KUM*ETAUM*DTUBL/DUBL
+!   --------------------------------------------------------------------
+!   DETERMINACION DE LA DISTANCIA ENTRE EL CENTRO DE LA TIERRA Y EL
+!   LIMITE INFERIOR DE LA ASTENOSFERA
+!   --------------------------------------------------------------------
+    RAST = RC
+    DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).LT.0.D0)
+        RAST = RAST + DR
+    END DO
+!   --------------------------------------------------------------------
+!   CALCULO DEL NUMERO DE STEFAN
+!   --------------------------------------------------------------------
+    A1 = RAST
+    A2 = RT - DUBL
+    DEN = (A2**3 - A1**3)
+    CALL QROMB(TSOLR2,A1,A2,INT)
+    TSOLM = 3.D0*INT/DEN
+    CALL QROMB(TLIQR2,A1,A2,INT)
+    TLIQM = 3.D0*INT/DEN
+!   PRINT '(A7,1X,F7.2)','TSOLM =',TSOLM
+!   PRINT '(A7,1X,F7.2)','TLIQM = ',TLIQM
+    DTMELT = TLIQM - TSOLM
+    ST = LMELT/(CM*DTMELT)
+!   PRINT '(A4,1X,F7.2)','ST =',ST
 !   --------------------------------------------------------------------
 !   CALCULO DE QMELT
 !   --------------------------------------------------------------------
-    DVUPDT = 1.16D0*KAPM*AT/DUM
-    TUBL = ETAUM*AVGTM
-    TMELT = 0.5D0*(TUBL + TSOL0)
-    ZMELT = 0.5D0*(TUBL-TSOL0)/GAMMZ
-    DTMELT = TMELT - TSUP - ZMELT*GAMMAD
-!    FVOL = FVOL0*(TMELT-1373.D0)
-!    FMELTC = FVOL*RHOSOL/(RHOMEL + FVOL*(RHOSOL - RHOMEL))
-!    MMELTP = DVUPDT*RHOSOL*FMELTC
-    ZUM = RT - DUM
-    MELTF = FMELT(ZUM,DUM,TUBL)
+    DVUPDT = 1.16D0*KAPM*AT/DUBL
+    ZUM = RT - DUBL
+    MELTF = FMELT(ZUM,DUBL,TUBL)
     MMELTP = DVUPDT*RHOSOL*MELTF
-    QMELT = ERUPT*MMELTP*(LMELT + CM*500.D0)
+    QMELT = ERUPT*MMELTP*(LMELT + CM*DTMELT)
 !   --------------------------------------------------------------------
 !   CALCULO DE QRADM
 !   --------------------------------------------------------------------
     IF (LRADM) THEN
         DO K=1,4
-            ASUMAQ(K) = MM*FC(K)*C0(K)*H(K)*DEXP(LAM(K)*(T0-T))
+            ASUMAQ(K) = MM*FC(K)*C0(K)*HI(K)*DEXP(LAM(K)*(T0-T))
         END DO
-        SUMAQ = SUMAR(K-1,ASUMAQ)
+        SUMAQ = SUMAR(4,ASUMAQ)
         QRADM = RHOM*SUMAQ
     ELSE
         QRADM = 0.D0
@@ -234,7 +257,7 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     NUM = DLOG(TFE0/TCMB)*(DN/RC)**2 - 1.D0
     IF (NUM.GE.0.D0) THEN
-        RADIC = NUM/DEN
+        RADIC = NUM/DENRIC
         RIC = RC*DSQRT(RADIC)
     ELSE 
         RIC = 0.D0
@@ -256,7 +279,7 @@ MODULE THERMEV2_SUBS
     IF (LSTRUC) THEN
         DYDT(1) = 0.D0
     ELSE
-        DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - AIC*RHOIC*ETAC*DRICDT*(LFE+EG))
+    DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - AIC*RHOIC*ETAC*DRICDT*(LFE+EG))
     END IF
     IF (LTHERM) THEN
         DYDT(2) = (QCMB + QRADM - QCONV - QMELT)*GA/(MM*CM)
@@ -283,7 +306,7 @@ MODULE THERMEV2_SUBS
 !   CALCULO DE LA FRACCION DE VOLUMEN DEL MANTO ACTIVO PARA LA 
 !   INTERACCION DE MAREAS
 !   --------------------------------------------------------------------
-    RPHI = RC
+    RPHI = RAST
     DO WHILE (FMELT(TUBL,RT,RPHI).LT.PHIDIS)
         RPHI = RPHI + DR
     END DO
@@ -1172,7 +1195,7 @@ MODULE THERMEV2_SUBS
     REAL*8 EPS,H1,HMIN,X1,X2,YSTART(NVAR),TINY
     EXTERNAL DERIVS,RKQS
     PARAMETER (MAXSTP=10000,NMAX=50,KMAXX=200,TINY=1.E-30)
-    INTEGER I,KMAX,KOUNT,NSTP
+    INTEGER K,KMAX,KOUNT,NSTP
     REAL*8 DXSAV,H,HDID,HNEXT,X,XSAV,DYDX(NMAX),XP(KMAXX),Y(NMAX), &
            YP(NMAX,KMAXX),YSCAL(NMAX)
     COMMON /PATH/ KMAX,KOUNT,DXSAV,XP,YP
@@ -1181,22 +1204,22 @@ MODULE THERMEV2_SUBS
     NOK=0
     NBAD=0
     KOUNT=0
-    DO I=1,NVAR
-      Y(I)=YSTART(I)
+    DO K=1,NVAR
+      Y(K)=YSTART(K)
     END DO
     IF (KMAX.GT.0) XSAV=X-2.*DXSAV
     DO NSTP=1,MAXSTP
       CALL DERIVS(X,Y,DYDX)
-      DO I=1,NVAR
-        YSCAL(I)=ABS(Y(I))+ABS(H*DYDX(I))+TINY
+      DO K=1,NVAR
+        YSCAL(K)=ABS(Y(K))+ABS(H*DYDX(K))+TINY
       END DO
       IF(KMAX.GT.0)THEN
         IF(ABS(X-XSAV).GT.ABS(DXSAV)) THEN
           IF(KOUNT.LT.KMAX-1)THEN
             KOUNT=KOUNT+1
             XP(KOUNT)=X
-            DO I=1,NVAR
-              YP(I,KOUNT)=Y(I)
+            DO K=1,NVAR
+              YP(K,KOUNT)=Y(K)
             END DO
             XSAV=X
           ENDIF
@@ -1210,14 +1233,14 @@ MODULE THERMEV2_SUBS
         NBAD=NBAD+1
       ENDIF
       IF((X-X2)*(X2-X1).GE.0.)THEN
-        DO I=1,NVAR
-          YSTART(I)=Y(I)
+        DO K=1,NVAR
+          YSTART(K)=Y(K)
         END DO
         IF(KMAX.NE.0)THEN
           KOUNT=KOUNT+1
           XP(KOUNT)=X
-          DO I=1,NVAR
-            YP(I,KOUNT)=Y(I)
+          DO K=1,NVAR
+            YP(K,KOUNT)=Y(K)
           END DO
         ENDIF
         RETURN
@@ -1236,7 +1259,7 @@ MODULE THERMEV2_SUBS
     PARAMETER (NMAX=50,KMAXX=8,IMAX=KMAXX+1,SAFE1=.25,SAFE2=.7, &
                REDMAX=1.E-5,REDMIN=.7,TINY=1.E-30,SCALMX=.1)
 !   USES DERIVS,MMID,PZEXTR
-    INTEGER I,IQ,K,KK,KM,KMAX,KOPT,NSEQ(IMAX)
+    INTEGER K,IQ,J,KK,KM,KMAX,KOPT,NSEQ(IMAX)
     REAL*8 EPS1,EPSOLD,ERRMAX,FACT,H,RED,SCALE,WORK,WRKMIN,XEST,XNEW, &
            A(IMAX),ALF(KMAXX,KMAXX),ERR(KMAXX),YERR(NMAX),YSAV(NMAX),YSEQ(NMAX)
     LOGICAL FIRST,REDUCT
@@ -1264,8 +1287,8 @@ MODULE THERMEV2_SUBS
 1     KMAX=KOPT
     ENDIF
     H=HTRY
-    DO I=1,NV
-      YSAV(I)=Y(I)
+    DO K=1,NV
+      YSAV(K)=Y(K)
     END DO
     IF(H.NE.HNEXT.OR.X.NE.XNEW)THEN
       FIRST=.TRUE.
@@ -1280,8 +1303,8 @@ MODULE THERMEV2_SUBS
       CALL PZEXTR(K,XEST,YSEQ,Y,YERR,NV)
       IF(K.NE.1)THEN
         ERRMAX=TINY
-        DO I=1,NV
-          ERRMAX=MAX(ERRMAX,ABS(YERR(I)/YSCAL(I)))
+        DO J=1,NV
+          ERRMAX=MAX(ERRMAX,ABS(YERR(J)/YSCAL(J)))
         END DO
         ERRMAX=ERRMAX/EPS
         KM=K-1
@@ -1342,27 +1365,27 @@ MODULE THERMEV2_SUBS
     REAL*8 HTOT,XS,DYDX(NVAR),Y(NVAR),YOUT(NVAR)
     EXTERNAL DERIVS
     PARAMETER (NMAX=50)
-    INTEGER I,N
+    INTEGER K,N
     REAL*8 H,H2,SWAP,X,YM(NMAX),YN(NMAX)
     H=HTOT/NSTEP
-    DO I=1,NVAR
-      YM(I)=Y(I)
-      YN(I)=Y(I)+H*DYDX(I)
+    DO K=1,NVAR
+      YM(K)=Y(K)
+      YN(K)=Y(K)+H*DYDX(K)
     END DO
     X=XS+H
     CALL DERIVS(X,YN,YOUT)
     H2=2.*H
     DO N=2,NSTEP
-      DO I=1,NVAR
-        SWAP=YM(I)+H2*YOUT(I)
-        YM(I)=YN(I)
-        YN(I)=SWAP
+      DO K=1,NVAR
+        SWAP=YM(K)+H2*YOUT(K)
+        YM(K)=YN(K)
+        YN(K)=SWAP
       END DO
       X=X+H
       CALL DERIVS(X,YN,YOUT)
     END DO
-    DO I=1,NVAR
-      YOUT(I)=0.5*(YM(I)+YN(I)+H*YOUT(I))
+    DO K=1,NVAR
+      YOUT(K)=0.5*(YM(K)+YN(K)+H*YOUT(K))
     END DO
     RETURN
     END
@@ -1413,14 +1436,14 @@ MODULE THERMEV2_SUBS
     EXTERNAL DERIVS
     PARAMETER (NMAX=50)
 !   USES DERIVS,RKCK
-    INTEGER I
+    INTEGER K
     REAL*8 ERRMAX,H,XNEW,YERR(NMAX),YTEMP(NMAX),SAFETY,PGROW,PSHRNK,ERRCON
     PARAMETER (SAFETY=0.9,PGROW=-.2,PSHRNK=-.25,ERRCON=1.89E-4)
     H=HTRY
 1   CALL RKCK(Y,DYDX,N,X,H,YTEMP,YERR,DERIVS)
     ERRMAX=0.
-    DO I=1,N
-      ERRMAX=MAX(ERRMAX,ABS(YERR(I)/YSCAL(I)))
+    DO K=1,N
+      ERRMAX=MAX(ERRMAX,ABS(YERR(K)/YSCAL(K)))
     END DO
     ERRMAX=ERRMAX/EPS
     IF(ERRMAX.GT.1.)THEN
@@ -1439,8 +1462,8 @@ MODULE THERMEV2_SUBS
       ENDIF
       HDID=H
       X=X+H
-      DO I=1,N
-        Y(I)=YTEMP(I)
+      DO K=1,N
+        Y(K)=YTEMP(K)
       END DO
       RETURN
     ENDIF
@@ -1452,7 +1475,7 @@ MODULE THERMEV2_SUBS
     EXTERNAL DERIVS
     PARAMETER (NMAX=50)
 !   USES DERIVS
-    INTEGER I
+    INTEGER K
     REAL*8 AK2(NMAX),AK3(NMAX),AK4(NMAX),AK5(NMAX),AK6(NMAX), &
     YTEMP(NMAX),A2,A3,A4,A5,A6,B21,B31,B32,B41,B42,B43,B51,B52,B53, &
     B54,B61,B62,B63,B64,B65,C1,C3,C4,C6,DC1,DC3,DC4,DC5,DC6
@@ -1463,31 +1486,31 @@ MODULE THERMEV2_SUBS
     C3=250./621.,C4=125./594.,C6=512./1771.,DC1=C1-2825./27648., &
     DC3=C3-18575./48384.,DC4=C4-13525./55296.,DC5=-277./14336., &
     DC6=C6-.25)
-    DO I=1,N
-        YTEMP(I)=Y(I)+B21*H*DYDX(I)
+    DO K=1,N
+        YTEMP(K)=Y(K)+B21*H*DYDX(K)
     END DO
     CALL DERIVS(X+A2*H,YTEMP,AK2)
-    DO I=1,N
-      YTEMP(I)=Y(I)+H*(B31*DYDX(I)+B32*AK2(I))
+    DO K=1,N
+      YTEMP(K)=Y(K)+H*(B31*DYDX(K)+B32*AK2(K))
     END DO
     CALL DERIVS(X+A3*H,YTEMP,AK3)
-    DO I=1,N
-      YTEMP(I)=Y(I)+H*(B41*DYDX(I)+B42*AK2(I)+B43*AK3(I))
+    DO K=1,N
+      YTEMP(K)=Y(K)+H*(B41*DYDX(K)+B42*AK2(K)+B43*AK3(K))
     END DO
     CALL DERIVS(X+A4*H,YTEMP,AK4)
-    DO I=1,N
-      YTEMP(I)=Y(I)+H*(B51*DYDX(I)+B52*AK2(I)+B53*AK3(I)+B54*AK4(I))
+    DO K=1,N
+      YTEMP(K)=Y(K)+H*(B51*DYDX(K)+B52*AK2(K)+B53*AK3(K)+B54*AK4(K))
     END DO
     CALL DERIVS(X+A5*H,YTEMP,AK5)
-    DO I=1,N
-      YTEMP(I)=Y(I)+H*(B61*DYDX(I)+B62*AK2(I)+B63*AK3(I)+B64*AK4(I)+B65*AK5(I))
+    DO K=1,N
+      YTEMP(K)=Y(K)+H*(B61*DYDX(K)+B62*AK2(K)+B63*AK3(K)+B64*AK4(K)+B65*AK5(K))
     END DO
     CALL DERIVS(X+A6*H,YTEMP,AK6)
-    DO I=1,N
-      YOUT(I)=Y(I)+H*(C1*DYDX(I)+C3*AK3(I)+C4*AK4(I)+C6*AK6(I))
+    DO K=1,N
+      YOUT(K)=Y(K)+H*(C1*DYDX(K)+C3*AK3(K)+C4*AK4(K)+C6*AK6(K))
     END DO
-    DO I=1,N
-      YERR(I)=H*(DC1*DYDX(I)+DC3*AK3(I)+DC4*AK4(I)+DC5*AK5(I)+DC6*AK6(I))
+    DO K=1,N
+      YERR(K)=H*(DC1*DYDX(K)+DC3*AK3(K)+DC4*AK4(K)+DC5*AK5(K)+DC6*AK6(K))
     END DO
     RETURN
     END
