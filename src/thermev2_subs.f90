@@ -155,13 +155,13 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP),INTENT(IN) :: T,Y(2)
     REAL (KIND=DP),INTENT(OUT) :: DYDT(2)
     REAL (KIND=DP) :: AVGTC,AVGTM,DTUBL,TUBL,RIC,DRICDT,DLBL,DUBL,AIC, &
-                      DTLBL,DTMELT,ZMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
-                      QRADC,TCMB,TLBL,TMELT,VM,MELTF,DVUPDT,QTIDAL,SUMAQ, &
-                      A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG,ZUM, &
+                      DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
+                      QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL,SUMAQ, &
+                      A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
                       RA,ST,DEN,TSOLM,TLIQM
     REAL (KIND=DP) :: ASUMAQ(4)
     COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
-                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTF
+                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTFM
 !   --------------------------------------------------------------------
     AVGTC = Y(1)
     AVGTM = Y(2)
@@ -214,9 +214,9 @@ MODULE THERMEV2_SUBS
 !   CALCULO DE QMELT
 !   --------------------------------------------------------------------
     DVUPDT = 1.16D0*KAPM*AT/DUBL
-    ZUM = RT - DUBL
-    MELTF = FMELT(ZUM,DUBL,TUBL)
-    MMELTP = DVUPDT*RHOSOL*MELTF
+    CALL QROMB(FMELT,A1,A2,INT)
+    MELTFM = 3.D0*INT/DEN
+    MMELTP = DVUPDT*RHOSOL*MELTFM
     QMELT = ERUPT*MMELTP*(LMELT + CM*DTMELT)
 !   --------------------------------------------------------------------
 !   CALCULO DE QRADM
@@ -1037,6 +1037,17 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     END FUNCTION FMELT
 !=======================================================================
+    FUNCTION FMELTR2(R,DUM,TUBL)
+!   --------------------------------------------------------------------
+    IMPLICIT NONE
+!   --------------------------------------------------------------------
+    REAL (KIND=DP), INTENT(IN) :: R,DUM,TUBL
+    REAL (KIND=DP) :: FMELTR2
+!   --------------------------------------------------------------------
+    FMELTR2 = FMELT(R,DUM,TUBL)*R**2
+!   --------------------------------------------------------------------
+    END FUNCTION FMELTR2
+!=======================================================================
     FUNCTION TSOLR2(R)
 !   --------------------------------------------------------------------
     IMPLICIT NONE
@@ -1264,7 +1275,7 @@ MODULE THERMEV2_SUBS
            A(IMAX),ALF(KMAXX,KMAXX),ERR(KMAXX),YERR(NMAX),YSAV(NMAX),YSEQ(NMAX)
     LOGICAL FIRST,REDUCT
     SAVE A,ALF,EPSOLD,FIRST,KMAX,KOPT,NSEQ,XNEW
-    EXTERNAL DERIVS
+    EXTERNAL :: DERIVS
     DATA FIRST/.TRUE./,EPSOLD/-1./
     DATA NSEQ /2,4,6,8,10,12,14,16,18/
     IF(EPS.NE.EPSOLD)THEN
