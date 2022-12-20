@@ -214,7 +214,7 @@ MODULE THERMEV2_SUBS
 !   CALCULO DE QMELT
 !   --------------------------------------------------------------------
     DVUPDT = 1.16D0*KAPM*AT/DUBL
-    CALL QROMB(FMELT,A1,A2,INT)
+    CALL QROMB(FMELTR2,A1,A2,INT)
     MELTFM = 3.D0*INT/DEN
     MMELTP = DVUPDT*RHOSOL*MELTFM
     QMELT = ERUPT*MMELTP*(LMELT + CM*DTMELT)
