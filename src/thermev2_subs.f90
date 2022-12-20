@@ -103,6 +103,16 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER ::   MA2 = (AF-AI)/4.5D0
     REAL (KIND=DP), PARAMETER :: MLOD2 = (LODF-LODI2)/4.5D0
 !   --------------------------------------------------------------------
+!   PARAMETROS DE ELEMENTOS RADIOGENICOS
+!   TABLA 4.2 DE TURCOTTE & SCHUBERT (2014)
+!   --------------------------------------------------------------------
+    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: H = (/ 9.46D-5, 5.69D-4, 2.64D-5, 2.92D-5 /)
+    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: TAU = (/ 4.47D9*AA/GA, 7.04D8*AA/GA, 1.40D10*AA/GA, 1.25D9*AA/GA /)
+    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: LAM = (/ DLOG(2.D0)/TAU(1), DLOG(2.D0)/TAU(2), & 
+                                                        LOG(2.D0)/TAU(3), DLOG(2.D0)/TAU(4) /)
+    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: C0 = (/ 31.D-9, 31.D-9, 124.D-9, 31.D-5 /)
+    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: FC = (/ 0.9928D0, 0.0071D0, 1.D0, 1.19D-4 /)
+!   --------------------------------------------------------------------
 !   PARAMETROS REOLOGICOS
 !   --------------------------------------------------------------------
     REAL (KIND=DP), PARAMETER ::  RIGDZ = 8.0E10
@@ -139,12 +149,14 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     IMPLICIT NONE
 !   --------------------------------------------------------------------
+    INTEGER :: K
     REAL (KIND=DP),INTENT(IN) :: T,Y(2)
     REAL (KIND=DP),INTENT(OUT) :: DYDT(2)
     REAL (KIND=DP) :: AVGTC,AVGTM,DTM,TUBL,RIC,DRICDT,DLM,DUM,AIC,DTLM,DTMELT, &
                       ZMELT,FVOL,MMELTP,QCMB,QCONV,QMELT,QRADM,QRADC,TCMB, &
-                      TLBL,TMELT,VM,VUM,MELTF,DVUPDT,QTIDAL,VLM, &
+                      TLBL,TMELT,VM,VUM,MELTF,DVUPDT,QTIDAL,VLM,SUMAQ, &
                       A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG,ZUM
+    REAL (KIND=DP), ALLOCATABLE :: ASUMAQ(:)
     COMMON /PRINTOUT/ A,LOD,DUM,DLM,UR,URTOT,QCMB,QCONV,QMELT, &
                       QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTF
 !   --------------------------------------------------------------------
@@ -154,8 +166,6 @@ MODULE THERMEV2_SUBS
 !   CALCULO DE VUM Y VLM
 !   --------------------------------------------------------------------
     VM = VISC(AVGTM)
-    VUM = 0.1D0*VM
-    VLM = FVISC*VUM
 !   --------------------------------------------------------------------
 !   CALCULO DE QCMB
 !   --------------------------------------------------------------------    
@@ -189,7 +199,11 @@ MODULE THERMEV2_SUBS
 !   CALCULO DE QRADM
 !   --------------------------------------------------------------------
     IF (LRADM) THEN
-        QRADM = QRAD0*DEXP((T0-T)/TAURAD)
+        DO K=1,4
+            ASUMAQ(K) = MM*FC(K)*C0(K)*H(K)*DEXP(LAM(K)*(T0-T))
+        END DO
+        SUMAQ = SUMAR(K-1,ASUMAQ)
+        QRADM = RHOM*SUMAQ
     ELSE
         QRADM = 0.D0
     END IF
