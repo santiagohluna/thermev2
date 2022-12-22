@@ -158,7 +158,7 @@ MODULE THERMEV2_SUBS
                       DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
                       QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL, &
                       A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
-                      RA,ST,DEN,TSOLM,TLIQM
+                      RA,ST,DEN,TSOLM,TLIQM,TMELT,ZMELT,ZUM
     REAL (KIND=DP) :: ASUMAQ(4)
     COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
                       QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTFM
@@ -211,16 +211,17 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
 !   PRINT '(A7,1X,F7.2)','TSOLM =',TSOLM
 !   PRINT '(A7,1X,F7.2)','TLIQM = ',TLIQM
-    DTMELT = TLIQM - TSOLM
-    ST = LMELT/(CM*DTMELT)
+    ST = LMELT/(CM*(TLIQM - TSOLM))
 !   PRINT '(A4,1X,F7.2)','ST =',ST
 !   --------------------------------------------------------------------
 !   CALCULO DE QMELT
 !   --------------------------------------------------------------------
     DVUPDT = 1.16D0*KAPM*AT/DUBL
-    CALL QROMB(FMELTR2,A1,A2,INT)
-    MELTFM = 3.D0*INT/DEN
-    MMELTP = DVUPDT*RHOSOL*MELTFM
+    TMELT = 0.5D0*(TUBL + TSOL0)
+    ZMELT = 0.5D0*(TUBL-TSOL0)/GAMMZ
+    DTMELT = TMELT - TSUP - ZMELT*GAMMAD
+    ZUM = RT - DUBL
+    MMELTP = DVUPDT*RHOSOL*FMELT(ZUM,DUBL,TUBL)
     QMELT = ERUPT*MMELTP*(LMELT + CM*DTMELT)
 !   --------------------------------------------------------------------
 !   CALCULO DE QRADM
