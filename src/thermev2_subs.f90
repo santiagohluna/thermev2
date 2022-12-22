@@ -156,7 +156,7 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP),INTENT(OUT) :: DYDT(2)
     REAL (KIND=DP) :: AVGTC,AVGTM,DTUBL,TUBL,RIC,DRICDT,DLBL,DUBL,AIC, &
                       DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
-                      QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL,SUMAQ, &
+                      QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL, &
                       A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
                       RA,ST,DEN,TSOLM,TLIQM
     REAL (KIND=DP) :: ASUMAQ(4)
@@ -229,8 +229,7 @@ MODULE THERMEV2_SUBS
         DO K=1,4
             ASUMAQ(K) = MM*FC(K)*C0(K)*HI(K)*DEXP(LAM(K)*(T0-T))
         END DO
-        SUMAQ = SUMAR(4,ASUMAQ)
-        QRADM = RHOM*SUMAQ
+        QRADM = SUMAR(4,ASUMAQ)
     ELSE
         QRADM = 0.D0
     END IF
@@ -252,7 +251,7 @@ MODULE THERMEV2_SUBS
         DELT = TUBL - TLBL
         CALL QROMB(VISC,A1,A2,INT)
         ETAVG = RHOM*INT/DELT
-        QTIDAL = PM(ETAVG,TUBL,A,LOD)
+        QTIDAL = PM(ETAVG,TUBL,DUBL,A,LOD)
     ELSE
         QTIDAL = 0.D0
     END IF
@@ -294,7 +293,7 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     END SUBROUTINE DERIVS
 !=======================================================================
-    FUNCTION PM(ETA,TUBL,A,LOD)
+    FUNCTION PM(ETA,TUBL,DUBL,A,LOD)
 !   --------------------------------------------------------------------
 !   ESTA FUNCIÓN CALCULA EL CALOR GENERADO POR INTERACCIÓN DE MAREAS
 !   USANDO LA EXPRESIÓN DERIVADA POR EFROIMSKY Y MAKAROV (2014)
@@ -302,7 +301,7 @@ MODULE THERMEV2_SUBS
     IMPLICIT NONE
 !   --------------------------------------------------------------------
     INTEGER :: J,L,M,P,Q,OK
-    REAL (KIND=DP),INTENT(IN) :: ETA,TUBL,A,LOD
+    REAL (KIND=DP),INTENT(IN) :: ETA,TUBL,A,LOD,DUBL
     REAL (KIND=DP) :: N,THP,RSA,WLMPQ,XLMPQ,SUMAPM,FTVF
     REAL (KIND=DP) :: RPHI,PM,KR,KI
     REAL (KIND=DP), ALLOCATABLE :: RSAL(:),ASUMA(:)
@@ -311,7 +310,7 @@ MODULE THERMEV2_SUBS
 !   INTERACCION DE MAREAS
 !   --------------------------------------------------------------------
     RPHI = RAST
-    DO WHILE (FMELT(TUBL,RT,RPHI).LT.PHIDIS)
+    DO WHILE (FMELT(RPHI,DUBL,TUBL).LT.PHIDIS)
         RPHI = RPHI + DR
     END DO
     FTVF = (RPHI/RT)**3-(RC/RT)**3
