@@ -137,7 +137,7 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     CHARACTER (LEN=50) ALGO
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: TSUP,E,I,DTPRINT,RAST
+    REAL (KIND=DP) :: TSUP,E,I,DTPRINT,RAST,RLIT
     INTEGER :: IDREO,DEMID,LMAX,QMAX,TIDEFL,RADCFL,RADMFL,THERMFL, &
                STRUCFL,NTERMS
 !   --------------------------------------------------------------------
@@ -191,9 +191,17 @@ MODULE THERMEV2_SUBS
 !   DETERMINACION DE LA DISTANCIA ENTRE EL CENTRO DE LA TIERRA Y EL
 !   LIMITE INFERIOR DE LA ASTENOSFERA
 !   --------------------------------------------------------------------
-    RAST = RC
-    DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).LT.0.D0)
+    RAST = RT - DUBL
+    DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).GT.0.D0)
         RAST = RAST + DR
+    END DO
+!   --------------------------------------------------------------------
+!   DETERMINACIÓN DE LA DISTANCIA RADIAL ENTRE EL CENTRO DE LA TIERRA Y
+!   LA BASE DE LA LITÓSFERA O LÍMITE SUPERIOR DE LA ASTENÓSFERA
+!   --------------------------------------------------------------------
+    RLIT = RT - DUBL
+    DO WHILE ((TM(TUBL,DUBL,RLIT)-TSOL(RLIT)).GT.0.D0)
+        RLIT = RLIT + DR
     END DO
 !   --------------------------------------------------------------------
 !   CALCULO DE LOS VALORES MEDIOS DE LAS TEMPERATURAS DE SOLIDUS Y 
@@ -1142,15 +1150,11 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     IMPLICIT NONE
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: RLIT,LIT
+    REAL (KIND=DP) :: LIT
     REAL (KIND=DP),INTENT(IN) :: AVGTC,AVGTM,DUM,DLM
 !   --------------------------------------------------------------------
 !   DETERMINACION DEL ESPESOR DE LA LITOSFERA
 !   --------------------------------------------------------------------
-    RLIT = RT - DUM
-    DO WHILE ((TPROF(AVGTC,AVGTM,DLM,DUM,RLIT)-TSOL(RLIT)).GE.0.D0)
-        RLIT = RLIT + DR
-    END DO
     LIT = (RT-RLIT)/1000.D0
 !   --------------------------------------------------------------------
     END FUNCTION LIT
