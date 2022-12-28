@@ -193,14 +193,14 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     RAST = RT - DUBL
     DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).GT.0.D0)
-        RAST = RAST + DR
+        RAST = RAST - DR
     END DO
 !   --------------------------------------------------------------------
 !   DETERMINACIÓN DE LA DISTANCIA RADIAL ENTRE EL CENTRO DE LA TIERRA Y
 !   LA BASE DE LA LITÓSFERA O LÍMITE SUPERIOR DE LA ASTENÓSFERA
 !   --------------------------------------------------------------------
     RLIT = RT - DUBL
-    DO WHILE ((TM(TUBL,DUBL,RLIT)-TSOL(RLIT)).GT.0.D0)
+    DO WHILE ((TCONDUBL(TUBL,DUBL,RLIT)-TSOL(RLIT)).GT.0.D0)
         RLIT = RLIT + DR
     END DO
 !   --------------------------------------------------------------------
@@ -208,7 +208,7 @@ MODULE THERMEV2_SUBS
 !   LIQUIDUS
 !   --------------------------------------------------------------------
     A1 = RAST
-    A2 = RT - DUBL
+    A2 = RLIT
     DEN = (A2**3 - A1**3)
     CALL QROMB(TSOLR2,A1,A2,INT)
     TSOLM = 3.D0*INT/DEN
@@ -982,6 +982,28 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     END FUNCTION TLIQ
 !=======================================================================
+    FUNCTION TCONDUBL(TUBL,DUM,R)
+!   --------------------------------------------------------------------
+        IMPLICIT NONE
+!       ----------------------------------------------------------------
+        REAL (KIND=DP), INTENT(IN) ::TUBL,DUM,R
+        REAL (KIND=DP) :: TCONDUBL
+!       ----------------------------------------------------------------
+        TCONDUBL = TSUP + (TUBL-TSUP)*ERF(2.D0*(RT-R)/DUM)
+!   --------------------------------------------------------------------
+    END FUNCTION TCONDUBL
+!=======================================================================
+    FUNCTION TCONDLBL(TCMB,TLBL,DLM,R)
+!   --------------------------------------------------------------------
+        IMPLICIT NONE
+!       ----------------------------------------------------------------
+        REAL (KIND=DP), INTENT(IN) :: TCMB,TLBL,DLM,R
+        REAL (KIND=DP) :: TCONDLBL
+!       ----------------------------------------------------------------
+        TCONDLBL = TCMB + (TCMB-TLBL)*ERF(2.D0*(RC-R)/DLM)
+!   --------------------------------------------------------------------
+    END FUNCTION TCONDLBL
+!=======================================================================
     FUNCTION TPROF(TCAVG,TMAVG,DLM,DUM,R)
 !   --------------------------------------------------------------------
     IMPLICIT NONE
@@ -996,11 +1018,11 @@ MODULE THERMEV2_SUBS
     IF (R.LE.RC) THEN
         TPROF = TC(TCMB,R)
     ELSE IF ((R.GT.RC).AND.(R.LE.(RC+DLM))) THEN
-        TPROF = TCMB + (TCMB-TLBL)*ERF(2.D0*(RC-R)/DLM)
+        TPROF = TCONDLBL(TCMB,TLBL,DLM,R)
     ELSE IF ((R.GE.(RC+DLM)).AND.(R.LE.(RT-DUM))) THEN
         TPROF = TM(TUBL,DUM,R)
     ELSE
-        TPROF = TSUP + (TUBL-TSUP)*ERF(2.D0*(RT-R)/DUM)
+        TPROF = TCONDUBL(TUBL,DUM,R)
     END IF
 !   --------------------------------------------------------------------
     END FUNCTION TPROF
