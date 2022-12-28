@@ -80,7 +80,7 @@ PROGRAM THERMEV_DB
       Y(1) = TC0
       Y(2) = TM0
     CALL DERIVS(T,Y,DYDT)
-    DLIT = LIT(TC0,TM0,DUM,DLM)
+    DLIT = RT - RLIT
     PRINT *,'... LISTO!'
     PRINT *,' '
     PRINT *,'==================='
@@ -132,7 +132,7 @@ PROGRAM THERMEV_DB
 !       ----------------------------------------------------------------
 !       ESCRITURA DE RESULTADOS EN EL ARCHIVO DE SALIDA
 !       ----------------------------------------------------------------
-        DLIT = LIT(TC0,TM0,DUM,DLM)
+        DLIT = RT - RLIT
 !                    1   2     3   4    5      6      7       8     9     10          11
         WRITE(11,*) T,AVGTC,AVGTM,DLIT,A/A0,LOD/LODF,RIC/1.D3,UR,URTOT,DUM/1000.D0,DLM/1000.D0, &
 !             12           13          14           15           16            17           18
