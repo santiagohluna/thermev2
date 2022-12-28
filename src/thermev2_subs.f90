@@ -160,7 +160,7 @@ MODULE THERMEV2_SUBS
                       DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
                       QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL, &
                       A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
-                      RA,ST,DEN,TSOLM,TLIQM,TMELT,ZMELT,ZUM
+                      RA,ST,TSOLM,TLIQM,TMELT,ZMELT,ZUM
     REAL (KIND=DP) :: ASUMAQ(4)
     COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
                       QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTFM
@@ -190,38 +190,9 @@ MODULE THERMEV2_SUBS
     DUBL = (RT - RC)*(RACR/RA)**BETA
     QCONV = AT*KUM*ETAUM*DTUBL/DUBL
 !   --------------------------------------------------------------------
-!   DETERMINACION DE LA DISTANCIA ENTRE EL CENTRO DE LA TIERRA Y EL
-!   LIMITE INFERIOR DE LA ASTENOSFERA
-!   --------------------------------------------------------------------
-    RAST = RT - DUBL
-    DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).GT.0.D0)
-        RAST = RAST - DR
-    END DO
-!   --------------------------------------------------------------------
-!   DETERMINACIÓN DE LA DISTANCIA RADIAL ENTRE EL CENTRO DE LA TIERRA Y
-!   LA BASE DE LA LITÓSFERA O LÍMITE SUPERIOR DE LA ASTENÓSFERA
-!   --------------------------------------------------------------------
-    RLIT = RT - DUBL
-    DO WHILE ((TCONDUBL(TUBL,DUBL,RLIT)-TSOL(RLIT)).GT.0.D0)
-        RLIT = RLIT + DR
-    END DO
-!   --------------------------------------------------------------------
-!   CALCULO DE LOS VALORES MEDIOS DE LAS TEMPERATURAS DE SOLIDUS Y 
-!   LIQUIDUS
-!   --------------------------------------------------------------------
-    A1 = RAST
-    A2 = RLIT
-    DEN = (A2**3 - A1**3)
-    CALL QROMB(TSOLR2,A1,A2,INT)
-    TSOLM = 3.D0*INT/DEN
-    CALL QROMB(TLIQR2,A1,A2,INT)
-    TLIQM = 3.D0*INT/DEN
-!   --------------------------------------------------------------------
 !   CALCULO DEL NUMERO DE STEFAN
 !   --------------------------------------------------------------------
-!   PRINT '(A7,1X,F7.2)','TSOLM =',TSOLM
-!   PRINT '(A7,1X,F7.2)','TLIQM = ',TLIQM
-    ST = LMELT/(CM*(TLIQM - TSOLM))
+    ST = STEFAN(TUBL,DUBL)
 !   PRINT '(A4,1X,F7.2)','ST =',ST
 !   --------------------------------------------------------------------
 !   CALCULO DE QMELT
@@ -1136,6 +1107,46 @@ MODULE THERMEV2_SUBS
     FMELTR2 = FMELT(R,DUM,TUBL)*R**2
 !   --------------------------------------------------------------------
     END FUNCTION FMELTR2
+!=======================================================================
+    FUNCTION STEFAN(TUBL,DUBL)
+!   --------------------------------------------------------------------
+!   Esta función calcula el número de Stefan
+!   --------------------------------------------------------------------
+        IMPLICIT NONE
+!       ----------------------------------------------------------------
+        REAL (KIND=DP), INTENT(IN) :: TUBL,DUBL
+        REAL (KIND=DP) :: STEFAN,R1,R2,DEN,TSOLM,TLIQM,INT
+!       ----------------------------------------------------------------
+!       DETERMINACION DE LA DISTANCIA ENTRE EL CENTRO DE LA TIERRA Y EL
+!       LIMITE INFERIOR DE LA ASTENOSFERA
+!       ----------------------------------------------------------------
+        RAST = RT - DUBL
+        DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).GT.0.D0)
+            RAST = RAST - DR
+        END DO
+!       ----------------------------------------------------------------
+!       DETERMINACIÓN DE LA DISTANCIA RADIAL ENTRE EL CENTRO DE LA 
+!       TIERRA YLA BASE DE LA LITÓSFERA O LÍMITE SUPERIOR DE LA ASTENÓSFERA
+!       ----------------------------------------------------------------
+        RLIT = RT - DUBL
+        DO WHILE ((TCONDUBL(TUBL,DUBL,RLIT)-TSOL(RLIT)).GT.0.D0)
+            RLIT = RLIT + DR
+        END DO
+!       ----------------------------------------------------------------
+!       CALCULO DE LOS VALORES MEDIOS DE LAS TEMPERATURAS DE SOLIDUS Y 
+!       LIQUIDUS
+!       ----------------------------------------------------------------
+        R1 = RAST
+        R2 = RLIT
+        DEN = (R2**3 - R1**3)
+        CALL QROMB(TSOLR2,R1,R2,INT)
+        TSOLM = 3.D0*INT/DEN
+        CALL QROMB(TLIQR2,R1,R2,INT)
+        TLIQM = 3.D0*INT/DEN
+!       ----------------------------------------------------------------
+        STEFAN = LMELT/(CM*(TLIQM - TSOLM))
+!   --------------------------------------------------------------------
+    END FUNCTION STEFAN
 !=======================================================================
     FUNCTION TSOLR2(R)
 !   --------------------------------------------------------------------
