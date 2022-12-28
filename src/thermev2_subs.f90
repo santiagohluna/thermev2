@@ -141,6 +141,8 @@ MODULE THERMEV2_SUBS
     INTEGER :: IDREO,DEMID,LMAX,QMAX,TIDEFL,RADCFL,RADMFL,THERMFL, &
                STRUCFL,NTERMS
 !   --------------------------------------------------------------------
+    REAL (KIND=DP), ALLOCATABLE :: ASUMA(:)
+!   --------------------------------------------------------------------
 !   BLOQUE DE PROCEDIMIENTOS
 !   --------------------------------------------------------------------
 
@@ -309,11 +311,10 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     IMPLICIT NONE
 !   --------------------------------------------------------------------
-    INTEGER :: J,L,M,P,Q,OK
+    INTEGER :: J,L,M,P,Q
     REAL (KIND=DP),INTENT(IN) :: ETA,TUBL,A,LOD,DUBL
-    REAL (KIND=DP) :: N,THP,RSA,WLMPQ,XLMPQ,SUMAPM,FTVF
+    REAL (KIND=DP) :: N,THP,RSA,WLMPQ,XLMPQ,SUMAPM,FTVF,RSAL
     REAL (KIND=DP) :: RPHI,PM,KR,KI
-    REAL (KIND=DP), ALLOCATABLE :: RSAL(:),ASUMA(:)
 !   --------------------------------------------------------------------
 !   CALCULO DE LA FRACCION DE VOLUMEN DEL MANTO ACTIVO PARA LA 
 !   INTERACCION DE MAREAS
@@ -330,26 +331,16 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
 !   CALCULO DE LA TASA DE PRODUCCION DE CALOR POR MAREAS
 !   --------------------------------------------------------------------
-    ALLOCATE(RSAL(LMAX),STAT=OK)
-    IF (OK.NE.0) THEN
-        PRINT *,'ERROR EN LA ASIGANOCION DE MEMORIA DE RSAL'
-        STOP
-    ENDIF
-    ALLOCATE(ASUMA(NTERMS),STAT=OK)
-    IF (OK.NE.0) THEN
-        PRINT *,'ERROR EN LA ASIGANOCION DE MEMORIA DE ASUMA'
-        STOP
-    ENDIF
     J = 1
     DO L=2,LMAX
-        RSAL(L) = RSA**(2*L+1)
+        RSAL = RSA**(2*L+1)
         DO M = 0,L
             DO P = 0,L
                 DO Q = -QMAX,QMAX
                     WLMPQ = DBLE(L-2*P+Q)*N - DBLE(M)*THP
                     XLMPQ = DABS(WLMPQ)
                     CALL REOLOGIA(L,WLMPQ,IDREO,ETA,KR,KI)
-                    ASUMA(J) = RSAL(L)*ALM(L,M)*FFI(L,M,P)*GGE(L,P,Q)*WLMPQ*KI*DSIGN(1.D0,WLMPQ)
+                    ASUMA(J) = RSAL*ALM(L,M)*FFI(L,M,P)*GGE(L,P,Q)*WLMPQ*KI*DSIGN(1.D0,WLMPQ)
                     J = J + 1
                 END DO
             END DO

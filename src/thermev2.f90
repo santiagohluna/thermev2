@@ -6,7 +6,7 @@ PROGRAM THERMEV_DB
     IMPLICIT NONE
 !-----------------------------------------------------------------------
     INTEGER, PARAMETER :: NVAR = 2
-    INTEGER :: NBAD,NOK,L,M,P,Q
+    INTEGER :: NBAD,NOK,L,M,P,Q,OK
     CHARACTER CR
     REAL (KIND=DP) :: T,TPRINT,Y(NVAR),DYDT(NVAR),AVGTC,AVGTM,A,LOD,RIC,&
                       UR,URTOT,DUM,DLM,DLIT,QCMB,QCONV,QMELT,QRADM, & 
@@ -49,6 +49,11 @@ PROGRAM THERMEV_DB
             END DO
         END DO
     END DO
+    ALLOCATE(ASUMA(NTERMS),STAT=OK)
+    IF (OK.NE.0) THEN
+        PRINT *,'ERROR EN LA ASIGANOCION DE MEMORIA DE ASUMA'
+        STOP
+    ENDIF
 !-----------------------------------------------------------------------
 !   EVALUACIÓN DE LOS FACTORES K_LM, FUNCIONES DE LA INCLINACIÓN Y DE LA
 !   EXCENTRICIDAD
