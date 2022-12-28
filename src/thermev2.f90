@@ -131,7 +131,7 @@ PROGRAM THERMEV_DB
             TPRINT = TPRINT + DTPRINT
         END IF
 !       ----------------------------------------------------------------
-        CALL ODEINT(Y,NVAR,T,T+DT,EPS,DT,0.D0,NOK,NBAD,DERIVS,RKQS)    
+        CALL ODEINT(Y,NVAR,T,T+DT,EPS,DT,0.D0,NOK,NBAD,DERIVS,BSSTEP)    
         AVGTC = Y(1)
         AVGTM = Y(2)
 !       ----------------------------------------------------------------
