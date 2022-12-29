@@ -39,6 +39,11 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER ::     DN = 6340.D3       ! CORE ADIABATIC LENGTH SCALE
     REAL (KIND=DP), PARAMETER :: DVLDTM = 8.D17         ! LIQUID VOLUME GRADIENT
     REAL (KIND=DP), PARAMETER ::     EG = 3.D5          ! GRAVITATIONAL ENERGY DENSITY RELEASE AT ICB
+    REAL (KIND=DP), PARAMETER ::   EPSC = 1.2D0         ! RATIO OF THE AVERAGE CORE TEMPERATURE TO THE 
+                                                        ! TEMPERATURE AT THE CMB
+    REAL (KIND=DP), PARAMETER ::   EPSM = 1.3D0         ! RATIO OF THE AVERAGE MANTLE TEMPERATURE TO THE 
+                                                        ! TEMPERATURE AT THE BASE OF THE UPPER THERMAL 
+                                                        ! BOUNDARY LAYER 
     REAL (KIND=DP), PARAMETER ::  ERUPT = 0.2D0         ! EFFICIENCY OF MAGMA ERUPTION TO THE SURFACE
     REAL (KIND=DP), PARAMETER ::  ETAUM = 0.7D0         ! UPPER MANTLE ADIABATIC TEMPERATURE DROP
     REAL (KIND=DP), PARAMETER ::  ETALM = 1.3D0         ! LOWER MANTLE ADIABATIC TEMPERATURE JUMP
@@ -57,8 +62,8 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER ::  LMELT = 320.D3        ! LATENT HEAT OF MANTLE MELTING
     REAL (KIND=DP), PARAMETER ::     MM = 4.06D24       ! MANTLE MASS
     REAL (KIND=DP), PARAMETER ::     MC = 1.95D24       ! CORE MASS
-    REAL (KIND=DP), PARAMETER ::  FVISC = 3.D0          ! VISCOSITY JUMP FROM UPPER TO LOWER MANTLE
-    REAL (KIND=DP), PARAMETER ::  VMVUM = 10.D0         ! VISCOSITY JUMP FROM UPPER TO MID-MANTLE
+    REAL (KIND=DP), PARAMETER ::    PEC = 363.85D0      ! PRESSURE AT THE EARTH'S CENTRE (IN GPA)
+    REAL (KIND=DP), PARAMETER ::   PCMB = 135.75D0      ! PRESSURE AT THE CMB (IN GPA)
     REAL (KIND=DP), PARAMETER ::  QRAD0 = 13.D12        ! PRESENT-DAY MANTLE RADIOGENIC HEAT FLOW
     REAL (KIND=DP), PARAMETER :: QRAD0C = 2.D12         ! PRESENT-DAY MANTLE RADIOGENIC HEAT FLOW
     REAL (KIND=DP), PARAMETER ::     RM = 4.925D6       ! RADIUS TO AVERAGE MANTLE TEMPERATURE
@@ -75,6 +80,10 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER :: TAURDC = 1.2D0         ! CORE RADIOACTIVE DECAY TIME SCALE
     REAL (KIND=DP), PARAMETER :: PHIDIS = 0.6D0         ! DISGREGATION POINT
     REAL (KIND=DP), PARAMETER :: DENRIC = 2.D0*(1.D0 - 1.D0/(3.D0*GRUN))*(DN/DFE)**2 - 1.D0
+    REAL (KIND=DP), PARAMETER :: TLC0 = 1980.D0, TLC1 = 6.14D-3, &
+    TLC2 = -4.5D-6
+    REAL (KIND=DP), PARAMETER :: TA1 = 3.96D-3, TA2 = -3.3D-6
+    REAL (KIND=DP), PARAMETER :: X0 = 0.01D0            ! INIRTIAL CONCETRATION OF LIGHT CONSTITUENT IN THE CORE
 !   --------------------------------------------------------------------
 !   PARAMETROS DE INTEGRACION
 !   --------------------------------------------------------------------
@@ -129,7 +138,7 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER :: DELTAT = 0.D0
     REAL (KIND=DP), PARAMETER :: EPSMAY = 0.D0
 !   --------------------------------------------------------------------
-    LOGICAL LDEM1,LDEM2,LDEM3,LTIDE,LRADC,LRADM,LTHERM,LSTRUC
+    LOGICAL LDEM1,LDEM2,LDEM3,LTIDE,LRADC,LRADM,LTHERM,LCORE
 !   --------------------------------------------------------------------
     INTEGER, PARAMETER :: LMAXP = 3,QMAXP = 10
     REAL (KIND=DP) :: FFI(LMAXP,0:LMAXP,0:LMAXP), &
@@ -139,7 +148,7 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
     REAL (KIND=DP) :: TSUP,E,I,DTPRINT,RAST,RLIT
     INTEGER :: IDREO,DEMID,LMAX,QMAX,TIDEFL,RADCFL,RADMFL,THERMFL, &
-               STRUCFL,NTERMS
+               COREFL,NTERMS
 !   --------------------------------------------------------------------
     REAL (KIND=DP), ALLOCATABLE :: ASUMA(:)
 !   --------------------------------------------------------------------
@@ -160,10 +169,11 @@ MODULE THERMEV2_SUBS
                       DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
                       QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL, &
                       A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
-                      RA,ST,TMELT,ZMELT,ZUM,VUBL,VLBL
+                      RA,ST,TMELT,ZMELT,ZUM,VUBL,VLBL,X,XI,C1,C2,C3, &
+                      X1,X2,PIO
     REAL (KIND=DP) :: ASUMAQ(4)
     COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
-                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTFM
+                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,TUBL,MELTFM
 !   --------------------------------------------------------------------
     AVGTC = Y(1)
     AVGTM = Y(2)
@@ -240,32 +250,47 @@ MODULE THERMEV2_SUBS
         QTIDAL = 0.D0
     END IF
 !   --------------------------------------------------------------------
-!   CALCULO DEL RADIO DEL NUCLEO INTERNO
-!   --------------------------------------------------------------------
-    NUM = DLOG(TFE0/TCMB)*(DN/RC)**2 - 1.D0
-    IF (NUM.GE.0.D0) THEN
-        RADIC = NUM/DENRIC
-        RIC = RC*DSQRT(RADIC)
-    ELSE 
-        RIC = 0.D0
-    END IF
-!   --------------------------------------------------------------------
-!   CALCULO DEL AREA DEL NUCLEO INTERNO
-!   --------------------------------------------------------------------
-    AIC = 4.D0*PI*RIC**2
-!   --------------------------------------------------------------------
-!   CALCULO DE DR_IC / DT_CMB
-!   --------------------------------------------------------------------
-    DRICDT = - (DN**2)/(2.D0*RC*TCMB*NUM)
-!   --------------------------------------------------------------------
 !   CALCULO DE LAS RAZONES DE UREY
 !   --------------------------------------------------------------------
-       UR = QRADM/QCONV
+    UR = QRADM/QCONV
     URTOT = QRADM/(QCONV+QMELT)
-!   --------------------------------------------------------------------
-    IF (LSTRUC) THEN
-        DYDT(1) = 0.D0
+    IF (LCORE) THEN
+        X = X0*RC**3/(RC**3-RIC**3)
+        XI = TLC0*(1.D0 - 2.D0*X)*(1.D0 + (TA1 + TA2*PCMB)*PCMB)
+        C1 = TCMB*TA2 - XI*TLC2
+        C2 = TCMB*TA1 - XI*TLC1
+        C3 = TCMB - XI
+        CALL RESOLVENTE(C1,C2,C3,X1,X2)
+        IF ((X1.GE.0.D0).AND.(X1.LT.PEC)) THEN
+            PIO = X1
+        ELSE IF ((X2.GE.0.D0).AND.(X2.LT.PEC)) THEN
+            PIO = X2
+        ELSE 
+            RIC = 0.D0
+        END IF
+        DPIODTC = ...
+        ! COMPLETAR! 
+        DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - ETAC*DRICDT*(LFE+EG))
     ELSE
+    !   --------------------------------------------------------------------
+    !   CALCULO DEL RADIO DEL NUCLEO INTERNO
+    !   --------------------------------------------------------------------
+        NUM = DLOG(TFE0/TCMB)*(DN/RC)**2 - 1.D0
+        IF (NUM.GE.0.D0) THEN
+            RADIC = NUM/DENRIC
+            RIC = RC*DSQRT(RADIC)
+        ELSE 
+            RIC = 0.D0
+        END IF
+    !   --------------------------------------------------------------------
+    !   CALCULO DEL AREA DEL NUCLEO INTERNO
+    !   --------------------------------------------------------------------
+        AIC = 4.D0*PI*RIC**2
+    !   --------------------------------------------------------------------
+    !   CALCULO DE DR_IC / DT_CMB
+    !   --------------------------------------------------------------------
+        DRICDT = - (DN**2)/(2.D0*RC*TCMB*NUM)
+    !   --------------------------------------------------------------------
         DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - AIC*RHOIC*ETAC*DRICDT*(LFE+EG))
     END IF
     IF (LTHERM) THEN
@@ -375,7 +400,7 @@ MODULE THERMEV2_SUBS
     READ(10,*) ALGO
     READ(10,*) THERMFL
     READ(10,*) ALGO
-    READ(10,*) STRUCFL
+    READ(10,*) COREFL
     READ(10,*) ALGO
     READ(10,*) IDREO
     READ(10,*) ALGO
@@ -389,7 +414,7 @@ MODULE THERMEV2_SUBS
     LRADC = RADCFL.EQ.1
     LRADM = RADMFL.EQ.1
     LTHERM = THERMFL.EQ.1
-    LSTRUC = STRUCFL.EQ.1
+    LCORE = COREFL.EQ.1
     LDEM1 = DEMID.EQ.1
     LDEM2 = DEMID.EQ.2
     LDEM3 = DEMID.EQ.3
@@ -1043,9 +1068,8 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
         IMPLICIT NONE
 !       ----------------------------------------------------------------
-        REAL (KIND=DP) :: TLIQC,R,X
-        REAL (KIND=DP), PARAMETER :: TLC0 = 1980.D0, TLC1 = 6.14D-3, &
-                                     TLC2 = -4.5D-6
+        REAL (KIND=DP), INTENT(IN) :: R,X
+        REAL (KIND=DP) :: TLIQC
 !       ----------------------------------------------------------------
         TLIQC = TLC0*(1.D0 - 2.D0*X)*(1.D0 + (TLC1 + TLC2*PDR(R))*PDR(R))
 !   --------------------------------------------------------------------
@@ -1064,16 +1088,28 @@ MODULE THERMEV2_SUBS
 !=======================================================================
     FUNCTION TC(TCMB,R)
 !   --------------------------------------------------------------------
+        IMPLICIT NONE
+!       ----------------------------------------------------------------
+        REAL (KIND=DP), INTENT(IN) :: TCMB,R
+        REAL (KIND=DP) :: TC
+!       ----------------------------------------------------------------
+        TC = TCMB*(1.D0 + (TA1 + TA2*PDR(R))*PDR(R))/ &
+                      (1.D0 + (TA1 + TA2*PCMB)*PCMB)
+!   --------------------------------------------------------------------
+    END FUNCTION TC
+!=======================================================================
+    FUNCTION TCDB(TCMB,R)
+!   --------------------------------------------------------------------
 !   PERFIL ADIABÁTICO DE TEMPERATURA EN EL NÚCLEO
 !   --------------------------------------------------------------------
     IMPLICIT NONE
 !   --------------------------------------------------------------------
     REAL (KIND=DP), INTENT(IN) :: R,TCMB
-    REAL (KIND=DP) :: TC
+    REAL (KIND=DP) :: TCDB
 !   --------------------------------------------------------------------
-    TC = TCMB*DEXP((RC**2 - R**2)/(DN**2))
+    TCDB = TCMB*DEXP((RC**2 - R**2)/(DN**2))
 !   --------------------------------------------------------------------
-    END FUNCTION TC
+    END FUNCTION TCDB
 !=======================================================================
     FUNCTION TM(TUBL,DUM,R)
 !   --------------------------------------------------------------------
@@ -1609,6 +1645,20 @@ MODULE THERMEV2_SUBS
       YERR(K)=H*(DC1*DYDX(K)+DC3*AK3(K)+DC4*AK4(K)+DC5*AK5(K)+DC6*AK6(K))
     END DO
     RETURN
+    END
+!=======================================================================
+    SUBROUTINE RESOLVENTE(A,B,C,X1,X2)
+!-----------------------------------------------------------------------
+    IMPLICIT NONE
+!-----------------------------------------------------------------------
+    REAL (KIND=DP), INTENT(IN) :: A,B,C
+    REAL (KIND=DP), INTENT(OUT) :: X1,X2
+    REAL (KIND=DP) :: Q
+!-----------------------------------------------------------------------
+    Q = -0.5D0*(B+DSIGN(1.D0,B)*DSQRT(B*B-4.D0*A*C))
+    X1 = Q/A
+    X2 = C/Q
+!-----------------------------------------------------------------------
     END
 !=======================================================================
 
