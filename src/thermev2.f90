@@ -10,11 +10,11 @@ PROGRAM THERMEV_DB
     CHARACTER CR
     REAL (KIND=DP) :: T,TPRINT,Y(NVAR),DYDT(NVAR),AVGTC,AVGTM,A,LOD,RIC,&
                       UR,URTOT,DUM,DLM,DLIT,QCMB,QCONV,QMELT,QRADM, & 
-                      QRADC,VM,NUM,TCMB,MELTF,QTIDAL
+                      QRADC,VM,NUM,TCMB,TUBL,MELTF,QTIDAL,TPOT
     REAL (KIND=DP), PARAMETER :: EPS = 1.D-6
     REAL (KIND=DP), PARAMETER :: DT = 1.D-3
     COMMON /PRINTOUT/ A,LOD,DUM,DLM,UR,URTOT,QCMB,QCONV,QMELT, &
-                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTF
+                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,TUBL,MELTF
 !-----------------------------------------------------------------------
 !   CÁLCULOS PRELIMINARES
 !-----------------------------------------------------------------------
@@ -135,9 +135,16 @@ PROGRAM THERMEV_DB
         AVGTC = Y(1)
         AVGTM = Y(2)
 !       ----------------------------------------------------------------
-!       ESCRITURA DE RESULTADOS EN EL ARCHIVO DE SALIDA
+!       CALCULO DEL ESPESOR DE LA LITOSFERA
 !       ----------------------------------------------------------------
         DLIT = RT - RLIT
+!       ----------------------------------------------------------------
+!       CALCULO DE LA TEMPERATURA POTENCIAL
+!       ----------------------------------------------------------------
+        TPOT = TUBL*DEXP(-GUM*ALFAM*DUM/CM)
+!       ----------------------------------------------------------------
+!       ESCRITURA DE RESULTADOS EN EL ARCHIVO DE SALIDA
+!       ----------------------------------------------------------------
 !                    1   2     3   4    5      6      7       8     9     10          11
         WRITE(11,*) T,AVGTC,AVGTM,DLIT,A/A0,LOD/LODF,RIC/1.D3,UR,URTOT,DUM/1000.D0,DLM/1000.D0, &
 !             12           13          14           15           16            17           18
