@@ -2,3 +2,10 @@
 *.o
 *.x
 *.mod
+*.eps
+*.aux
+*.dvi
+*.gnu
+*.log
+*.ps
+*.tex
