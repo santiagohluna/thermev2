@@ -31,7 +31,7 @@ MODULE THERMEV2_SUBS
     REAL (KIND=DP), PARAMETER ::     AC = 4.D0*PI*RC**2 ! CORE SURFACE AREA
     REAL (KIND=DP), PARAMETER ::  ALFAM = 3.D-5         ! THERMAL EXPANSIVITY OF MANTLE
     REAL (KIND=DP), PARAMETER ::  ALFAC = 1.D-5         ! THERMAL EXPANSIVITY OF CORE
-    REAL (KIND=DP), PARAMETER ::   BETA = 1.D0/3.D0     ! THERMAL BOUNDARY LAYER EXPONENT
+    REAL (KIND=DP), PARAMETER ::   BETA = 0.3D0         ! THERMAL BOUNDARY LAYER EXPONENT
     REAL (KIND=DP), PARAMETER ::     CM = 1265.D0       ! SPECIFIC HEAT OF MANTLE
     REAL (KIND=DP), PARAMETER ::     CC = 840.D0        ! SPECIFIC HEAT OF CORE
     REAL (KIND=DP), PARAMETER ::     DM = 2891.D3       ! MANTLE DEPTH
@@ -160,7 +160,7 @@ MODULE THERMEV2_SUBS
                       DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
                       QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL, &
                       A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
-                      RA,ST,TMELT,ZMELT,ZUM
+                      RA,ST,TMELT,ZMELT,ZUM,VUBL,VLBL
     REAL (KIND=DP) :: ASUMAQ(4)
     COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
                       QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,MELTFM
@@ -181,12 +181,14 @@ MODULE THERMEV2_SUBS
 !   --------------------------------------------------------------------
 !   CALCULO DE QCMB
 !   --------------------------------------------------------------------
-    DLBL = (RACRCMB*KAPM*VISC(0.5D0*(TLBL + TCMB))/(GLM*ALPHA*DTLBL))**(1.D0/3.D0)
+    VLBL = VISC(0.5D0*(TLBL + TCMB))
+    DLBL = (RACRCMB*KAPM*VLBL)/(GLM*ALPHA*DTLBL)**(1.D0/3.D0)
     QCMB = AC*KLM*DTLBL/DLBL
 !   --------------------------------------------------------------------
 !   CALCULO DE QCONV
-!   --------------------------------------------------------------------    
-    RA = GUM*ALPHA*(DTUBL + DTLBL)*(RT - RC)**3/(KAPM*VISC(TUBL))
+!   --------------------------------------------------------------------
+    VUBL = VISC(TUBL)
+    RA = GUM*ALPHA*(DTUBL + DTLBL)*(RT - RC)**3/(KAPM*VUBL)
     DUBL = (RT - RC)*(RACR/RA)**BETA
     QCONV = AT*KUM*ETAUM*DTUBL/DUBL
 !   --------------------------------------------------------------------
