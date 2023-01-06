@@ -1,1242 +1,1260 @@
 !=======================================================================
-MODULE THERMEV2_SUBS
+module thermev2_subs
 !   --------------------------------------------------------------------
-!   BLOQUE DE DECLARACIÓN
+!   bloque de declaración
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    INTEGER, PARAMETER :: DP = 8
+    integer, parameter :: dp = 8
 !   --------------------------------------------------------------------
-!   PARAMETROS GENERALES
+!   parametros generales
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER ::   PI = 4.D0*DATAN(1.D0)
-    REAL (KIND=DP), PARAMETER ::  CGU = 6.67408D-11
-    REAL (KIND=DP), PARAMETER ::   MT = 5.9722D24
-    REAL (KIND=DP), PARAMETER ::   RT = 6.371D6
-    REAL (KIND=DP), PARAMETER ::   RC = 3.480D6
-    REAL (KIND=DP), PARAMETER ::   ML = 7.342D22
-    REAL (KIND=DP), PARAMETER ::   MU = CGU*(MT+ML)
-    REAL (KIND=DP), PARAMETER :: RHOT = 5515.D0
-    REAL (KIND=DP), PARAMETER ::   DD = 86400.D0
-    REAL (KIND=DP), PARAMETER ::   AA = 365.25D0*DD
-    REAL (KIND=DP), PARAMETER ::   GA = AA*1.D9
-    REAL (KIND=DP), PARAMETER ::   T0 = 4.5D0
-    REAL (KIND=DP), PARAMETER ::   TF = 4.5D0
-    REAL (KIND=DP), PARAMETER ::   DR = 1.D2
+    real (kind=dp), parameter ::   pi = 4.d0*datan(1.d0)
+    real (kind=dp), parameter ::  cgu = 6.67408d-11
+    real (kind=dp), parameter ::   mt = 5.9722d24
+    real (kind=dp), parameter ::   rt = 6.371d6
+    real (kind=dp), parameter ::   rc = 3.480d6
+    real (kind=dp), parameter ::   ml = 7.342d22
+    real (kind=dp), parameter ::   mu = cgu*(mt+ml)
+    real (kind=dp), parameter :: rhot = 5515.d0
+    real (kind=dp), parameter ::   dd = 86400.d0
+    real (kind=dp), parameter ::   aa = 365.25d0*dd
+    real (kind=dp), parameter ::   ga = aa*1.d9
+    real (kind=dp), parameter ::   t0 = 4.5d0
+    real (kind=dp), parameter ::   tf = 4.5d0
+    real (kind=dp), parameter ::   dr = 1.d2
 !   --------------------------------------------------------------------
-!   PARAMETROS DEL MODELO DE DRISCOLL & BERCOVICI (2014)
-!   TABLA 3
+!   parametros del modelo de driscoll & bercovici (2014)
+!   tabla 3
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER ::     AT = 4.D0*PI*RT**2 ! EARTH SURFACE AREA
-    REAL (KIND=DP), PARAMETER ::     AC = 4.D0*PI*RC**2 ! CORE SURFACE AREA
-    REAL (KIND=DP), PARAMETER ::  ALFAM = 3.D-5         ! THERMAL EXPANSIVITY OF MANTLE
-    REAL (KIND=DP), PARAMETER ::  ALFAC = 1.D-5         ! THERMAL EXPANSIVITY OF CORE
-    REAL (KIND=DP), PARAMETER ::   BETA = 0.3D0         ! THERMAL BOUNDARY LAYER EXPONENT
-    REAL (KIND=DP), PARAMETER ::     CM = 1265.D0       ! SPECIFIC HEAT OF MANTLE
-    REAL (KIND=DP), PARAMETER ::     CC = 840.D0        ! SPECIFIC HEAT OF CORE
-    REAL (KIND=DP), PARAMETER ::     DM = 2891.D3       ! MANTLE DEPTH
-    REAL (KIND=DP), PARAMETER ::    DFE = 7000.D3       ! IRON SOLIDUS LENGTH SCALE
-    REAL (KIND=DP), PARAMETER ::     DN = 6340.D3       ! CORE ADIABATIC LENGTH SCALE
-    REAL (KIND=DP), PARAMETER :: DVLDTM = 8.D17         ! LIQUID VOLUME GRADIENT
-    REAL (KIND=DP), PARAMETER ::     EG = 3.D5          ! GRAVITATIONAL ENERGY DENSITY RELEASE AT ICB
-    REAL (KIND=DP), PARAMETER ::   EPSC = 1.2D0         ! RATIO OF THE AVERAGE CORE TEMPERATURE TO THE 
-                                                        ! TEMPERATURE AT THE CMB
-    REAL (KIND=DP), PARAMETER ::   EPSM = 1.3D0         ! RATIO OF THE AVERAGE MANTLE TEMPERATURE TO THE 
-                                                        ! TEMPERATURE AT THE BASE OF THE UPPER THERMAL 
-                                                        ! BOUNDARY LAYER 
-    REAL (KIND=DP), PARAMETER ::  ERUPT = 0.2D0         ! EFFICIENCY OF MAGMA ERUPTION TO THE SURFACE
-    REAL (KIND=DP), PARAMETER ::  ETAUM = 0.7D0         ! UPPER MANTLE ADIABATIC TEMPERATURE DROP
-    REAL (KIND=DP), PARAMETER ::  ETALM = 1.3D0         ! LOWER MANTLE ADIABATIC TEMPERATURE JUMP
-    REAL (KIND=DP), PARAMETER ::   ETAC = 0.8D0         ! UPPER CORE ADIABATIC TEMPERATURE DROP
-    REAL (KIND=DP), PARAMETER ::  FVOL0 = 1.D-3         ! REFERENCE VOLUMETRIC MELT FRACTION
-    REAL (KIND=DP), PARAMETER ::    GUM = 9.8D0         ! UPPER MANTLE GRAVITY
-    REAL (KIND=DP), PARAMETER ::    GLM = 10.5D0        ! LOWER MANTLE GRAVITY
-    REAL (KIND=DP), PARAMETER ::     GC = 10.5D0        ! CMB GRAVITY
-    REAL (KIND=DP), PARAMETER :: GAMMAD = 1.D-3         ! MAGMA ADIABATIC GRADIENT
-    REAL (KIND=DP), PARAMETER ::   GRUN = 1.3D0         ! CORE GRUNEISEN PARAMETER
-    REAL (KIND=DP), PARAMETER ::  GAMMZ = 3.9D-3        ! MANTLE SOLIDUS GRADIENT
-    REAL (KIND=DP), PARAMETER ::    KUM = 4.2D0         ! UPPER MANTLE THERMAL CONDUCTIVITY
-    REAL (KIND=DP), PARAMETER ::    KLM = 10.D0         ! LOWER MANTLE THERMAL CONDUCTIVITY
-    REAL (KIND=DP), PARAMETER ::   KAPM = 1.D-6         ! MANTLE THERMAL DIFFUSIVITY
-    REAL (KIND=DP), PARAMETER ::    LFE = 750.D3        ! LATENT HEAT OF INNER CORE CRYSTALLIZATION
-    REAL (KIND=DP), PARAMETER ::  LMELT = 320.D3        ! LATENT HEAT OF MANTLE MELTING
-    REAL (KIND=DP), PARAMETER ::     MM = 4.06D24       ! MANTLE MASS
-    REAL (KIND=DP), PARAMETER ::     MC = 1.95D24       ! CORE MASS
-    REAL (KIND=DP), PARAMETER ::    PEC = 363.85D0      ! PRESSURE AT THE EARTH'S CENTRE (IN GPA)
-    REAL (KIND=DP), PARAMETER ::   PCMB = 135.75D0      ! PRESSURE AT THE CMB (IN GPA)
-    REAL (KIND=DP), PARAMETER ::  QRAD0 = 13.D12        ! PRESENT-DAY MANTLE RADIOGENIC HEAT FLOW
-    REAL (KIND=DP), PARAMETER :: QRAD0C = 2.D12         ! PRESENT-DAY MANTLE RADIOGENIC HEAT FLOW
-    REAL (KIND=DP), PARAMETER ::     RM = 4.925D6       ! RADIUS TO AVERAGE MANTLE TEMPERATURE
-    REAL (KIND=DP), PARAMETER ::   RACR = 660.D0        ! CRITICAL RAYLEIGH NUMBER
-    REAL (KIND=DP), PARAMETER :: RACRCMB = 2000.D0      ! CRITICAL RAYLEIGH NUMBER AT THE CMB
-    REAL (KIND=DP), PARAMETER ::   RHOC = 11900.D0      ! CORE DENSITY
-    REAL (KIND=DP), PARAMETER ::  RHOIC = 13000.D0      ! INNER CORE DENSITY
-    REAL (KIND=DP), PARAMETER ::   RHOM = 4800.D0       ! MANTLE DENSITY
-    REAL (KIND=DP), PARAMETER :: RHOMEL = 2700.D0       ! MANTLE MELT DENSITY
-    REAL (KIND=DP), PARAMETER :: RHOSOL = 3300.D0       ! MANTLE UPWELLING SOLID DENSITY
-    REAL (KIND=DP), PARAMETER ::   TFE0 = 5600.D0       ! IRON SOLIDUS COEFFICIENT
-    REAL (KIND=DP), PARAMETER ::  TSOL0 = 1244.D0       ! MANTLE SOLIDUS AT SURFACE
-    REAL (KIND=DP), PARAMETER :: TAURAD = 2.94D0        ! MANTLE RADIOACTIVE DECAY TIME SCALE
-    REAL (KIND=DP), PARAMETER :: TAURDC = 1.2D0         ! CORE RADIOACTIVE DECAY TIME SCALE
-    REAL (KIND=DP), PARAMETER :: PHIDIS = 0.6D0         ! DISGREGATION POINT
-    REAL (KIND=DP), PARAMETER :: DENRIC = 2.D0*(1.D0 - 1.D0/(3.D0*GRUN))*(DN/DFE)**2 - 1.D0
-    REAL (KIND=DP), PARAMETER :: TLC0 = 1980.D0, TLC1 = 6.14D-3, &
-    TLC2 = -4.5D-6
-    REAL (KIND=DP), PARAMETER :: TA1 = 3.96D-3, TA2 = -3.3D-6
-    REAL (KIND=DP), PARAMETER :: X0 = 0.01D0            ! INIRTIAL CONCETRATION OF LIGHT CONSTITUENT IN THE CORE
+    real (kind=dp), parameter ::     at = 4.d0*pi*rt**2 ! earth surface area
+    real (kind=dp), parameter ::     ac = 4.d0*pi*rc**2 ! core surface area
+    real (kind=dp), parameter ::  alfam = 3.d-5         ! thermal expansivity of mantle
+    real (kind=dp), parameter ::  alfac = 1.d-5         ! thermal expansivity of core
+    real (kind=dp), parameter ::   beta = 0.3d0         ! thermal boundary layer exponent
+    real (kind=dp), parameter ::     cm = 1265.d0       ! specific heat of mantle
+    real (kind=dp), parameter ::     cc = 840.d0        ! specific heat of core
+    real (kind=dp), parameter ::     dm = 2891.d3       ! mantle depth
+    real (kind=dp), parameter ::    dfe = 7000.d3       ! iron solidus length scale
+    real (kind=dp), parameter ::     dn = 6340.d3       ! core adiabatic length scale
+    real (kind=dp), parameter :: dvldtm = 8.d17         ! liquid volume gradient
+    real (kind=dp), parameter ::     eg = 3.d5          ! gravitational energy density release at icb
+    real (kind=dp), parameter ::   epsc = 1.2d0         ! ratio of the average core temperature to the 
+                                                        ! temperature at the cmb
+    real (kind=dp), parameter ::   epsm = 1.3d0         ! ratio of the average mantle temperature to the 
+                                                        ! temperature at the base of the upper thermal 
+                                                        ! boundary layer 
+    real (kind=dp), parameter ::  erupt = 0.2d0         ! efficiency of magma eruption to the surface
+    real (kind=dp), parameter ::  etaum = 0.7d0         ! upper mantle adiabatic temperature drop
+    real (kind=dp), parameter ::  etalm = 1.3d0         ! lower mantle adiabatic temperature jump
+    real (kind=dp), parameter ::   etac = 0.8d0         ! upper core adiabatic temperature drop
+    real (kind=dp), parameter ::  fvol0 = 1.d-3         ! reference volumetric melt fraction
+    real (kind=dp), parameter ::    gum = 9.8d0         ! upper mantle gravity
+    real (kind=dp), parameter ::    glm = 10.5d0        ! lower mantle gravity
+    real (kind=dp), parameter ::     gc = 10.5d0        ! cmb gravity
+    real (kind=dp), parameter :: gammad = 1.d-3         ! magma adiabatic gradient
+    real (kind=dp), parameter ::   grun = 1.3d0         ! core gruneisen parameter
+    real (kind=dp), parameter ::  gammz = 3.9d-3        ! mantle solidus gradient
+    real (kind=dp), parameter ::    kum = 4.2d0         ! upper mantle thermal conductivity
+    real (kind=dp), parameter ::    klm = 10.d0         ! lower mantle thermal conductivity
+    real (kind=dp), parameter ::   kapm = 1.d-6         ! mantle thermal diffusivity
+    real (kind=dp), parameter ::    lfe = 750.d3        ! latent heat of inner core crystallization
+    real (kind=dp), parameter ::  lmelt = 320.d3        ! latent heat of mantle melting
+    real (kind=dp), parameter ::     mm = 4.06d24       ! mantle mass
+    real (kind=dp), parameter ::     mc = 1.95d24       ! core mass
+    real (kind=dp), parameter ::    pec = 363.85d0      ! pressure at the earth's centre (in gpa)
+    real (kind=dp), parameter ::   pcmb = 135.75d0      ! pressure at the cmb (in gpa)
+    real (kind=dp), parameter ::  qrad0 = 13.d12        ! present-day mantle radiogenic heat flow
+    real (kind=dp), parameter :: qrad0c = 2.d12         ! present-day mantle radiogenic heat flow
+    real (kind=dp), parameter ::     rm = 4.925d6       ! radius to average mantle temperature
+    real (kind=dp), parameter ::   racr = 660.d0        ! critical rayleigh number
+    real (kind=dp), parameter :: racrcmb = 2000.d0      ! critical rayleigh number at the cmb
+    real (kind=dp), parameter ::   rhoc = 11900.d0      ! core density
+    real (kind=dp), parameter ::  rhoic = 13000.d0      ! inner core density
+    real (kind=dp), parameter ::   rhom = 4800.d0       ! mantle density
+    real (kind=dp), parameter :: rhomel = 2700.d0       ! mantle melt density
+    real (kind=dp), parameter :: rhosol = 3300.d0       ! mantle upwelling solid density
+    real (kind=dp), parameter ::   tfe0 = 5600.d0       ! iron solidus coefficient
+    real (kind=dp), parameter ::  tsol0 = 1244.d0       ! mantle solidus at surface
+    real (kind=dp), parameter :: taurad = 2.94d0        ! mantle radioactive decay time scale
+    real (kind=dp), parameter :: taurdc = 1.2d0         ! core radioactive decay time scale
+    real (kind=dp), parameter :: phidis = 0.6d0         ! disgregation point
+    real (kind=dp), parameter :: denric = 2.d0*(1.d0 - 1.d0/(3.d0*grun))*(dn/dfe)**2 - 1.d0
+    real (kind=dp), parameter :: tlc0 = 1980.d0, tlc1 = 6.14d-3, &
+    tlc2 = -4.5d-6
+    real (kind=dp), parameter :: ta1 = 3.96d-3, ta2 = -3.3d-6
+    real (kind=dp), parameter :: x0 = 0.1d0            ! initial concetration of light constituent in the core
+    real (kind=dp), parameter ::  xi = tlc0*(1.d0 - 2.d0*x0)*(1.d0 + (ta1 + ta2*pcmb)*pcmb)
 !   --------------------------------------------------------------------
-!   PARAMETROS DE INTEGRACION
+!   parametros de integracion
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: TC0,TM0
+    real (kind=dp) :: tc0,tm0
 !   --------------------------------------------------------------------
-!   PARAMETROS DE LOS MODELOS DINAMICOS
+!   parametros de los modelos dinamicos
 !   --------------------------------------------------------------------
-!   DEMID = 1
+!   demid = 1
 !   ---------
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: CA = (/ -0.0731737, 0.270575, -0.387178, 3.844 /)
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: CLOD = (/ -0.586687, 3.41316, -7.4227, 23.93 /)
+    real (kind=dp), parameter, dimension(4) :: ca = (/ -0.0731737, 0.270575, -0.387178, 3.844 /)
+    real (kind=dp), parameter, dimension(4) :: clod = (/ -0.586687, 3.41316, -7.4227, 23.93 /)
 !   --------------------------------------------------------------------
-!   DEMID = 2
+!   demid = 2
 !   ---------
-    REAL (KIND=DP), PARAMETER ::    A0 = 3.84402D8
-    REAL (KIND=DP), PARAMETER :: DADT0 = 3.82D-2
-    REAL (KIND=DP), PARAMETER :: LODI1 = 6.15D0
-    REAL (KIND=DP), PARAMETER ::  LODF = 23.93
-    REAL (KIND=DP), PARAMETER ::   MA1 = DADT0*GA/AA
-    REAL (KIND=DP), PARAMETER :: MLOD1 = (LODF-LODI1)/4.5D0
+    real (kind=dp), parameter ::    a0 = 3.84402d8
+    real (kind=dp), parameter :: dadt0 = 3.82d-2
+    real (kind=dp), parameter :: lodi1 = 6.15d0
+    real (kind=dp), parameter ::  lodf = 23.93
+    real (kind=dp), parameter ::   ma1 = dadt0*ga/aa
+    real (kind=dp), parameter :: mlod1 = (lodf-lodi1)/4.5d0
 !   --------------------------------------------------------------------
-!   DEMID = 3
+!   demid = 3
 !   ---------
-    REAL (KIND=DP), PARAMETER ::    AI = 20.D0*RT
-    REAL (KIND=DP), PARAMETER ::    AF = A0
-    REAL (KIND=DP), PARAMETER :: LODI2 = 2.53D0
-    REAL (KIND=DP), PARAMETER ::   MA2 = (AF-AI)/4.5D0
-    REAL (KIND=DP), PARAMETER :: MLOD2 = (LODF-LODI2)/4.5D0
+    real (kind=dp), parameter ::    ai = 20.d0*rt
+    real (kind=dp), parameter ::    af = a0
+    real (kind=dp), parameter :: lodi2 = 2.53d0
+    real (kind=dp), parameter ::   ma2 = (af-ai)/4.5d0
+    real (kind=dp), parameter :: mlod2 = (lodf-lodi2)/4.5d0
 !   --------------------------------------------------------------------
-!   PARAMETROS DE ELEMENTOS RADIOGENICOS
-!   TABLA 4.2 DE TURCOTTE & SCHUBERT (2014)
+!   parametros de elementos radiogenicos
+!   tabla 4.2 de turcotte & schubert (2014)
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: HI = (/ 9.46D-5, 5.69D-4, 2.64D-5, 2.92D-5 /)
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: TAU = (/ 4.47D9*AA/GA, 7.04D8*AA/GA, 1.40D10*AA/GA, 1.25D9*AA/GA /)
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: LAM = (/ DLOG(2.D0)/TAU(1), DLOG(2.D0)/TAU(2), & 
-                                                        LOG(2.D0)/TAU(3), DLOG(2.D0)/TAU(4) /)
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: C0 = (/ 31.D-9, 31.D-9, 124.D-9, 31.D-5 /)
-    REAL (KIND=DP), PARAMETER, DIMENSION(4) :: FC = (/ 0.9928D0, 0.0071D0, 1.D0, 1.19D-4 /)
+    real (kind=dp), parameter, dimension(4) :: hi = (/ 9.46d-5, 5.69d-4, 2.64d-5, 2.92d-5 /)
+    real (kind=dp), parameter, dimension(4) :: tau = (/ 4.47d9*aa/ga, 7.04d8*aa/ga, 1.40d10*aa/ga, 1.25d9*aa/ga /)
+    real (kind=dp), parameter, dimension(4) :: lam = (/ dlog(2.d0)/tau(1), dlog(2.d0)/tau(2), & 
+                                                        log(2.d0)/tau(3), dlog(2.d0)/tau(4) /)
+    real (kind=dp), parameter, dimension(4) :: c0 = (/ 31.d-9, 31.d-9, 124.d-9, 31.d-5 /)
+    real (kind=dp), parameter, dimension(4) :: fc = (/ 0.9928d0, 0.0071d0, 1.d0, 1.19d-4 /)
 !   --------------------------------------------------------------------
-!   PARAMETROS REOLOGICOS
+!   parametros reologicos
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER ::  RIGDZ = 8.0E10
-    REAL (KIND=DP), PARAMETER ::   FLEX = 1.D0/RIGDZ
-    REAL (KIND=DP), PARAMETER ::  KSUBB = RT/(CGU*MT*RHOT)
-    REAL (KIND=DP), PARAMETER ::  KFLEX = 0.2D0
-    REAL (KIND=DP), PARAMETER ::   KETA = 0.02D0
-    REAL (KIND=DP), PARAMETER ::  ALPHA = 0.2
-    REAL (KIND=DP), PARAMETER :: ZANDR0 = 1.D0
-    REAL (KIND=DP) :: GAMALF,GAMMAC,GAMMAS
-    REAL (KIND=DP), PARAMETER ::     K2 = 1.D0
-    REAL (KIND=DP), PARAMETER ::     QF = 1.D0
-    REAL (KIND=DP), PARAMETER :: DELTAT = 0.D0
-    REAL (KIND=DP), PARAMETER :: EPSMAY = 0.D0
+    real (kind=dp), parameter ::  rigdz = 8.0e10
+    real (kind=dp), parameter ::   flex = 1.d0/rigdz
+    real (kind=dp), parameter ::  ksubb = rt/(cgu*mt*rhot)
+    real (kind=dp), parameter ::  kflex = 0.2d0
+    real (kind=dp), parameter ::   keta = 0.02d0
+    real (kind=dp), parameter ::  alpha = 0.2
+    real (kind=dp), parameter :: zandr0 = 1.d0
+    real (kind=dp) :: gamalf,gammac,gammas
+    real (kind=dp), parameter ::     k2 = 1.d0
+    real (kind=dp), parameter ::     qf = 1.d0
+    real (kind=dp), parameter :: deltat = 0.d0
+    real (kind=dp), parameter :: epsmay = 0.d0
 !   --------------------------------------------------------------------
-    LOGICAL LDEM1,LDEM2,LDEM3,LTIDE,LRADC,LRADM,LTHERM,LCORE
+    logical ldem1,ldem2,ldem3,ltide,lradc,lradm,ltherm,lcore,lRic
 !   --------------------------------------------------------------------
-    INTEGER, PARAMETER :: LMAXP = 3,QMAXP = 10
-    REAL (KIND=DP) :: FFI(LMAXP,0:LMAXP,0:LMAXP), &
-                      GGE(LMAXP,0:LMAXP,-QMAXP:QMAXP),ALM(LMAXP,0:LMAXP)
+    integer, parameter :: lmaxp = 3,qmaxp = 10
+    real (kind=dp) :: ffi(lmaxp,0:lmaxp,0:lmaxp), &
+                      gge(lmaxp,0:lmaxp,-qmaxp:qmaxp),alm(lmaxp,0:lmaxp)
 !   --------------------------------------------------------------------
-    CHARACTER (LEN=50) ALGO
+    character (len=50) algo
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: TSUP,E,I,DTPRINT,RAST,RLIT
-    INTEGER :: IDREO,DEMID,LMAX,QMAX,TIDEFL,RADCFL,RADMFL,THERMFL, &
-               COREFL,NTERMS
+    real (kind=dp) :: tsup,e,i,dtprint,rast,rlit
+    integer :: idreo,demid,lmax,qmax,tidefl,radcfl,radmfl,thermfl, &
+               corefl,nterms
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), ALLOCATABLE :: ASUMA(:)
+    real (kind=dp), allocatable :: asuma(:)
 !   --------------------------------------------------------------------
-!   BLOQUE DE PROCEDIMIENTOS
+!   bloque de procedimientos
 !   --------------------------------------------------------------------
 
-    CONTAINS
+    contains
 
 !=======================================================================
-    SUBROUTINE DERIVS(T,Y,DYDT)
+    subroutine derivs(t,y,dydt)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    INTEGER :: K
-    REAL (KIND=DP),INTENT(IN) :: T,Y(2)
-    REAL (KIND=DP),INTENT(OUT) :: DYDT(2)
-    REAL (KIND=DP) :: AVGTC,AVGTM,DTUBL,TUBL,RIC,DRICDT,DLBL,DUBL,AIC, &
-                      DTLBL,DTMELT,MMELTP,QCMB,QCONV,QMELT,QRADM, &
-                      QRADC,TCMB,TLBL,VM,MELTFM,DVUPDT,QTIDAL, &
-                      A,LOD,UR,URTOT,RADIC,NUM,DELT,A1,A2,INT,ETAVG, &
-                      RA,ST,TMELT,ZMELT,ZUM,VUBL,VLBL,X,XI,C1,C2,C3, &
-                      X1,X2,PIO
-    REAL (KIND=DP) :: ASUMAQ(4)
-    COMMON /PRINTOUT/ A,LOD,DUBL,DLBL,UR,URTOT,QCMB,QCONV,QMELT, &
-                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,TUBL,MELTFM
+    integer :: k
+    real (kind=dp),intent(in) :: t,y(2)
+    real (kind=dp),intent(out) :: dydt(2)
+    real (kind=dp) :: avgtc,avgtm,dtubl,tubl,ric,dricdt,dlbl,dubl,aic, &
+                      dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
+                      qradc,tcmb,tlbl,vm,meltfm,dvupdt,qtidal, &
+                      a,lod,ur,urtot,radic,num,delt,a1,a2,int,etavg, &
+                      ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc
+    real (kind=dp) :: asumaq(4)
+    common /printout/ a,lod,dubl,dlbl,ur,urtot,qcmb,qconv,qmelt, &
+                      qradm,qradc,qtidal,vm,ric,num,tcmb,tubl,meltfm
 !   --------------------------------------------------------------------
-    AVGTC = Y(1)
-    AVGTM = Y(2)
+    avgtc = y(1)
+    avgtm = y(2)
 !   --------------------------------------------------------------------
-!   CALCULO DE TCMB, TUBL Y TLBL
+!   calculo de tcmb, tubl y tlbl
 !   --------------------------------------------------------------------
-    TCMB = ETAC*AVGTC
-    TLBL = ETALM*AVGTM
-    TUBL = ETAUM*AVGTM
+    tcmb = etac*avgtc
+    tlbl = etalm*avgtm
+    tubl = etaum*avgtm
 !   --------------------------------------------------------------------
-!   CALCULO DE LOS SALTOS DE TEMPERATURA
+!   calculo de los saltos de temperatura
 !   --------------------------------------------------------------------
-    DTLBL = TCMB - TLBL
-    DTUBL = TUBL - TSUP
+    dtlbl = tcmb - tlbl
+    dtubl = tubl - tsup
 !   --------------------------------------------------------------------
-!   CALCULO DE QCMB
+!   calculo de qcmb
 !   --------------------------------------------------------------------
-    VLBL = VISC(0.5D0*(TLBL + TCMB))
-    DLBL = (RACRCMB*KAPM*VLBL)/(GLM*ALPHA*DTLBL)**(1.D0/3.D0)
-    QCMB = AC*KLM*DTLBL/DLBL
+    vlbl = visc(0.5d0*(tlbl + tcmb))
+    dlbl = (racrcmb*kapm*vlbl)/(glm*alpha*dtlbl)**(1.d0/3.d0)
+    qcmb = ac*klm*dtlbl/dlbl
 !   --------------------------------------------------------------------
-!   CALCULO DE QCONV
+!   calculo de qconv
 !   --------------------------------------------------------------------
-    VUBL = VISC(TUBL)
-    RA = GUM*ALPHA*(DTUBL + DTLBL)*(RT - RC)**3/(KAPM*VUBL)
-    DUBL = (RT - RC)*(RACR/RA)**BETA
-    QCONV = AT*KUM*ETAUM*DTUBL/DUBL
+    vubl = visc(tubl)
+    ra = gum*alpha*(dtubl + dtlbl)*(rt - rc)**3/(kapm*vubl)
+    dubl = (rt - rc)*(racr/ra)**beta
+    qconv = at*kum*etaum*dtubl/dubl
 !   --------------------------------------------------------------------
-!   CALCULO DEL NUMERO DE STEFAN
+!   calculo del numero de stefan
 !   --------------------------------------------------------------------
-    ST = STEFAN(TUBL,DUBL)
-!   PRINT '(A4,1X,F7.2)','ST =',ST
+    st = stefan(tubl,dubl)
+!   print '(a4,1x,f7.2)','st =',st
 !   --------------------------------------------------------------------
-!   CALCULO DE QMELT
+!   calculo de qmelt
 !   --------------------------------------------------------------------
-    DVUPDT = 1.16D0*KAPM*AT/DUBL
-    TMELT = 0.5D0*(TUBL + TSOL0)
-    ZMELT = 0.5D0*(TUBL-TSOL0)/GAMMZ
-    DTMELT = TMELT - TSUP - ZMELT*GAMMAD
-    ZUM = RT - DUBL
-    MMELTP = DVUPDT*RHOSOL*FMELT(ZUM,DUBL,TUBL)
-    QMELT = ERUPT*MMELTP*(LMELT + CM*DTMELT)
+    dvupdt = 1.16d0*kapm*at/dubl
+    tmelt = 0.5d0*(tubl + tsol0)
+    zmelt = 0.5d0*(tubl-tsol0)/gammz
+    dtmelt = tmelt - tsup - zmelt*gammad
+    zum = rt - dubl
+    mmeltp = dvupdt*rhosol*fmelt(zum,dubl,tubl)
+    qmelt = erupt*mmeltp*(lmelt + cm*dtmelt)
 !   --------------------------------------------------------------------
-!   CALCULO DE QRADM
+!   calculo de qradm
 !   --------------------------------------------------------------------
-    IF (LRADM) THEN
-        DO K=1,4
-            ASUMAQ(K) = MM*FC(K)*C0(K)*HI(K)*DEXP(LAM(K)*(T0-T))
-        END DO
-        QRADM = SUMAR(4,ASUMAQ)
-    ELSE
-        QRADM = 0.D0
-    END IF
+    if (lradm) then
+        do k=1,4
+            asumaq(k) = mm*fc(k)*c0(k)*hi(k)*dexp(lam(k)*(t0-t))
+        end do
+        qradm = sumar(4,asumaq)
+    else
+        qradm = 0.d0
+    end if
 !   --------------------------------------------------------------------
-!   CALCULO DE QRADC
+!   calculo de qradc
 !   --------------------------------------------------------------------
-    IF (LRADC) THEN
-        QRADC = QRAD0C*DEXP((T0-T)/TAURDC)
-    ELSE
-        QRADC = 0.D0
-    END IF
+    if (lradc) then
+        qradc = qrad0c*dexp((t0-t)/taurdc)
+    else
+        qradc = 0.d0
+    end if
 !   --------------------------------------------------------------------
-!   CALCULO DE QTIDAL
+!   calculo de qtidal
 !   --------------------------------------------------------------------
-    CALL MODELO_DINAMICO(T,A,LOD)
-    IF (LTIDE) THEN
-        A1 = TLBL
-        A2 = TUBL
-        DELT = TUBL - TLBL
-        CALL QROMB(VISC,A1,A2,INT)
-        ETAVG = RHOM*INT/DELT
-        QTIDAL = PM(ETAVG,TUBL,DUBL,A,LOD)
-    ELSE
-        QTIDAL = 0.D0
-    END IF
+    call modelo_dinamico(t,a,lod)
+    if (ltide) then
+        a1 = tlbl
+        a2 = tubl
+        delt = tubl - tlbl
+        call qromb(visc,a1,a2,int)
+        etavg = rhom*int/delt
+        qtidal = pm(etavg,tubl,dubl,a,lod)
+    else
+        qtidal = 0.d0
+    end if
 !   --------------------------------------------------------------------
-!   CALCULO DE LAS RAZONES DE UREY
+!   calculo de las razones de urey
 !   --------------------------------------------------------------------
-    UR = QRADM/QCONV
-    URTOT = QRADM/(QCONV+QMELT)
-    IF (LCORE) THEN
-        X = X0*RC**3/(RC**3-RIC**3)
-        XI = TLC0*(1.D0 - 2.D0*X)*(1.D0 + (TA1 + TA2*PCMB)*PCMB)
-        C1 = TCMB*TA2 - XI*TLC2
-        C2 = TCMB*TA1 - XI*TLC1
-        C3 = TCMB - XI
-        CALL RESOLVENTE(C1,C2,C3,X1,X2)
-        IF ((X1.GE.0.D0).AND.(X1.LT.PEC)) THEN
-            PIO = X1
-        ELSE IF ((X2.GE.0.D0).AND.(X2.LT.PEC)) THEN
-            PIO = X2
-        ELSE 
-            RIC = 0.D0
-        END IF
-        DPIODTC = ...
-        ! COMPLETAR! 
-        DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - ETAC*DRICDT*(LFE+EG))
-    ELSE
+    ur = qradm/qconv
+    urtot = qradm/(qconv+qmelt)
+!   --------------------------------------------------------------------
+    if (lcore) then
+        dpiodtc = (1.d0 + (ta1 + ta2*pio(tcmb))*pio(tcmb))/(xi*(tlc1 + 2.d0*tlc2) - &
+                  tcmb*(ta1 + 2.d0*ta2*pio(tcmb)))
+        if (lRic) then
+            Ric = 0.d0
+        else 
+            Ric = dsqrt(2.d0*(pec-pio(tcmb))*1.d9*rc/(rhoc*glm))
+        end if
+        dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Mc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
+    else
     !   --------------------------------------------------------------------
-    !   CALCULO DEL RADIO DEL NUCLEO INTERNO
+    !   calculo del radio del nucleo interno
     !   --------------------------------------------------------------------
-        NUM = DLOG(TFE0/TCMB)*(DN/RC)**2 - 1.D0
-        IF (NUM.GE.0.D0) THEN
-            RADIC = NUM/DENRIC
-            RIC = RC*DSQRT(RADIC)
-        ELSE 
-            RIC = 0.D0
-        END IF
+        num = dlog(tfe0/tcmb)*(dn/rc)**2 - 1.d0
+        if (num.ge.0.d0) then
+            radic = num/denric
+            ric = rc*dsqrt(radic)
+        else 
+            ric = 0.d0
+        end if
     !   --------------------------------------------------------------------
-    !   CALCULO DEL AREA DEL NUCLEO INTERNO
+    !   calculo del area del nucleo interno
     !   --------------------------------------------------------------------
-        AIC = 4.D0*PI*RIC**2
+        aic = 4.d0*pi*ric**2
     !   --------------------------------------------------------------------
-    !   CALCULO DE DR_IC / DT_CMB
+    !   calculo de dr_ic / dt_cmb
     !   --------------------------------------------------------------------
-        DRICDT = - (DN**2)/(2.D0*RC*TCMB*NUM)
+        dricdt = - (dn**2)/(2.d0*rc*tcmb*num)
     !   --------------------------------------------------------------------
-        DYDT(1) = (QRADC - QCMB)*GA/(MC*CC - AIC*RHOIC*ETAC*DRICDT*(LFE+EG))
-    END IF
-    IF (LTHERM) THEN
-        DYDT(2) = (QCMB + QRADM - QCONV - QMELT)*GA/(MM*CM)
-    ELSE
-        DYDT(2) = (QCMB + QRADM + QTIDAL - QCONV - QMELT)*GA/ &
-                  (MM*CM*(1.D0 + ST))
-    END IF
+        dydt(1) = (qradc - qcmb)*ga/(mc*cc - aic*rhoic*etac*dricdt*(lfe+eg))
+    end if
+    if (ltherm) then
+        dydt(2) = (qcmb + qradm - qconv - qmelt)*ga/(mm*cm)
+    else
+        dydt(2) = (qcmb + qradm + qtidal - qconv - qmelt)*ga/ &
+                  (mm*cm*(1.d0 + st))
+    end if
 !   --------------------------------------------------------------------
-    END SUBROUTINE DERIVS
+    end subroutine derivs
 !=======================================================================
-    FUNCTION PM(ETA,TUBL,DUBL,A,LOD)
+    function pm(eta,tubl,dubl,a,lod)
 !   --------------------------------------------------------------------
-!   ESTA FUNCIÓN CALCULA EL CALOR GENERADO POR INTERACCIÓN DE MAREAS
-!   USANDO LA EXPRESIÓN DERIVADA POR EFROIMSKY Y MAKAROV (2014)
+!   esta función calcula el calor generado por interacción de mareas
+!   usando la expresión derivada por efroimsky y makarov (2014)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    INTEGER :: J,L,M,P,Q
-    REAL (KIND=DP),INTENT(IN) :: ETA,TUBL,A,LOD,DUBL
-    REAL (KIND=DP) :: N,THP,RSA,WLMPQ,XLMPQ,SUMAPM,FTVF,RSAL
-    REAL (KIND=DP) :: RPHI,PM,KR,KI
+    integer :: j,l,m,p,q
+    real (kind=dp),intent(in) :: eta,tubl,a,lod,dubl
+    real (kind=dp) :: n,thp,rsa,wlmpq,xlmpq,sumapm,ftvf,rsal
+    real (kind=dp) :: rphi,pm,kr,ki
 !   --------------------------------------------------------------------
-!   CALCULO DE LA FRACCION DE VOLUMEN DEL MANTO ACTIVO PARA LA 
-!   INTERACCION DE MAREAS
+!   calculo de la fraccion de volumen del manto activo para la 
+!   interaccion de mareas
 !   --------------------------------------------------------------------
-    RPHI = RAST
-    DO WHILE (FMELT(RPHI,DUBL,TUBL).LT.PHIDIS)
-        RPHI = RPHI + DR
-    END DO
-    FTVF = (RPHI/RT)**3-(RC/RT)**3
+    rphi = rast
+    do while (fmelt(rphi,dubl,tubl).lt.phidis)
+        rphi = rphi + dr
+    end do
+    ftvf = (rphi/rt)**3-(rc/rt)**3
 !   --------------------------------------------------------------------
-    RSA = RT/A
-      N = DSQRT(MU/A)/A
-    THP = 2.D0*PI/(LOD*3600.D0)
+    rsa = rt/a
+      n = dsqrt(mu/a)/a
+    thp = 2.d0*pi/(lod*3600.d0)
 !   --------------------------------------------------------------------
-!   CALCULO DE LA TASA DE PRODUCCION DE CALOR POR MAREAS
+!   calculo de la tasa de produccion de calor por mareas
 !   --------------------------------------------------------------------
-    J = 1
-    DO L=2,LMAX
-        RSAL = RSA**(2*L+1)
-        DO M = 0,L
-            DO P = 0,L
-                DO Q = -QMAX,QMAX
-                    WLMPQ = DBLE(L-2*P+Q)*N - DBLE(M)*THP
-                    XLMPQ = DABS(WLMPQ)
-                    CALL REOLOGIA(L,WLMPQ,IDREO,ETA,KR,KI)
-                    ASUMA(J) = RSAL*ALM(L,M)*FFI(L,M,P)*GGE(L,P,Q)*WLMPQ*KI*DSIGN(1.D0,WLMPQ)
-                    J = J + 1
-                END DO
-            END DO
-        END DO
-    END DO
-    SUMAPM = SUMAR(J-1,ASUMA)
-    PM = FTVF*((CGU*ML)*(ML/A))*SUMAPM
+    j = 1
+    do l=2,lmax
+        rsal = rsa**(2*l+1)
+        do m = 0,l
+            do p = 0,l
+                do q = -qmax,qmax
+                    wlmpq = dble(l-2*p+q)*n - dble(m)*thp
+                    xlmpq = dabs(wlmpq)
+                    call reologia(l,wlmpq,idreo,eta,kr,ki)
+                    asuma(j) = rsal*alm(l,m)*ffi(l,m,p)*gge(l,p,q)*wlmpq*ki*dsign(1.d0,wlmpq)
+                    j = j + 1
+                end do
+            end do
+        end do
+    end do
+    sumapm = sumar(j-1,asuma)
+    pm = ftvf*((cgu*ml)*(ml/a))*sumapm
 !   --------------------------------------------------------------------
-    END FUNCTION PM
+    end function pm
 !=======================================================================
-    SUBROUTINE MODELO_DINAMICO(T,A,LOD)
+    subroutine modelo_dinamico(t,a,lod)
 !   --------------------------------------------------------------------
-!   CALCULO DE LOS VALORES DE A Y DE LOD
+!   calculo de los valores de a y de lod
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: T
-    REAL (KIND=DP), INTENT(OUT) :: A,LOD
+    real (kind=dp), intent(in) :: t
+    real (kind=dp), intent(out) :: a,lod
 !   --------------------------------------------------------------------
-     IF (LDEM1) THEN
+     if (ldem1) then
 !     -------------------------------------------------------------------
-        A = (T0-T)*((T0-T)*(CA(1)*(T0-T) + CA(2)) + CA(3)) + CA(4)
-        A = A*1.D8
-      LOD = (T0-T)*((T0-T)*(CLOD(1)*(T0-T) + CLOD(2)) + CLOD(3)) + CLOD(4)
+        a = (t0-t)*((t0-t)*(ca(1)*(t0-t) + ca(2)) + ca(3)) + ca(4)
+        a = a*1.d8
+      lod = (t0-t)*((t0-t)*(clod(1)*(t0-t) + clod(2)) + clod(3)) + clod(4)
 !     ------------------------------------------------------------------
-     ELSE IF (LDEM2) THEN
+     else if (ldem2) then
 !    -------------------------------------------------------------------
-        A = MA1*(T-T0) + A0
-      LOD = MLOD1*(T-T0) + LODF
+        a = ma1*(t-t0) + a0
+      lod = mlod1*(t-t0) + lodf
 !    -------------------------------------------------------------------
-     ELSE IF (LDEM3) THEN
+     else if (ldem3) then
 !    -------------------------------------------------------------------
-        A = MA2*(T-T0) + A0
-      LOD = MLOD2*(T-T0) + LODF
+        a = ma2*(t-t0) + a0
+      lod = mlod2*(t-t0) + lodf
 !    -------------------------------------------------------------------
-     ELSE
-        PRINT *,'ERROR EN EL IDENTIFICADOR DEL MODELO DINAMICO'
-        RETURN
-     END IF
+     else
+        print *,'error en el identificador del modelo dinamico'
+        return
+     end if
 !   --------------------------------------------------------------------
-    END SUBROUTINE MODELO_DINAMICO
+    end subroutine modelo_dinamico
 !=======================================================================
-    SUBROUTINE LEER_ENTRADA()
+    subroutine leer_entrada()
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-!   ARCHIVO DE ENTRADA
+!   archivo de entrada
 !   --------------------------------------------------------------------
-    OPEN(UNIT=10,FILE='../entrada/THERMEV2DB.IN',STATUS='UNKNOWN')
+    open(unit=10,file='../entrada/thermev2db.in',status='unknown')
 !   --------------------------------------------------------------------
-!     INICIALIZACION DE VARIABLES
+!     inicializacion de variables
 !   --------------------------------------------------------------------
-    READ(10,*) ALGO
-    READ(10,*) TSUP,TC0,TM0
-    READ(10,*) ALGO
-    READ(10,*) E,I
-    READ(10,*) ALGO
-    READ(10,*) TIDEFL,RADCFL,RADMFL
-    READ(10,*) ALGO
-    READ(10,*) THERMFL
-    READ(10,*) ALGO
-    READ(10,*) COREFL
-    READ(10,*) ALGO
-    READ(10,*) IDREO
-    READ(10,*) ALGO
-    READ(10,*) DEMID
-    READ(10,*) ALGO
-    READ(10,*) LMAX,QMAX
-    READ(10,*) ALGO
-    READ(10,*) DTPRINT
+    read(10,*) algo
+    read(10,*) tsup,tc0,tm0
+    read(10,*) algo
+    read(10,*) e,i
+    read(10,*) algo
+    read(10,*) tidefl,radcfl,radmfl
+    read(10,*) algo
+    read(10,*) thermfl
+    read(10,*) algo
+    read(10,*) corefl
+    read(10,*) algo
+    read(10,*) idreo
+    read(10,*) algo
+    read(10,*) demid
+    read(10,*) algo
+    read(10,*) lmax,qmax
+    read(10,*) algo
+    read(10,*) dtprint
 !   --------------------------------------------------------------------
-    LTIDE = TIDEFL.EQ.1
-    LRADC = RADCFL.EQ.1
-    LRADM = RADMFL.EQ.1
-    LTHERM = THERMFL.EQ.1
-    LCORE = COREFL.EQ.1
-    LDEM1 = DEMID.EQ.1
-    LDEM2 = DEMID.EQ.2
-    LDEM3 = DEMID.EQ.3
-    I = I*PI/180.D0
+    ltide = tidefl.eq.1
+    lradc = radcfl.eq.1
+    lradm = radmfl.eq.1
+    ltherm = thermfl.eq.1
+    lcore = corefl.eq.1
+    ldem1 = demid.eq.1
+    ldem2 = demid.eq.2
+    ldem3 = demid.eq.3
+    i = i*pi/180.d0
 !   --------------------------------------------------------------------
-    CLOSE(UNIT=10)
+    close(unit=10)
 !   --------------------------------------------------------------------
-    END SUBROUTINE LEER_ENTRADA
+    end subroutine leer_entrada
 !=======================================================================
-    SUBROUTINE TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
+    subroutine timestamp(chanio,chmes,chdia,chhora,chmins,chsegs)
 !   --------------------------------------------------------------------
-!   ESTA SUBRUTINA IMPRIME EL AÑO, MES, DIA, HORA, MINUTOS Y SEGUNDOS
-!   COMO CARACTERES PARA INCLUIRLOS EN LOS NOMBRES DEL ARCHIVO DE SALIDA
-!   Y DEL PERFIL DE TEMPERATURAS.
+!   esta subrutina imprime el año, mes, dia, hora, minutos y segundos
+!   como caracteres para incluirlos en los nombres del archivo de salida
+!   y del perfil de temperaturas.
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        INTEGER :: TVALS(8),ANIO,MES,DIA,HORA,MINS,SEGS
-        CHARACTER (LEN=4), INTENT(OUT) :: CHANIO,CHMES,CHDIA,CHHORA, &
-                                          CHMINS,CHSEGS
+        integer :: tvals(8),anio,mes,dia,hora,mins,segs
+        character (len=4), intent(out) :: chanio,chmes,chdia,chhora, &
+                                          chmins,chsegs
 !       ---------------------------------------------------------------
-        CALL DATE_AND_TIME(VALUES=TVALS)
-        ANIO = TVALS(1)
-         MES = TVALS(2)
-         DIA = TVALS(3)
-        HORA = TVALS(5)
-        MINS = TVALS(6)
-        SEGS = TVALS(7)
+        call date_and_time(values=tvals)
+        anio = tvals(1)
+         mes = tvals(2)
+         dia = tvals(3)
+        hora = tvals(5)
+        mins = tvals(6)
+        segs = tvals(7)
 !       ---------------------------------------------------------------
-        WRITE(CHANIO,'(I4)') ANIO
+        write(chanio,'(i4)') anio
 !       ---------------------------------------------------------------
-        IF (MES.LT.10) THEN
-            WRITE(CHMES,'(I1)') MES
-            CHMES = TRIM('0'//CHMES)
-        ELSE
-            WRITE(CHMES,'(I2)') MES
-        END IF
+        if (mes.lt.10) then
+            write(chmes,'(i1)') mes
+            chmes = trim('0'//chmes)
+        else
+            write(chmes,'(i2)') mes
+        end if
 !       ---------------------------------------------------------------
-        IF (DIA.LT.10) THEN
-            WRITE(CHDIA,'(I1)') DIA
-            CHDIA = TRIM('0'//CHDIA)
-        ELSE
-            WRITE(CHDIA,'(I2)') DIA
-        END IF
+        if (dia.lt.10) then
+            write(chdia,'(i1)') dia
+            chdia = trim('0'//chdia)
+        else
+            write(chdia,'(i2)') dia
+        end if
 !       ---------------------------------------------------------------
-        IF (HORA.LT.10) THEN
-            WRITE(CHHORA,'(I1)') HORA
-            CHHORA = TRIM('0'//CHHORA)
-        ELSE
-            WRITE(CHHORA,'(I2)') HORA
-        END IF
+        if (hora.lt.10) then
+            write(chhora,'(i1)') hora
+            chhora = trim('0'//chhora)
+        else
+            write(chhora,'(i2)') hora
+        end if
 !       ---------------------------------------------------------------
-        IF (MINS.LT.10) THEN
-            WRITE(CHMINS,'(I1)') MINS
-            CHMINS = TRIM('0'//CHMINS)
-        ELSE
-        WRITE(CHMINS,'(I2)') MINS
-        END IF
+        if (mins.lt.10) then
+            write(chmins,'(i1)') mins
+            chmins = trim('0'//chmins)
+        else
+        write(chmins,'(i2)') mins
+        end if
 !       ---------------------------------------------------------------
-        IF (SEGS.LT.10) THEN
-            WRITE(CHSEGS,'(I1)') SEGS
-            CHSEGS = TRIM('0'//CHSEGS)
-        ELSE
-            WRITE(CHSEGS,'(I2)') SEGS
-        END IF
+        if (segs.lt.10) then
+            write(chsegs,'(i1)') segs
+            chsegs = trim('0'//chsegs)
+        else
+            write(chsegs,'(i2)') segs
+        end if
 !   --------------------------------------------------------------------
-    END SUBROUTINE TIMESTAMP
+    end subroutine timestamp
 !=======================================================================
-    SUBROUTINE CREAR_ARCHIVO_SALIDA()
+    subroutine crear_archivo_salida()
 !   -------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ---------------------------------------------------------------
-        CHARACTER (LEN=10) :: REO,CHIDFIT,CHTIDE,CHRADC,CHRADM
-        CHARACTER (LEN=4) :: CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS
+        character (len=10) :: reo,chidfit,chtide,chradc,chradm
+        character (len=4) :: chanio,chmes,chdia,chhora,chmins,chsegs
 !       ---------------------------------------------------------------
-!       ARCHIVO DE SALIDA
+!       archivo de salida
 !       ---------------------------------------------------------------
-        CALL TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
+        call timestamp(chanio,chmes,chdia,chhora,chmins,chsegs)
 !       ----------------------------------------------------------------
-        IF (IDREO.EQ.1) THEN
-            REO = 'ELAST'
-        ELSE IF (IDREO.EQ.2) THEN
-            REO = 'VISC'
-        ELSE IF (IDREO.EQ.3) THEN
-            REO = 'MAX'
-        ELSE IF (IDREO.EQ.4) THEN
-            REO = 'BUR'
-        ELSE IF (IDREO.EQ.5) THEN
-            REO = 'AND'
-        ELSE IF (IDREO.EQ.6) THEN
-            REO = 'QCONST'
-        ELSE IF (IDREO.EQ.7) THEN
-            REO = 'DTCONST'
-        ELSE IF (IDREO.EQ.8) THEN
-            REO = 'E&L2007'
-        END IF
-        WRITE(CHIDFIT,'(I1)') DEMID
-        WRITE(CHTIDE,'(I1)') TIDEFL
-        WRITE(CHRADC,'(I1)') RADCFL
-        WRITE(CHRADM,'(I1)') RADMFL
-        OPEN(UNIT=11,FILE='../out/THERMEVDB_'//TRIM(REO)//'_DEMID_'// &
-            TRIM(CHIDFIT)//'_TIDE_'//TRIM(CHTIDE)//'_RADC_'//TRIM(CHRADC)// &
-            '_RADM_'//TRIM(CHRADM)//'_'//TRIM(CHANIO)//'-'//TRIM(CHMES)//'-' &
-            //TRIM(CHDIA)//'_'//TRIM(CHHORA)//'_'//TRIM(CHMINS)//'_' &
-            //TRIM(CHSEGS)//'.OUT',STATUS='UNKNOWN')
+        if (idreo.eq.1) then
+            reo = 'elast'
+        else if (idreo.eq.2) then
+            reo = 'visc'
+        else if (idreo.eq.3) then
+            reo = 'max'
+        else if (idreo.eq.4) then
+            reo = 'bur'
+        else if (idreo.eq.5) then
+            reo = 'and'
+        else if (idreo.eq.6) then
+            reo = 'qconst'
+        else if (idreo.eq.7) then
+            reo = 'dtconst'
+        else if (idreo.eq.8) then
+            reo = 'e&l2007'
+        end if
+        write(chidfit,'(i1)') demid
+        write(chtide,'(i1)') tidefl
+        write(chradc,'(i1)') radcfl
+        write(chradm,'(i1)') radmfl
+        open(unit=11,file='../out/thermevdb_'//trim(reo)//'_demid_'// &
+            trim(chidfit)//'_tide_'//trim(chtide)//'_radc_'//trim(chradc)// &
+            '_radm_'//trim(chradm)//'_'//trim(chanio)//'-'//trim(chmes)//'-' &
+            //trim(chdia)//'_'//trim(chhora)//'_'//trim(chmins)//'_' &
+            //trim(chsegs)//'.out',status='unknown')
 !   --------------------------------------------------------------------
-    END SUBROUTINE CREAR_ARCHIVO_SALIDA
+    end subroutine crear_archivo_salida
 !=======================================================================
-    SUBROUTINE IMPRIMIR_PERFIL(TPRINT,AVGTC,DLM,AVGTM,DUM)
+    subroutine imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: TPRINT,AVGTC,DLM,AVGTM,DUM
-        CHARACTER (LEN=4) :: CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS
-        REAL (KIND=DP) :: R,TDR
-        CHARACTER (LEN=4) :: CHTPRINT
+        real (kind=dp), intent(in) :: tprint,avgtc,dlm,avgtm,dum
+        character (len=4) :: chanio,chmes,chdia,chhora,chmins,chsegs
+        real (kind=dp) :: r,tdr
+        character (len=4) :: chtprint
 !       ----------------------------------------------------------------
-!       IMPRESIÓN DE LOS PERFILES DE TEMPERATURA A LO LARGO DE LA 
-!       INTEGRACIÓN
+!       impresión de los perfiles de temperatura a lo largo de la 
+!       integración
 !       ----------------------------------------------------------------
-        CALL TIMESTAMP(CHANIO,CHMES,CHDIA,CHHORA,CHMINS,CHSEGS)
+        call timestamp(chanio,chmes,chdia,chhora,chmins,chsegs)
 !       ----------------------------------------------------------------
-        IF (TPRINT.EQ.0.D0) THEN
-            WRITE(CHTPRINT,'(I1)') INT(TPRINT)
-        ELSE IF(TPRINT.LT.1.D0) THEN
-            WRITE(CHTPRINT,'(I3)') INT(TPRINT*1.D3)
-        ELSE
-            WRITE(CHTPRINT,'(I4)') INT(TPRINT*1.D3)
-        END IF
+        if (tprint.eq.0.d0) then
+            write(chtprint,'(i1)') int(tprint)
+        else if(tprint.lt.1.d0) then
+            write(chtprint,'(i3)') int(tprint*1.d3)
+        else
+            write(chtprint,'(i4)') int(tprint*1.d3)
+        end if
 !       ----------------------------------------------------------------
-        OPEN(UNIT=12,FILE='../out/TEMPROFILE'//TRIM(CHTPRINT)//'_'//TRIM(CHANIO)// &
-        '-'//TRIM(CHMES)//'-'//TRIM(CHDIA)//'_'//TRIM(CHHORA)//'_'//TRIM(CHMINS)//'_' &
-        //TRIM(CHSEGS)//'.OUT',STATUS='UNKNOWN')
+        open(unit=12,file='../out/temprofile'//trim(chtprint)//'_'//trim(chanio)// &
+        '-'//trim(chmes)//'-'//trim(chdia)//'_'//trim(chhora)//'_'//trim(chmins)//'_' &
+        //trim(chsegs)//'.out',status='unknown')
 !       ----------------------------------------------------------------
-        R = 0.D0
-        DO WHILE (R.LE.RT)
-            TDR = TPROF(AVGTC,AVGTM,DLM,DUM,R)
-            WRITE(12,*) R,TDR,VISC(TDR)
-            R = R + DR
-        END DO
+        r = 0.d0
+        do while (r.le.rt)
+            tdr = tprof(avgtc,avgtm,dlm,dum,r)
+            write(12,*) r,tdr,visc(tdr)
+            r = r + dr
+        end do
     !   --------------------------------------------------------------------
-        CLOSE(12)
+        close(12)
     !   --------------------------------------------------------------------
-    END SUBROUTINE IMPRIMIR_PERFIL
+    end subroutine imprimir_perfil
 !=======================================================================
-    SUBROUTINE REOLOGIA(L,W,ID,ETA,KR,KI)
+    subroutine reologia(l,w,id,eta,kr,ki)
 !   -------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: W,ETA
-    REAL (KIND=DP), INTENT(OUT) :: KR,KI
-    REAL (KIND=DP) :: X,ZETA,BSUBL,FACL,DENKL,NUMKI,NUMKR,XPR,XPI,LAG
-    INTEGER,INTENT(IN) :: L,ID
+    real (kind=dp), intent(in) :: w,eta
+    real (kind=dp), intent(out) :: kr,ki
+    real (kind=dp) :: x,zeta,bsubl,facl,denkl,numki,numkr,xpr,xpi,lag
+    integer,intent(in) :: l,id
 !   --------------------------------------------------------------------
-    X = DABS(W)
-    ZETA = ZANDR0*(100.D0*DEXP(-X/0.2D0) + 1.D0)
-    BSUBL = DBLE(2*L**2+4*L+3)*KSUBB/DBLE(L)
-    FACL = 1.5D0/DBLE(L-1)
-    IF (ID.EQ.1) THEN
-!    PURAMENTE ELASTICO
-      KR = FACL*FLEX/(FLEX + BSUBL)
-      KI = 0.D0
-      RETURN
-    ELSE IF (ID.EQ.2) THEN
-!      PURAMENTE VISCOSO
-      DENKL = (BSUBL*X*ETA)**2 + 1.D0
-      NUMKR = 1.D0
-      NUMKI = -BSUBL*X*ETA
-    ELSE IF (ID.EQ.3) THEN
-!      MAXWELL
-      DENKL = ((ETA*X)**2)*(FLEX + BSUBL)**2 + 1.D0
-      NUMKR = (FLEX + BSUBL)*FLEX*(ETA*X)**2 + 1.D0
-      NUMKI = -BSUBL*ETA*X
-    ELSE IF (ID.EQ.4) THEN
-!      BURGERS
-      XPR = FLEX*ETA*X*(1.D0 + KFLEX/((KFLEX*KETA*FLEX*ETA*X)**2 + 1.D0))
-      XPI = - (1.D0 + KETA*(KFLEX*FLEX*ETA*X)**2/((KFLEX*KETA*FLEX*ETA*X)**2 + 1.D0))         
-      NUMKR = (XPR + BSUBL*ETA*X)*XPR + XPI**2
-      NUMKI = BSUBL*ETA*X*XPI
-      DENKL = (XPR + BSUBL*ETA*X)**2 + XPI**2             
-    ELSE IF (ID.EQ.5) THEN
-!     ANDRADE
-      XPR = FLEX*ETA*X + ((FLEX*ETA*X)**(1.D0-ALPHA))*GAMMAC/(ZETA**ALPHA)
-      XPI = - (1.D0 + ((FLEX*ETA*X)**(1.D0-ALPHA))*GAMMAS/(ZETA**ALPHA))
-      NUMKR = (XPR + BSUBL*ETA*X)*XPR + XPI**2
-      NUMKI = BSUBL*ETA*X*XPI
-      DENKL = (XPR + BSUBL*ETA*X)**2 + XPI**2
-    ELSE IF (ID.EQ.6) THEN
-!      KAULA (1964)
-      KR = 0.D0
-      KI = K2/QF
-      RETURN
-    ELSE IF (ID.EQ.7) THEN
-!      SINGER-MIGNARD
-      KR = 0.D0
-      KI = K2*X*DELTAT
-      RETURN
-    ELSE IF (ID.EQ.8) THEN
-!      EFROIMSKY & LAINEY (2007)
-      LAG = EPSMAY*(EPSMAY*X)**(-ALPHA-1.0D0)
-      KR = 0.D0
-      KI = K2*LAG*X
-      RETURN
-    ELSE
-      PRINT *,'ERROR EN EL IDENTIFICADOR DE LA REOLOGIA',IDREO
-      RETURN
-    END IF
-    KR =  FACL*NUMKR/DENKL
-    KI = -FACL*NUMKI/DENKL
+    x = dabs(w)
+    zeta = zandr0*(100.d0*dexp(-x/0.2d0) + 1.d0)
+    bsubl = dble(2*l**2+4*l+3)*ksubb/dble(l)
+    facl = 1.5d0/dble(l-1)
+    if (id.eq.1) then
+!    puramente elastico
+      kr = facl*flex/(flex + bsubl)
+      ki = 0.d0
+      return
+    else if (id.eq.2) then
+!      puramente viscoso
+      denkl = (bsubl*x*eta)**2 + 1.d0
+      numkr = 1.d0
+      numki = -bsubl*x*eta
+    else if (id.eq.3) then
+!      maxwell
+      denkl = ((eta*x)**2)*(flex + bsubl)**2 + 1.d0
+      numkr = (flex + bsubl)*flex*(eta*x)**2 + 1.d0
+      numki = -bsubl*eta*x
+    else if (id.eq.4) then
+!      burgers
+      xpr = flex*eta*x*(1.d0 + kflex/((kflex*keta*flex*eta*x)**2 + 1.d0))
+      xpi = - (1.d0 + keta*(kflex*flex*eta*x)**2/((kflex*keta*flex*eta*x)**2 + 1.d0))         
+      numkr = (xpr + bsubl*eta*x)*xpr + xpi**2
+      numki = bsubl*eta*x*xpi
+      denkl = (xpr + bsubl*eta*x)**2 + xpi**2             
+    else if (id.eq.5) then
+!     andrade
+      xpr = flex*eta*x + ((flex*eta*x)**(1.d0-alpha))*gammac/(zeta**alpha)
+      xpi = - (1.d0 + ((flex*eta*x)**(1.d0-alpha))*gammas/(zeta**alpha))
+      numkr = (xpr + bsubl*eta*x)*xpr + xpi**2
+      numki = bsubl*eta*x*xpi
+      denkl = (xpr + bsubl*eta*x)**2 + xpi**2
+    else if (id.eq.6) then
+!      kaula (1964)
+      kr = 0.d0
+      ki = k2/qf
+      return
+    else if (id.eq.7) then
+!      singer-mignard
+      kr = 0.d0
+      ki = k2*x*deltat
+      return
+    else if (id.eq.8) then
+!      efroimsky & lainey (2007)
+      lag = epsmay*(epsmay*x)**(-alpha-1.0d0)
+      kr = 0.d0
+      ki = k2*lag*x
+      return
+    else
+      print *,'error en el identificador de la reologia',idreo
+      return
+    end if
+    kr =  facl*numkr/denkl
+    ki = -facl*numki/denkl
 !   --------------------------------------------------------------------
-    RETURN
+    return
 !   --------------------------------------------------------------------
-    END SUBROUTINE REOLOGIA
+    end subroutine reologia
 !=======================================================================
-    SUBROUTINE EVALKLM()
+    subroutine evalklm()
 !   --------------------------------------------------------------------
-      IMPLICIT NONE
+      implicit none
 !     ------------------------------------------------------------------
-!     EVALUACION DE LAS FUNCIONES K_LM
+!     evaluacion de las funciones k_lm
 !     ------------------------------------------------------------------
-!     L=2
-      ALM(2,0) = 1.0D0
-      ALM(2,1) = 0.333333333333333D0
-      ALM(2,2) = 0.0833333333333333D0
-!     L=3
-      ALM(3,0) = 1.0D0
-      ALM(3,1) = 0.166666666666667D0
-      ALM(3,2) = 0.0166666666666667D0
-      ALM(3,3) = 0.00277777777777778D0
+!     l=2
+      alm(2,0) = 1.0d0
+      alm(2,1) = 0.333333333333333d0
+      alm(2,2) = 0.0833333333333333d0
+!     l=3
+      alm(3,0) = 1.0d0
+      alm(3,1) = 0.166666666666667d0
+      alm(3,2) = 0.0166666666666667d0
+      alm(3,3) = 0.00277777777777778d0
 !   --------------------------------------------------------------------
-    END SUBROUTINE EVALKLM
+    end subroutine evalklm
 !=======================================================================
-    SUBROUTINE EVALFI(INC,F2I)
+    subroutine evalfi(inc,f2i)
 !   --------------------------------------------------------------------
-      IMPLICIT NONE
+      implicit none
 !   --------------------------------------------------------------------
-      REAL (KIND=DP), INTENT(IN) :: INC
-      REAL (KIND=DP) :: CI
-      REAL (KIND=DP), INTENT(OUT) :: F2I(LMAXP,0:LMAXP,0:LMAXP)
+      real (kind=dp), intent(in) :: inc
+      real (kind=dp) :: ci
+      real (kind=dp), intent(out) :: f2i(lmaxp,0:lmaxp,0:lmaxp)
 !   --------------------------------------------------------------------
-      CI = DCOS(INC)
-!     L=2
-      F2I(2,0,0) = 0.140625D0*(-1.0D0 + CI**2)**2
-      F2I(2,0,1) = 0.5625D0*(-0.333333333333333D0 + CI**2)**2
-      F2I(2,0,2) = 0.140625D0*(-1.0D0 + CI**2)**2
-      F2I(2,1,0) = -0.5625D0*(-1.0D0 + CI)*(1.0D0 + CI)**3
-      F2I(2,1,1) = 2.25D0*CI**2*(1.0D0 - CI**2)
-      F2I(2,1,2) = -0.5625D0*(-1.0D0 + CI)**3*(1.0D0 + CI)
-      F2I(2,2,0) = 0.5625D0*(1.0D0 + CI)**4
-      F2I(2,2,1) = 2.25D0*(-1.0D0 + CI)**2*(1.0D0 + CI)**2
-      F2I(2,2,2) = 0.5625D0*(-1.0D0 + CI)**4
-!     L=3
-      F2I(3,0,0) = -0.09765625D0*(-1.0D0 + CI**2)**3
-      F2I(3,0,1) = 0.87890625D0*(1.0D0 - CI**2)*(-0.2D0 + CI**2)**2
-      F2I(3,0,2) = 0.87890625D0*(1.0D0 - CI**2)*(-0.2D0 + CI**2)**2
-      F2I(3,0,3) = -0.09765625D0*(-1.0D0 + CI**2)**3
-      F2I(3,1,0) = 3.515625D0*(1.0D0 + CI)**4*(0.5D0 - CI + 0.5D0*CI**2) &
-      **2/(-1.0D0 + CI)**2
-      F2I(3,1,1) = 7.91015625D0*(1.0D0 + CI)**2*(0.0666666666666667D0 + &
-      0.666666666666667D0*CI - CI**2)**2
-      F2I(3,1,2) = 7.91015625D0*(-1.0D0 + CI)**2*(-0.0666666666666667D0 &
-      + 0.666666666666667D0*CI + CI**2)**2
-      F2I(3,1,3) = 3.515625D0*(-1.0D0 + CI)**4*(0.5D0 + CI + &
-      0.5D0*CI**2)**2/(1.0D0 + CI)**2
-      F2I(3,2,0) = -3.515625D0*(-1.0D0 + CI)*(1.0D0 + CI)**5
-      F2I(3,2,1) = 31.640625D0*(1.0D0 - CI)*(-0.333333333333333D0 + CI) &
-      **2*(1.0D0 + CI)**3
-      F2I(3,2,2) = -31.640625D0*(-1.0D0 + CI)**3*(0.333333333333333D0 + &
-      CI)**2*(1.0D0 + CI)
-      F2I(3,2,3) = -3.515625D0*(-1.0D0 + CI)**5*(1.0D0 + CI)
-      F2I(3,3,0) = 3.515625D0*(1.0D0 + CI)**6
-      F2I(3,3,1) = 31.640625D0*(-1.0D0 + CI)**2*(1.0D0 + CI)**4
-      F2I(3,3,2) = 31.640625D0*(-1.0D0 + CI)**4*(1.0D0 + CI)**2
-      F2I(3,3,3) = 3.515625D0*(-1.0D0 + CI)**6
+      ci = dcos(inc)
+!     l=2
+      f2i(2,0,0) = 0.140625d0*(-1.0d0 + ci**2)**2
+      f2i(2,0,1) = 0.5625d0*(-0.333333333333333d0 + ci**2)**2
+      f2i(2,0,2) = 0.140625d0*(-1.0d0 + ci**2)**2
+      f2i(2,1,0) = -0.5625d0*(-1.0d0 + ci)*(1.0d0 + ci)**3
+      f2i(2,1,1) = 2.25d0*ci**2*(1.0d0 - ci**2)
+      f2i(2,1,2) = -0.5625d0*(-1.0d0 + ci)**3*(1.0d0 + ci)
+      f2i(2,2,0) = 0.5625d0*(1.0d0 + ci)**4
+      f2i(2,2,1) = 2.25d0*(-1.0d0 + ci)**2*(1.0d0 + ci)**2
+      f2i(2,2,2) = 0.5625d0*(-1.0d0 + ci)**4
+!     l=3
+      f2i(3,0,0) = -0.09765625d0*(-1.0d0 + ci**2)**3
+      f2i(3,0,1) = 0.87890625d0*(1.0d0 - ci**2)*(-0.2d0 + ci**2)**2
+      f2i(3,0,2) = 0.87890625d0*(1.0d0 - ci**2)*(-0.2d0 + ci**2)**2
+      f2i(3,0,3) = -0.09765625d0*(-1.0d0 + ci**2)**3
+      f2i(3,1,0) = 3.515625d0*(1.0d0 + ci)**4*(0.5d0 - ci + 0.5d0*ci**2) &
+      **2/(-1.0d0 + ci)**2
+      f2i(3,1,1) = 7.91015625d0*(1.0d0 + ci)**2*(0.0666666666666667d0 + &
+      0.666666666666667d0*ci - ci**2)**2
+      f2i(3,1,2) = 7.91015625d0*(-1.0d0 + ci)**2*(-0.0666666666666667d0 &
+      + 0.666666666666667d0*ci + ci**2)**2
+      f2i(3,1,3) = 3.515625d0*(-1.0d0 + ci)**4*(0.5d0 + ci + &
+      0.5d0*ci**2)**2/(1.0d0 + ci)**2
+      f2i(3,2,0) = -3.515625d0*(-1.0d0 + ci)*(1.0d0 + ci)**5
+      f2i(3,2,1) = 31.640625d0*(1.0d0 - ci)*(-0.333333333333333d0 + ci) &
+      **2*(1.0d0 + ci)**3
+      f2i(3,2,2) = -31.640625d0*(-1.0d0 + ci)**3*(0.333333333333333d0 + &
+      ci)**2*(1.0d0 + ci)
+      f2i(3,2,3) = -3.515625d0*(-1.0d0 + ci)**5*(1.0d0 + ci)
+      f2i(3,3,0) = 3.515625d0*(1.0d0 + ci)**6
+      f2i(3,3,1) = 31.640625d0*(-1.0d0 + ci)**2*(1.0d0 + ci)**4
+      f2i(3,3,2) = 31.640625d0*(-1.0d0 + ci)**4*(1.0d0 + ci)**2
+      f2i(3,3,3) = 3.515625d0*(-1.0d0 + ci)**6
 !   --------------------------------------------------------------------
-    END SUBROUTINE EVALFI
+    end subroutine evalfi
 !=======================================================================
-    SUBROUTINE EVALGE(EXC,G2E)
+    subroutine evalge(exc,g2e)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: EXC
-    REAL (KIND=DP) :: E2,E3,E4,E5,E6,E7,E8,E9,E10
-    REAL (KIND=DP), INTENT(OUT) :: G2E(LMAXP,0:LMAXP,-QMAXP:QMAXP)
+    real (kind=dp), intent(in) :: exc
+    real (kind=dp) :: e2,e3,e4,e5,e6,e7,e8,e9,e10
+    real (kind=dp), intent(out) :: g2e(lmaxp,0:lmaxp,-qmaxp:qmaxp)
 !   --------------------------------------------------------------------
-       E2 = EXC*EXC
-       E3 = E2*EXC
-       E4 = E2*E2
-       E5 = E4*EXC
-       E6 = E4*E2
-       E7 = E6*EXC
-       E8 = E6*E2
-       E9 = E8*EXC
-      E10 = E8*E2
+       e2 = exc*exc
+       e3 = e2*exc
+       e4 = e2*e2
+       e5 = e4*exc
+       e6 = e4*e2
+       e7 = e6*exc
+       e8 = e6*e2
+       e9 = e8*exc
+      e10 = e8*e2
 !   --------------------------------------------------------------------
-!     L=2
+!     l=2
 !     ---
-      G2E(2,0,-10) = 0.D0
-      G2E(2,0,-9) = 0.D0
-      G2E(2,0,-8) = 0.D0
-      G2E(2,0,-7) = 0.D0
-      G2E(2,0,-6) = 0.D0
-      G2E(2,0,-5) = 0.0040045166015625D0*E10
-      G2E(2,0,-4) = E8*(0.00173611111111111D0 + 0.00243055555555556D0*E2)
-      G2E(2,0,-3) = E6*(0.000434027777777778D0 + E2*( &
-      0.000596788194444444D0 + 0.000629679361979166D0*E2))
-      G2E(2,0,-2) = 0.D0
-      G2E(2,0,-1) = E2*(0.25D0 + E2*(-0.0625D0 + E2*( &
-     0.0169270833333333D0 + E2*(0.00613064236111114D0 + &
-     0.0053690592447917D0*E2))))
-      G2E(2,0,0) = 1.0D0 + E2*(-5.0D0 + E2*(7.875D0 + E2*( &
-      -4.30555555555556D0 + E2*(1.25043402777778D0 - 0.181302083333333D0*E2))))
-      G2E(2,0,1) = E2*(12.25D0 + E2*(-53.8125D0 + E2*( &
-      85.83984375D0 + E2*(-64.76318359375D0 + 28.4081359863281D0*E2))))
-      G2E(2,0,2) = E4*(72.25D0 + E2*(-325.833333333333D0 + E2*( &
-      580.215277777778D0 - 547.1625D0*E2)))
-      G2E(2,0,3) = E6*(309.906684027778D0 + E2*(-1491.08208550347D0 &
-      + 2986.78270975749D0*E2))
-      G2E(2,0,4) = E8*(1109.72265625D0 - 5757.64921875D0*E2)
-      G2E(2,0,5) = 3536.12958502876D0*E10
-      G2E(2,0,6) = 0.D0
-      G2E(2,0,7) = 0.D0
-      G2E(2,0,8) = 0.D0
-      G2E(2,0,9) = 0.D0
-      G2E(2,0,10) = 0.D0
-      G2E(2,1,-10) = 0.D0
-      G2E(2,1,-9) = 0.D0
-      G2E(2,1,-8) = 0.D0
-      G2E(2,1,-7) = 0.D0
-      G2E(2,1,-6) = 0.D0
-      G2E(2,1,-5) = 47.9664459228516D0*E10
-      G2E(2,1,-4) = E8*(23.16015625D0 + 7.76015625D0*E2)
-      G2E(2,1,-3) = E6*(10.97265625D0 + E2*(10.17041015625D0 + 18.3712188720703D0*E2))
-      G2E(2,1,-2) = E4*(5.0625D0 + E2*(7.875D0 + E2*(12.9765625D0 + 18.7921875D0*E2)))
-      G2E(2,1,-1) = E2*(2.25D0 + E2*(5.0625D0 + E2*(8.96484375D0 + &
-      E2*(13.86865234375D0 + 19.7799133300781D0*E2))))
-      G2E(2,1,0) = 1.0D0 + E2*(3.0D0 + E2*(6.0D0 + E2*(10.0D0 + EXC &
-      **2*(15.0D0 + 21.0D0*E2))))
-      G2E(2,1,1) = E2*(2.25D0 + E2*(5.0625D0 + E2*(8.96484375D0 + &
-      E2*(13.86865234375D0 + 19.7799133300781D0*E2))))
-      G2E(2,1,2) = E4*(5.0625D0 + E2*(7.875D0 + E2*(12.9765625D0 + 18.7921875D0*E2)))
-      G2E(2,1,3) = E6*(10.97265625D0 + E2*(10.17041015625D0 + 18.3712188720703D0*E2))
-      G2E(2,1,4) = E8*(23.16015625D0 + 7.76015625D0*E2)
-      G2E(2,1,5) = 47.9664459228516D0*E10
-      G2E(2,1,6) = 0.D0
-      G2E(2,1,7) = 0.D0
-      G2E(2,1,8) = 0.D0
-      G2E(2,1,9) = 0.D0
-      G2E(2,1,10) = 0.D0
-      G2E(2,2,-10) = 0.D0
-      G2E(2,2,-9) = 0.D0
-      G2E(2,2,-8) = 0.D0
-      G2E(2,2,-7) = 0.D0
-      G2E(2,2,-6) = 0.D0
-      G2E(2,2,-5) = 3536.12958502876D0*E10
-      G2E(2,2,-4) = E8*(1109.72265625D0 - 5757.64921875D0*E2)
-      G2E(2,2,-3) = E6*(309.906684027778D0 + E2*(-1491.08208550347D0 &
-      + 2986.78270975749D0*E2))
-      G2E(2,2,-2) = E4*(72.25D0 + E2*(-325.833333333333D0 + E2*( &
-      580.215277777778D0 - 547.1625D0*E2)))
-      G2E(2,2,-1) = E2*(12.25D0 + E2*(-53.8125D0 + E2*( &
-      85.83984375D0 + E2*(-64.76318359375D0 + 28.4081359863281D0*E2))))
-      G2E(2,2,0) = 1.0D0 + E2*(-5.0D0 + E2*(7.875D0 + E2*( &
-      -4.30555555555556D0 + E2*(1.25043402777778D0 - &
-      0.181302083333333D0*E2))))
-      G2E(2,2,1) = E2*(0.25D0 + E2*(-0.0625D0 + E2*( &
-      0.0169270833333333D0 + E2*(0.00613064236111114D0 + 0.0053690592447917D0*E2))))
-      G2E(2,2,2) = 0.D0
-      G2E(2,2,3) = E6*(0.000434027777777778D0 + E2*( &
-      0.000596788194444444D0 + 0.000629679361979166D0*E2))
-      G2E(2,2,4) = E8*(0.00173611111111111D0 + 0.00243055555555556D0*EXC**2)
-      G2E(2,2,5) = 0.0040045166015625D0*E10
-      G2E(2,2,6) = 0.D0
-      G2E(2,2,7) = 0.D0
-      G2E(2,2,8) = 0.D0
-      G2E(2,2,9) = 0.D0
-      G2E(2,2,10) = 0.D0
+      g2e(2,0,-10) = 0.d0
+      g2e(2,0,-9) = 0.d0
+      g2e(2,0,-8) = 0.d0
+      g2e(2,0,-7) = 0.d0
+      g2e(2,0,-6) = 0.d0
+      g2e(2,0,-5) = 0.0040045166015625d0*e10
+      g2e(2,0,-4) = e8*(0.00173611111111111d0 + 0.00243055555555556d0*e2)
+      g2e(2,0,-3) = e6*(0.000434027777777778d0 + e2*( &
+      0.000596788194444444d0 + 0.000629679361979166d0*e2))
+      g2e(2,0,-2) = 0.d0
+      g2e(2,0,-1) = e2*(0.25d0 + e2*(-0.0625d0 + e2*( &
+     0.0169270833333333d0 + e2*(0.00613064236111114d0 + &
+     0.0053690592447917d0*e2))))
+      g2e(2,0,0) = 1.0d0 + e2*(-5.0d0 + e2*(7.875d0 + e2*( &
+      -4.30555555555556d0 + e2*(1.25043402777778d0 - 0.181302083333333d0*e2))))
+      g2e(2,0,1) = e2*(12.25d0 + e2*(-53.8125d0 + e2*( &
+      85.83984375d0 + e2*(-64.76318359375d0 + 28.4081359863281d0*e2))))
+      g2e(2,0,2) = e4*(72.25d0 + e2*(-325.833333333333d0 + e2*( &
+      580.215277777778d0 - 547.1625d0*e2)))
+      g2e(2,0,3) = e6*(309.906684027778d0 + e2*(-1491.08208550347d0 &
+      + 2986.78270975749d0*e2))
+      g2e(2,0,4) = e8*(1109.72265625d0 - 5757.64921875d0*e2)
+      g2e(2,0,5) = 3536.12958502876d0*e10
+      g2e(2,0,6) = 0.d0
+      g2e(2,0,7) = 0.d0
+      g2e(2,0,8) = 0.d0
+      g2e(2,0,9) = 0.d0
+      g2e(2,0,10) = 0.d0
+      g2e(2,1,-10) = 0.d0
+      g2e(2,1,-9) = 0.d0
+      g2e(2,1,-8) = 0.d0
+      g2e(2,1,-7) = 0.d0
+      g2e(2,1,-6) = 0.d0
+      g2e(2,1,-5) = 47.9664459228516d0*e10
+      g2e(2,1,-4) = e8*(23.16015625d0 + 7.76015625d0*e2)
+      g2e(2,1,-3) = e6*(10.97265625d0 + e2*(10.17041015625d0 + 18.3712188720703d0*e2))
+      g2e(2,1,-2) = e4*(5.0625d0 + e2*(7.875d0 + e2*(12.9765625d0 + 18.7921875d0*e2)))
+      g2e(2,1,-1) = e2*(2.25d0 + e2*(5.0625d0 + e2*(8.96484375d0 + &
+      e2*(13.86865234375d0 + 19.7799133300781d0*e2))))
+      g2e(2,1,0) = 1.0d0 + e2*(3.0d0 + e2*(6.0d0 + e2*(10.0d0 + exc &
+      **2*(15.0d0 + 21.0d0*e2))))
+      g2e(2,1,1) = e2*(2.25d0 + e2*(5.0625d0 + e2*(8.96484375d0 + &
+      e2*(13.86865234375d0 + 19.7799133300781d0*e2))))
+      g2e(2,1,2) = e4*(5.0625d0 + e2*(7.875d0 + e2*(12.9765625d0 + 18.7921875d0*e2)))
+      g2e(2,1,3) = e6*(10.97265625d0 + e2*(10.17041015625d0 + 18.3712188720703d0*e2))
+      g2e(2,1,4) = e8*(23.16015625d0 + 7.76015625d0*e2)
+      g2e(2,1,5) = 47.9664459228516d0*e10
+      g2e(2,1,6) = 0.d0
+      g2e(2,1,7) = 0.d0
+      g2e(2,1,8) = 0.d0
+      g2e(2,1,9) = 0.d0
+      g2e(2,1,10) = 0.d0
+      g2e(2,2,-10) = 0.d0
+      g2e(2,2,-9) = 0.d0
+      g2e(2,2,-8) = 0.d0
+      g2e(2,2,-7) = 0.d0
+      g2e(2,2,-6) = 0.d0
+      g2e(2,2,-5) = 3536.12958502876d0*e10
+      g2e(2,2,-4) = e8*(1109.72265625d0 - 5757.64921875d0*e2)
+      g2e(2,2,-3) = e6*(309.906684027778d0 + e2*(-1491.08208550347d0 &
+      + 2986.78270975749d0*e2))
+      g2e(2,2,-2) = e4*(72.25d0 + e2*(-325.833333333333d0 + e2*( &
+      580.215277777778d0 - 547.1625d0*e2)))
+      g2e(2,2,-1) = e2*(12.25d0 + e2*(-53.8125d0 + e2*( &
+      85.83984375d0 + e2*(-64.76318359375d0 + 28.4081359863281d0*e2))))
+      g2e(2,2,0) = 1.0d0 + e2*(-5.0d0 + e2*(7.875d0 + e2*( &
+      -4.30555555555556d0 + e2*(1.25043402777778d0 - &
+      0.181302083333333d0*e2))))
+      g2e(2,2,1) = e2*(0.25d0 + e2*(-0.0625d0 + e2*( &
+      0.0169270833333333d0 + e2*(0.00613064236111114d0 + 0.0053690592447917d0*e2))))
+      g2e(2,2,2) = 0.d0
+      g2e(2,2,3) = e6*(0.000434027777777778d0 + e2*( &
+      0.000596788194444444d0 + 0.000629679361979166d0*e2))
+      g2e(2,2,4) = e8*(0.00173611111111111d0 + 0.00243055555555556d0*exc**2)
+      g2e(2,2,5) = 0.0040045166015625d0*e10
+      g2e(2,2,6) = 0.d0
+      g2e(2,2,7) = 0.d0
+      g2e(2,2,8) = 0.d0
+      g2e(2,2,9) = 0.d0
+      g2e(2,2,10) = 0.d0
 !     ---
-!     L=3
+!     l=3
 !     ---
-      G2E(3,0,-10) = 0.D0
-      G2E(3,0,-9) = 0.D0
-      G2E(3,0,-8) = 0.D0
-      G2E(3,0,-7) = 0.D0
-      G2E(3,0,-6) = 0.D0
-      G2E(3,0,-5) = 6.94444444444445D-5*E10
-      G2E(3,0,-4) = E8*(6.7816840277778D-6 + 1.35633680555556D-5*E2)
-      G2E(3,0,-3) = 0.D0
-      G2E(3,0,-2) = E4*(0.015625D0 + E2*(0.00520833333333334D0 + EXC** &
-      2*(0.00490993923611111D0 + 0.00393880208333333D0*E2)))
-      G2E(3,0,-1) = E2*(1.0D0 + E2*(-2.5D0 + E2*( &
-      1.85416666666667D0 + E2*(-0.524305555555555D0 + 0.136197916666667D0*E2))))
-      G2E(3,0,0) = 1.0D0 + E2*(-12.0D0 + E2*(49.21875D0 + E2*( &
-      -83.21875D0 + E2*(68.0408935546875D0 - 31.233955078125D0*E2))))
-      G2E(3,0,1) = E2*(25.0D0 + E2*(-220.0D0 + E2*( &
-      736.916666666667D0 + E2*(-1221.72222222222D0 + 1147.2109375D0*EXC**2))))
-      G2E(3,0,2) = E4*(252.015625D0 + E2*(-2027.36979166667D0 + E2 &
-      *(6597.1491156684D0 - 11511.4770507813D0*E2)))
-      G2E(3,0,3) = E6*(1660.5625D0 + E2*(-13126.59375D0 + 43691.82890625D0*E2))
-      G2E(3,0,4) = E8*(8504.77816433377D0 - 68154.558710395D0*E2)
-      G2E(3,0,5) = 36828.8084027778D0*E10
-      G2E(3,0,6) = 0.D0
-      G2E(3,0,7) = 0.D0
-      G2E(3,0,8) = 0.D0
-      G2E(3,0,9) = 0.D0
-      G2E(3,0,10) = 0.D0
-      G2E(3,1,-10) = 0.D0
-      G2E(3,1,-9) = 0.D0
-      G2E(3,1,-8) = 0.D0
-      G2E(3,1,-7) = 0.D0
-      G2E(3,1,-6) = 0.D0
-      G2E(3,1,-5) = 14.0312673611111D0*E10
-      G2E(3,1,-4) = E8*(7.18072509765625D0 + 23.6063720703125D0*E2)
-      G2E(3,1,-3) = E6*(3.67361111111111D0 + E2*(14.2152777777778D0 + 36.3644097222222D0*E2))
-      G2E(3,1,-2) = E4*(1.890625D0 + E2*(8.421875D0 + E2*( &
-      23.4019368489583D0 + 51.6582790798611D0*E2)))
-      G2E(3,1,-1) = E2*(1.0D0 + E2*(5.0D0 + E2*(15.0D0 + E2*(35.0D0 + 70.0D0*E2))))
-      G2E(3,1,0) = 1.0D0 + E2*(4.0D0 + E2*(11.46875D0 + E2*( &
-      26.4756944444444D0 + E2*(53.2151557074653D0 + 96.8403244357639D0*E2))))
-      G2E(3,1,1) = E2*(9.0D0 + E2*(16.5D0 + E2*(38.1875D0 + E2*( &
-      71.4791666666667D0 + 124.026996527778D0*E2))))
-      G2E(3,1,2) = E4*(43.890625D0 + E2*(32.296875D0 + E2*( &
-      97.048095703125D0 + 149.09169921875D0*E2)))
-      G2E(3,1,3) = E6*(164.694444444444D0 + E2*(-13.3680555555555D0 + 254.317795138889D0*E2))
-      G2E(3,1,4) = E8*(532.960510253906D0 - 416.388549804688D0*E2)
-      G2E(3,1,5) = 1567.17015625D0*E10
-      G2E(3,1,6) = 0.D0
-      G2E(3,1,7) = 0.D0
-      G2E(3,1,8) = 0.D0
-      G2E(3,1,9) = 0.D0
-      G2E(3,1,10) = 0.D0
-      G2E(3,2,-10) = 0.D0
-      G2E(3,2,-9) = 0.D0
-      G2E(3,2,-8) = 0.D0
-      G2E(3,2,-7) = 0.D0
-      G2E(3,2,-6) = 0.D0
-      G2E(3,2,-5) = 1567.17015625D0*E10
-      G2E(3,2,-4) = E8*(532.960510253906D0 - 416.388549804688D0*E2)
-      G2E(3,2,-3) = E6*(164.694444444444D0 + E2*(-13.3680555555555D0 + 254.317795138889D0*E2))
-      G2E(3,2,-2) = E4*(43.890625D0 + E2*(32.296875D0 + E2*( &
-      97.048095703125D0 + 149.09169921875D0*E2)))
-      G2E(3,2,-1) = E2*(9.0D0 + E2*(16.5D0 + E2*(38.1875D0 + E2* &
-      (71.4791666666667D0 + 124.026996527778D0*E2))))
-      G2E(3,2,0) = 1.0D0 + E2*(4.0D0 + E2*(11.46875D0 + E2*( &
-      26.4756944444444D0 + E2*(53.2151557074653D0 + 96.8403244357639D0*E2))))
-      G2E(3,2,1) = E2*(1.0D0 + E2*(5.0D0 + E2*(15.0D0 + E2*( 35.0D0 + 70.0D0*E2))))
-      G2E(3,2,2) = E4*(1.890625D0 + E2*(8.421875D0 + E2*( &
-      23.4019368489583D0 + 51.6582790798611D0*E2)))
-      G2E(3,2,3) = E6*(3.67361111111111D0 + E2*(14.2152777777778D0 + 36.3644097222222D0*E2))
-      G2E(3,2,4) = E8*(7.18072509765625D0 + 23.6063720703125D0*E2)
-      G2E(3,2,5) = 14.0312673611111D0*E10
-      G2E(3,2,6) = 0.D0
-      G2E(3,2,7) = 0.D0
-      G2E(3,2,8) = 0.D0
-      G2E(3,2,9) = 0.D0
-      G2E(3,2,10) = 0.D0
-      G2E(3,3,-10) = 0.D0
-      G2E(3,3,-9) = 0.D0
-      G2E(3,3,-8) = 0.D0
-      G2E(3,3,-7) = 0.D0
-      G2E(3,3,-6) = 0.D0
-      G2E(3,3,-5) = 36828.8084027778D0*E10
-      G2E(3,3,-4) = E8*(8504.77816433377D0 - 68154.558710395D0*E2)
-      G2E(3,3,-3) = E6*(1660.5625D0 + E2*(-13126.59375D0 + 43691.82890625D0*E2))
-      G2E(3,3,-2) = E4*(252.015625D0 + E2*(-2027.36979166667D0 + EXC** &
-      2*(6597.1491156684D0 - 11511.4770507813D0*E2)))
-      G2E(3,3,-1) = E2*(25.0D0 + E2*(-220.0D0 + E2*( &
-      736.916666666667D0 + E2*(-1221.72222222222D0 + 1147.2109375D0*EXC**2))))
-      G2E(3,3,0) = 1.0D0 + E2*(-12.0D0 + E2*(49.21875D0 + E2*( &
-      -83.21875D0 + E2*(68.0408935546875D0 - 31.233955078125D0*E2))))
-      G2E(3,3,1) = E2*(1.0D0 + E2*(-2.5D0 + E2*(1.85416666666667D0 &
-     + E2*(-0.524305555555555D0 + 0.136197916666666D0*E2))))
-      G2E(3,3,2) = E4*(0.015625D0 + E2*(0.00520833333333334D0 + E2 &
-      *(0.00490993923611111D0 + 0.00393880208333333D0*E2)))
-      G2E(3,3,3) = 0.D0
-      G2E(3,3,4) = E8*(6.7816840277778D-6 + 1.35633680555556D-5*E2)
-      G2E(3,3,5) = 6.94444444444445D-5*E10
-      G2E(3,3,6) = 0.D0
-      G2E(3,3,7) = 0.D0
-      G2E(3,3,8) = 0.D0
-      G2E(3,3,9) = 0.D0
-      G2E(3,3,10) = 0.D0
+      g2e(3,0,-10) = 0.d0
+      g2e(3,0,-9) = 0.d0
+      g2e(3,0,-8) = 0.d0
+      g2e(3,0,-7) = 0.d0
+      g2e(3,0,-6) = 0.d0
+      g2e(3,0,-5) = 6.94444444444445d-5*e10
+      g2e(3,0,-4) = e8*(6.7816840277778d-6 + 1.35633680555556d-5*e2)
+      g2e(3,0,-3) = 0.d0
+      g2e(3,0,-2) = e4*(0.015625d0 + e2*(0.00520833333333334d0 + exc** &
+      2*(0.00490993923611111d0 + 0.00393880208333333d0*e2)))
+      g2e(3,0,-1) = e2*(1.0d0 + e2*(-2.5d0 + e2*( &
+      1.85416666666667d0 + e2*(-0.524305555555555d0 + 0.136197916666667d0*e2))))
+      g2e(3,0,0) = 1.0d0 + e2*(-12.0d0 + e2*(49.21875d0 + e2*( &
+      -83.21875d0 + e2*(68.0408935546875d0 - 31.233955078125d0*e2))))
+      g2e(3,0,1) = e2*(25.0d0 + e2*(-220.0d0 + e2*( &
+      736.916666666667d0 + e2*(-1221.72222222222d0 + 1147.2109375d0*exc**2))))
+      g2e(3,0,2) = e4*(252.015625d0 + e2*(-2027.36979166667d0 + e2 &
+      *(6597.1491156684d0 - 11511.4770507813d0*e2)))
+      g2e(3,0,3) = e6*(1660.5625d0 + e2*(-13126.59375d0 + 43691.82890625d0*e2))
+      g2e(3,0,4) = e8*(8504.77816433377d0 - 68154.558710395d0*e2)
+      g2e(3,0,5) = 36828.8084027778d0*e10
+      g2e(3,0,6) = 0.d0
+      g2e(3,0,7) = 0.d0
+      g2e(3,0,8) = 0.d0
+      g2e(3,0,9) = 0.d0
+      g2e(3,0,10) = 0.d0
+      g2e(3,1,-10) = 0.d0
+      g2e(3,1,-9) = 0.d0
+      g2e(3,1,-8) = 0.d0
+      g2e(3,1,-7) = 0.d0
+      g2e(3,1,-6) = 0.d0
+      g2e(3,1,-5) = 14.0312673611111d0*e10
+      g2e(3,1,-4) = e8*(7.18072509765625d0 + 23.6063720703125d0*e2)
+      g2e(3,1,-3) = e6*(3.67361111111111d0 + e2*(14.2152777777778d0 + 36.3644097222222d0*e2))
+      g2e(3,1,-2) = e4*(1.890625d0 + e2*(8.421875d0 + e2*( &
+      23.4019368489583d0 + 51.6582790798611d0*e2)))
+      g2e(3,1,-1) = e2*(1.0d0 + e2*(5.0d0 + e2*(15.0d0 + e2*(35.0d0 + 70.0d0*e2))))
+      g2e(3,1,0) = 1.0d0 + e2*(4.0d0 + e2*(11.46875d0 + e2*( &
+      26.4756944444444d0 + e2*(53.2151557074653d0 + 96.8403244357639d0*e2))))
+      g2e(3,1,1) = e2*(9.0d0 + e2*(16.5d0 + e2*(38.1875d0 + e2*( &
+      71.4791666666667d0 + 124.026996527778d0*e2))))
+      g2e(3,1,2) = e4*(43.890625d0 + e2*(32.296875d0 + e2*( &
+      97.048095703125d0 + 149.09169921875d0*e2)))
+      g2e(3,1,3) = e6*(164.694444444444d0 + e2*(-13.3680555555555d0 + 254.317795138889d0*e2))
+      g2e(3,1,4) = e8*(532.960510253906d0 - 416.388549804688d0*e2)
+      g2e(3,1,5) = 1567.17015625d0*e10
+      g2e(3,1,6) = 0.d0
+      g2e(3,1,7) = 0.d0
+      g2e(3,1,8) = 0.d0
+      g2e(3,1,9) = 0.d0
+      g2e(3,1,10) = 0.d0
+      g2e(3,2,-10) = 0.d0
+      g2e(3,2,-9) = 0.d0
+      g2e(3,2,-8) = 0.d0
+      g2e(3,2,-7) = 0.d0
+      g2e(3,2,-6) = 0.d0
+      g2e(3,2,-5) = 1567.17015625d0*e10
+      g2e(3,2,-4) = e8*(532.960510253906d0 - 416.388549804688d0*e2)
+      g2e(3,2,-3) = e6*(164.694444444444d0 + e2*(-13.3680555555555d0 + 254.317795138889d0*e2))
+      g2e(3,2,-2) = e4*(43.890625d0 + e2*(32.296875d0 + e2*( &
+      97.048095703125d0 + 149.09169921875d0*e2)))
+      g2e(3,2,-1) = e2*(9.0d0 + e2*(16.5d0 + e2*(38.1875d0 + e2* &
+      (71.4791666666667d0 + 124.026996527778d0*e2))))
+      g2e(3,2,0) = 1.0d0 + e2*(4.0d0 + e2*(11.46875d0 + e2*( &
+      26.4756944444444d0 + e2*(53.2151557074653d0 + 96.8403244357639d0*e2))))
+      g2e(3,2,1) = e2*(1.0d0 + e2*(5.0d0 + e2*(15.0d0 + e2*( 35.0d0 + 70.0d0*e2))))
+      g2e(3,2,2) = e4*(1.890625d0 + e2*(8.421875d0 + e2*( &
+      23.4019368489583d0 + 51.6582790798611d0*e2)))
+      g2e(3,2,3) = e6*(3.67361111111111d0 + e2*(14.2152777777778d0 + 36.3644097222222d0*e2))
+      g2e(3,2,4) = e8*(7.18072509765625d0 + 23.6063720703125d0*e2)
+      g2e(3,2,5) = 14.0312673611111d0*e10
+      g2e(3,2,6) = 0.d0
+      g2e(3,2,7) = 0.d0
+      g2e(3,2,8) = 0.d0
+      g2e(3,2,9) = 0.d0
+      g2e(3,2,10) = 0.d0
+      g2e(3,3,-10) = 0.d0
+      g2e(3,3,-9) = 0.d0
+      g2e(3,3,-8) = 0.d0
+      g2e(3,3,-7) = 0.d0
+      g2e(3,3,-6) = 0.d0
+      g2e(3,3,-5) = 36828.8084027778d0*e10
+      g2e(3,3,-4) = e8*(8504.77816433377d0 - 68154.558710395d0*e2)
+      g2e(3,3,-3) = e6*(1660.5625d0 + e2*(-13126.59375d0 + 43691.82890625d0*e2))
+      g2e(3,3,-2) = e4*(252.015625d0 + e2*(-2027.36979166667d0 + exc** &
+      2*(6597.1491156684d0 - 11511.4770507813d0*e2)))
+      g2e(3,3,-1) = e2*(25.0d0 + e2*(-220.0d0 + e2*( &
+      736.916666666667d0 + e2*(-1221.72222222222d0 + 1147.2109375d0*exc**2))))
+      g2e(3,3,0) = 1.0d0 + e2*(-12.0d0 + e2*(49.21875d0 + e2*( &
+      -83.21875d0 + e2*(68.0408935546875d0 - 31.233955078125d0*e2))))
+      g2e(3,3,1) = e2*(1.0d0 + e2*(-2.5d0 + e2*(1.85416666666667d0 &
+     + e2*(-0.524305555555555d0 + 0.136197916666666d0*e2))))
+      g2e(3,3,2) = e4*(0.015625d0 + e2*(0.00520833333333334d0 + e2 &
+      *(0.00490993923611111d0 + 0.00393880208333333d0*e2)))
+      g2e(3,3,3) = 0.d0
+      g2e(3,3,4) = e8*(6.7816840277778d-6 + 1.35633680555556d-5*e2)
+      g2e(3,3,5) = 6.94444444444445d-5*e10
+      g2e(3,3,6) = 0.d0
+      g2e(3,3,7) = 0.d0
+      g2e(3,3,8) = 0.d0
+      g2e(3,3,9) = 0.d0
+      g2e(3,3,10) = 0.d0
 !   --------------------------------------------------------------------
-    END SUBROUTINE EVALGE
+    end subroutine evalge
 !=======================================================================
-    FUNCTION SUMAR(N,A)
+    function sumar(n,a)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    INTEGER, INTENT(IN) :: N
-    INTEGER :: K
-    REAL (KIND=DP) :: A(N),SUMA,C,T
-    REAL (KIND=DP) :: SUMAR
+    integer, intent(in) :: n
+    integer :: k
+    real (kind=dp) :: a(n),suma,c,t
+    real (kind=dp) :: sumar
 !   --------------------------------------------------------------------
-      SUMA = A(1)
-      C = 0.D0
-      DO K=2,N
-       T = SUMA + A(K)
-       IF(DABS(SUMA).GE.DABS(A(K))) THEN
-        C = C + ((SUMA - T) + A(K))
-        ELSE
-        C = C + ((A(K) - T) + SUMA)
-       END IF
-       SUMA = T
-      ENDDO
-      SUMAR = SUMA + C
+      suma = a(1)
+      c = 0.d0
+      do k=2,n
+       t = suma + a(k)
+       if(dabs(suma).ge.dabs(a(k))) then
+        c = c + ((suma - t) + a(k))
+        else
+        c = c + ((a(k) - t) + suma)
+       end if
+       suma = t
+      enddo
+      sumar = suma + c
 !   --------------------------------------------------------------------
-    END FUNCTION SUMAR
+    end function sumar
 !=======================================================================
-    FUNCTION PDR(R)
+    function pdr(r)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: R
-        REAL (KIND=DP) :: PDR
-        REAL (KIND=DP), PARAMETER, DIMENSION(3) :: COEFM = (/ 4.35256D-6, -0.0901277D0, 397.012D0 /)
-        REAL (KIND=DP), PARAMETER, DIMENSION(3) :: COEFC = (/ -1.52163D-5, -0.0144178D0, 367.767D0 /)
+        real (kind=dp), intent(in) :: r
+        real (kind=dp) :: pdr
+        real (kind=dp), parameter, dimension(3) :: coefm = (/ 4.35256d-6, -0.0901277d0, 397.012d0 /)
+        real (kind=dp), parameter, dimension(3) :: coefc = (/ -1.52163d-5, -0.0144178d0, 367.767d0 /)
 !       ----------------------------------------------------------------        
-        IF (R.LE.RC) THEN
-            PDR = (COEFC(1)*R + COEFC(2))*R + COEFC(3)
-        ELSE
-            PDR = (COEFM(1)*R + COEFM(2))*R + COEFM(3)
-        END IF
+        if (r.le.rc) then
+            pdr = (coefc(1)*r + coefc(2))*r + coefc(3)
+        else
+            pdr = (coefm(1)*r + coefm(2))*r + coefm(3)
+        end if
 !   --------------------------------------------------------------------
-    END FUNCTION PDR
+    end function pdr
 !=======================================================================
-    FUNCTION TSOL(R)
+    function tsol(r)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: R
-        REAL (kind=DP) :: TSOL
+        real (kind=dp), intent(in) :: r
+        real (kind=dp) :: tsol
 !       ----------------------------------------------------------------
-        IF (PDR(R).LE.20.D0) THEN
-            TSOL = 1661.2D0*DEXP(DLOG(PDR(R)/1.336D0 + 1.D0)/7.437D0)
-        ELSE
-            TSOL = 2081.8D0*DEXP(DLOG(PDR(R)/101.69D0 + 1.D0)/1.226D0)
-        END IF
+        if (pdr(r).le.20.d0) then
+            tsol = 1661.2d0*dexp(dlog(pdr(r)/1.336d0 + 1.d0)/7.437d0)
+        else
+            tsol = 2081.8d0*dexp(dlog(pdr(r)/101.69d0 + 1.d0)/1.226d0)
+        end if
 !   --------------------------------------------------------------------
-    END FUNCTION TSOL
+    end function tsol
 !=======================================================================
-    FUNCTION TLIQ(R)
+    function tliq(r)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: R
-        REAL (KIND=DP) :: TLIQ
+        real (kind=dp), intent(in) :: r
+        real (kind=dp) :: tliq
 !       ----------------------------------------------------------------
-        IF (PDR(R).LE.20.D0) THEN
-            TLIQ = 1982.1D0*DEXP(DLOG(PDR(R)/6.594D0 + 1.D0)/5.374D0)
-        ELSE
-            TLIQ = 2006.8D0*DEXP(DLOG(PDR(R)/34.65D0 + 1.D0)/1.844D0)
-        END IF
+        if (pdr(r).le.20.d0) then
+            tliq = 1982.1d0*dexp(dlog(pdr(r)/6.594d0 + 1.d0)/5.374d0)
+        else
+            tliq = 2006.8d0*dexp(dlog(pdr(r)/34.65d0 + 1.d0)/1.844d0)
+        end if
 !   --------------------------------------------------------------------
-    END FUNCTION TLIQ
+    end function tliq
 !=======================================================================
-    FUNCTION TCONDUBL(TUBL,DUM,R)
+    function tcondubl(tubl,dum,r)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) ::TUBL,DUM,R
-        REAL (KIND=DP) :: TCONDUBL
+        real (kind=dp), intent(in) ::tubl,dum,r
+        real (kind=dp) :: tcondubl
 !       ----------------------------------------------------------------
-        TCONDUBL = TSUP + (TUBL-TSUP)*ERF(2.D0*(RT-R)/DUM)
+        tcondubl = tsup + (tubl-tsup)*erf(2.d0*(rt-r)/dum)
 !   --------------------------------------------------------------------
-    END FUNCTION TCONDUBL
+    end function tcondubl
 !=======================================================================
-    FUNCTION TCONDLBL(TCMB,TLBL,DLM,R)
+    function tcondlbl(tcmb,tlbl,dlm,r)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: TCMB,TLBL,DLM,R
-        REAL (KIND=DP) :: TCONDLBL
+        real (kind=dp), intent(in) :: tcmb,tlbl,dlm,r
+        real (kind=dp) :: tcondlbl
 !       ----------------------------------------------------------------
-        TCONDLBL = TCMB + (TCMB-TLBL)*ERF(2.D0*(RC-R)/DLM)
+        tcondlbl = tcmb + (tcmb-tlbl)*erf(2.d0*(rc-r)/dlm)
 !   --------------------------------------------------------------------
-    END FUNCTION TCONDLBL
+    end function tcondlbl
 !=======================================================================
-    FUNCTION TPROF(TCAVG,TMAVG,DLM,DUM,R)
+    function tprof(tcavg,tmavg,dlm,dum,r)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R,DLM,DUM,TCAVG,TMAVG
-    REAL (KIND=DP) :: TPROF,TCMB,TUBL,TLBL
+    real (kind=dp), intent(in) :: r,dlm,dum,tcavg,tmavg
+    real (kind=dp) :: tprof,tcmb,tubl,tlbl
 !   --------------------------------------------------------------------
-    TCMB = ETAC*TCAVG
-    TUBL = ETAUM*TMAVG
-    TLBL = ETALM*TMAVG
+    tcmb = etac*tcavg
+    tubl = etaum*tmavg
+    tlbl = etalm*tmavg
 !   --------------------------------------------------------------------
-    IF (R.LE.RC) THEN
-        TPROF = TC(TCMB,R)
-    ELSE IF ((R.GT.RC).AND.(R.LE.(RC+DLM))) THEN
-        TPROF = TCONDLBL(TCMB,TLBL,DLM,R)
-    ELSE IF ((R.GE.(RC+DLM)).AND.(R.LE.(RT-DUM))) THEN
-        TPROF = TM(TUBL,DUM,R)
-    ELSE
-        TPROF = TCONDUBL(TUBL,DUM,R)
-    END IF
+    if (r.le.rc) then
+        tprof = tc(tcmb,r)
+    else if ((r.gt.rc).and.(r.le.(rc+dlm))) then
+        tprof = tcondlbl(tcmb,tlbl,dlm,r)
+    else if ((r.ge.(rc+dlm)).and.(r.le.(rt-dum))) then
+        tprof = tm(tubl,dum,r)
+    else
+        tprof = tcondubl(tubl,dum,r)
+    end if
 !   --------------------------------------------------------------------
-    END FUNCTION TPROF
+    end function tprof
 !=======================================================================
-    FUNCTION VISC(T)
+    function visc(t)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: T
-    REAL (KIND=DP) :: VISC
+    real (kind=dp), intent(in) :: t
+    real (kind=dp) :: visc
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER ::   ACT0 = 5.2D4     ! ACTIVATION TEMPERATURE
-    REAL (KIND=DP), PARAMETER ::  VISC0 = 4.D3      ! REFERENCE VISCOSITY (SCHUBERT ET AL, 2001)
+    real (kind=dp), parameter ::   act0 = 5.2d4     ! activation temperature
+    real (kind=dp), parameter ::  visc0 = 4.d3      ! reference viscosity (schubert et al, 2001)
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), PARAMETER ::   RGAS = 8.31447D0 ! GAS CONSTANT
-    REAL (KIND=DP), PARAMETER ::   EACT = 3.D5      ! VISCOSITY ACTIVATION ENERGY
-    REAL (KIND=DP), PARAMETER :: ETAREF = 1.D21     ! REFERENCE VISCOSITY (STAMENKOVIC ET AL, 2012)
-    REAL (KIND=DP), PARAMETER ::   TREF = 1600.D0   ! REFERENCE TEMPERATURE
+    real (kind=dp), parameter ::   rgas = 8.31447d0 ! gas constant
+    real (kind=dp), parameter ::   eact = 3.d5      ! viscosity activation energy
+    real (kind=dp), parameter :: etaref = 1.d21     ! reference viscosity (stamenkovic et al, 2012)
+    real (kind=dp), parameter ::   tref = 1600.d0   ! reference temperature
 !   --------------------------------------------------------------------
-    VISC = VISC0*DEXP(ACT0/T)
-    ! VISC = ETAREF*DEXP(EACT*(1.D0/T - 1.D0/TREF)/RGAS)
+    visc = visc0*dexp(act0/t)
+    ! visc = etaref*dexp(eact*(1.d0/t - 1.d0/tref)/rgas)
 !   --------------------------------------------------------------------
-    END FUNCTION VISC
+    end function visc
 !=======================================================================
-    FUNCTION TSOLDB(R)
+    function tsoldb(r)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: TSOLDB
-    REAL (KIND=DP), INTENT(IN) :: R
-    REAL (KIND=DP), PARAMETER :: ASOL = -1.160D-16
-    REAL (KIND=DP), PARAMETER :: BSOL = 1.708D-9
-    REAL (KIND=DP), PARAMETER :: CSOL = -9.074D-3
-    REAL (KIND=DP), PARAMETER :: DSOL = 1.993D4
+    real (kind=dp) :: tsoldb
+    real (kind=dp), intent(in) :: r
+    real (kind=dp), parameter :: asol = -1.160d-16
+    real (kind=dp), parameter :: bsol = 1.708d-9
+    real (kind=dp), parameter :: csol = -9.074d-3
+    real (kind=dp), parameter :: dsol = 1.993d4
 !   --------------------------------------------------------------------
-    TSOLDB = ((ASOL*R + BSOL)*R + CSOL)*R + DSOL
+    tsoldb = ((asol*r + bsol)*r + csol)*r + dsol
 !   --------------------------------------------------------------------
-    END FUNCTION TSOLDB
+    end function tsoldb
 !=======================================================================
-    FUNCTION TLIQDB(R)
+    function tliqdb(r)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP) :: TLIQDB
-    REAL (KIND=DP), INTENT(IN) :: R
+    real (kind=dp) :: tliqdb
+    real (kind=dp), intent(in) :: r
 !   --------------------------------------------------------------------
-    TLIQDB = TSOL(R) + 500.D0
+    tliqdb = tsol(r) + 500.d0
 !   --------------------------------------------------------------------
-    END FUNCTION TLIQDB
+    end function tliqdb
 !=======================================================================
-    FUNCTION TLIQC(X,R)
+    function tliqc(x,r)
 !   --------------------------------------------------------------------
-!   PERFIL DE TEMPERATURA DEL LIQUIDUS DEL NUCLEO (STEVENSON ET AL 1983)
+!   perfil de temperatura del liquidus del nucleo (stevenson et al 1983)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: R,X
-        REAL (KIND=DP) :: TLIQC
+        real (kind=dp), intent(in) :: r,x
+        real (kind=dp) :: tliqc
 !       ----------------------------------------------------------------
-        TLIQC = TLC0*(1.D0 - 2.D0*X)*(1.D0 + (TLC1 + TLC2*PDR(R))*PDR(R))
+        tliqc = tlc0*(1.d0 - 2.d0*x)*(1.d0 + (tlc1 + tlc2*pdr(r))*pdr(r))
 !   --------------------------------------------------------------------
-    END
+    end
 !=======================================================================
-    FUNCTION TSOLC(R)
+    function tsolc(r)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R
-    REAL (KIND=DP) :: TSOLC
+    real (kind=dp), intent(in) :: r
+    real (kind=dp) :: tsolc
 !   --------------------------------------------------------------------
-    TSOLC = TFE0*DEXP(-2.D0*(1.D0 - 1.D0/(3.D0*GRUN))*(R**2)/(DFE**2))
+    tsolc = tfe0*dexp(-2.d0*(1.d0 - 1.d0/(3.d0*grun))*(r**2)/(dfe**2))
 !   --------------------------------------------------------------------
-    END FUNCTION TSOLC
+    end function tsolc
 !=======================================================================
-    FUNCTION TC(TCMB,R)
+    function tc(tcmb,r)
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: TCMB,R
-        REAL (KIND=DP) :: TC
+        real (kind=dp), intent(in) :: tcmb,r
+        real (kind=dp) :: tc
 !       ----------------------------------------------------------------
-        TC = TCMB*(1.D0 + (TA1 + TA2*PDR(R))*PDR(R))/ &
-                      (1.D0 + (TA1 + TA2*PCMB)*PCMB)
+        tc = tcmb*(1.d0 + (ta1 + ta2*pdr(r))*pdr(r))/ &
+                      (1.d0 + (ta1 + ta2*pcmb)*pcmb)
 !   --------------------------------------------------------------------
-    END FUNCTION TC
+    end function tc
 !=======================================================================
-    FUNCTION TCDB(TCMB,R)
+    function tcdb(tcmb,r)
 !   --------------------------------------------------------------------
-!   PERFIL ADIABÁTICO DE TEMPERATURA EN EL NÚCLEO
+!   perfil adiabático de temperatura en el núcleo
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R,TCMB
-    REAL (KIND=DP) :: TCDB
+    real (kind=dp), intent(in) :: r,tcmb
+    real (kind=dp) :: tcdb
 !   --------------------------------------------------------------------
-    TCDB = TCMB*DEXP((RC**2 - R**2)/(DN**2))
+    tcdb = tcmb*dexp((rc**2 - r**2)/(dn**2))
 !   --------------------------------------------------------------------
-    END FUNCTION TCDB
+    end function tcdb
 !=======================================================================
-    FUNCTION TM(TUBL,DUM,R)
+    function tm(tubl,dum,r)
 !   --------------------------------------------------------------------
-!   PERFIL ADIABÁTICO DE TEMPERATURA DEL MANTO
+!   perfil adiabático de temperatura del manto
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R,DUM,TUBL
-    REAL (KIND=DP) :: TM
+    real (kind=dp), intent(in) :: r,dum,tubl
+    real (kind=dp) :: tm
 !   --------------------------------------------------------------------
-    TM = TUBL + 0.5D-3*(RT-DUM-R)
+    tm = tubl + 0.5d-3*(rt-dum-r)
 !   --------------------------------------------------------------------
-    END FUNCTION TM
+    end function tm
 !=======================================================================
-    FUNCTION FMELT(R,DUM,TUBL)
+    function fmelt(r,dum,tubl)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R,DUM,TUBL
-    REAL (KIND=DP) :: FMELT
+    real (kind=dp), intent(in) :: r,dum,tubl
+    real (kind=dp) :: fmelt
 !   --------------------------------------------------------------------
-    FMELT = (TM(TUBL,DUM,R) - TSOL(R))/(TLIQ(R) - TSOL(R))
+    fmelt = (tm(tubl,dum,r) - tsol(r))/(tliq(r) - tsol(r))
 !   --------------------------------------------------------------------
-    END FUNCTION FMELT
+    end function fmelt
 !=======================================================================
-    FUNCTION FMELTR2(R,DUM,TUBL)
+    function fmeltr2(r,dum,tubl)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R,DUM,TUBL
-    REAL (KIND=DP) :: FMELTR2
+    real (kind=dp), intent(in) :: r,dum,tubl
+    real (kind=dp) :: fmeltr2
 !   --------------------------------------------------------------------
-    FMELTR2 = FMELT(R,DUM,TUBL)*R**2
+    fmeltr2 = fmelt(r,dum,tubl)*r**2
 !   --------------------------------------------------------------------
-    END FUNCTION FMELTR2
+    end function fmeltr2
 !=======================================================================
-    FUNCTION STEFAN(TUBL,DUBL)
+    function stefan(tubl,dubl)
 !   --------------------------------------------------------------------
-!   Esta función calcula el número de Stefan
+!   esta función calcula el número de stefan
 !   --------------------------------------------------------------------
-        IMPLICIT NONE
+        implicit none
 !       ----------------------------------------------------------------
-        REAL (KIND=DP), INTENT(IN) :: TUBL,DUBL
-        REAL (KIND=DP) :: STEFAN,R1,R2,DEN,TSOLM,TLIQM,INT
+        real (kind=dp), intent(in) :: tubl,dubl
+        real (kind=dp) :: stefan,r1,r2,den,tsolm,tliqm,int
 !       ----------------------------------------------------------------
-!       DETERMINACION DE LA DISTANCIA ENTRE EL CENTRO DE LA TIERRA Y EL
-!       LIMITE INFERIOR DE LA ASTENOSFERA
+!       determinacion de la distancia entre el centro de la tierra y el
+!       limite inferior de la astenosfera
 !       ----------------------------------------------------------------
-        RAST = RT - DUBL
-        DO WHILE ((TM(TUBL,DUBL,RAST)-TSOL(RAST)).GT.0.D0)
-            RAST = RAST - DR
-        END DO
+        rast = rt - dubl
+        do while ((tm(tubl,dubl,rast)-tsol(rast)).gt.0.d0)
+            rast = rast - dr
+        end do
 !       ----------------------------------------------------------------
-!       DETERMINACIÓN DE LA DISTANCIA RADIAL ENTRE EL CENTRO DE LA 
-!       TIERRA YLA BASE DE LA LITÓSFERA O LÍMITE SUPERIOR DE LA ASTENÓSFERA
+!       determinación de la distancia radial entre el centro de la 
+!       tierra yla base de la litósfera o límite superior de la astenósfera
 !       ----------------------------------------------------------------
-        RLIT = RT - DUBL
-        DO WHILE ((TCONDUBL(TUBL,DUBL,RLIT)-TSOL(RLIT)).GT.0.D0)
-            RLIT = RLIT + DR
-        END DO
+        rlit = rt - dubl
+        do while ((tcondubl(tubl,dubl,rlit)-tsol(rlit)).gt.0.d0)
+            rlit = rlit + dr
+        end do
 !       ----------------------------------------------------------------
-!       CALCULO DE LOS VALORES MEDIOS DE LAS TEMPERATURAS DE SOLIDUS Y 
-!       LIQUIDUS
+!       calculo de los valores medios de las temperaturas de solidus y 
+!       liquidus
 !       ----------------------------------------------------------------
-        R1 = RAST
-        R2 = RLIT
-        DEN = (R2**3 - R1**3)
-        CALL QROMB(TSOLR2,R1,R2,INT)
-        TSOLM = 3.D0*INT/DEN
-        CALL QROMB(TLIQR2,R1,R2,INT)
-        TLIQM = 3.D0*INT/DEN
+        r1 = rast
+        r2 = rlit
+        den = (r2**3 - r1**3)
+        call qromb(tsolr2,r1,r2,int)
+        tsolm = 3.d0*int/den
+        call qromb(tliqr2,r1,r2,int)
+        tliqm = 3.d0*int/den
 !       ----------------------------------------------------------------
-        STEFAN = LMELT/(CM*(TLIQM - TSOLM))
+        stefan = lmelt/(cm*(tliqm - tsolm))
 !   --------------------------------------------------------------------
-    END FUNCTION STEFAN
+    end function stefan
 !=======================================================================
-    FUNCTION TSOLR2(R)
+    function tsolr2(r)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R
-    REAL (KIND=DP) :: TSOLR2
+    real (kind=dp), intent(in) :: r
+    real (kind=dp) :: tsolr2
 !   --------------------------------------------------------------------
-    TSOLR2 = TSOL(R)*R*R
+    tsolr2 = tsol(r)*r*r
 !   --------------------------------------------------------------------
-    END FUNCTION TSOLR2
+    end function tsolr2
 !=======================================================================
-    FUNCTION TLIQR2(R)
+    function tliqr2(r)
 !   --------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !   --------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: R
-    REAL (KIND=DP) :: TLIQR2
+    real (kind=dp), intent(in) :: r
+    real (kind=dp) :: tliqr2
 !   --------------------------------------------------------------------
-    TLIQR2 = TLIQ(R)*R*R
+    tliqr2 = tliq(r)*r*r
 !   --------------------------------------------------------------------
-    END
+    end
 !=======================================================================
-    SUBROUTINE qromb(func,a,b,ss)
-    REAL (KIND=DP), INTENT(IN) :: a,b
-    REAL (KIND=DP), INTENT(OUT) :: ss
-    REAL (KIND=DP), PARAMETER :: EPS=1.D-6
-    REAL (KIND=DP) :: func
-    INTEGER, PARAMETER :: JMAX=20, JMAXP=JMAX+1, K=5, KM=K-1
-    INTEGER :: j
-    EXTERNAL func
-!   USES polint,trapzd
-    REAL*8 dss,h(JMAXP),s(JMAXP)
+    function pio(tcmb)
+!   ---------------------------------------------------------------------------
+        implicit none
+!       -----------------------------------------------------------------------
+        real (kind=dp), intent(in) :: tcmb
+        real (kind=dp) :: c1,c2,c3,x1,x2,pio
+!       -----------------------------------------------------------------------
+        c1 = tcmb*ta2 - xi*tlc2
+        c2 = tcmb*ta1 - xi*tlc1
+        c3 = tcmb - xi
+        call resolvente(c1,c2,c3,x1,x2)
+!       -----------------------------------------------------------------------
+        if ((x1-pcmb)*(pec-x1).gt.0.d0) then
+            pio = x1
+            lRic = .false.
+        else if ((x2-pcmb)*(pec-x2).gt.0.d0) then
+            pio = x2
+            lRic = .false.
+        else 
+            pio = pec
+            lRic = .true.
+        end if
+!       -----------------------------------------------------------------------
+    end function pio
+!==============================================================================
+    subroutine qromb(func,a,b,ss)
+    real (kind=dp), intent(in) :: a,b
+    real (kind=dp), intent(out) :: ss
+    real (kind=dp), parameter :: eps=1.d-6
+    real (kind=dp) :: func
+    integer, parameter :: jmax=20, jmaxp=jmax+1, k=5, km=k-1
+    integer :: j
+    external func
+!   uses polint,trapzd
+    real*8 dss,h(jmaxp),s(jmaxp)
     h(1)=1.
-    do j=1,JMAX
+    do j=1,jmax
       call trapzd(func,a,b,s(j),j)
-      if (j.ge.K) then
-        call polint(h(j-KM),s(j-KM),K,0.d0,ss,dss)
-        if (abs(dss).le.EPS*abs(ss)) return
+      if (j.ge.k) then
+        call polint(h(j-km),s(j-km),k,0.d0,ss,dss)
+        if (abs(dss).le.eps*abs(ss)) return
       endif
       s(j+1)=s(j)
       h(j+1)=0.25d0*h(j)
     end do
-    PRINT *, 'too many steps in qromb'
-    END SUBROUTINE qromb
+    print *, 'too many steps in qromb'
+    end subroutine qromb
 !=======================================================================
-      SUBROUTINE polint(xa,ya,n,x,y,dy)
-      INTEGER :: n,k,m,ns
-      REAL (KIND=DP), INTENT(IN) :: x,xa(n),ya(n)
-      REAL (KIND=DP), INTENT(OUT) :: y,dy
-      INTEGER, PARAMETER :: NMAX=10
-      REAL (KIND=DP) :: dlen,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
+      subroutine polint(xa,ya,n,x,y,dy)
+      integer :: n,k,m,ns
+      real (kind=dp), intent(in) :: x,xa(n),ya(n)
+      real (kind=dp), intent(out) :: y,dy
+      integer, parameter :: nmax=10
+      real (kind=dp) :: dlen,dif,dift,ho,hp,w,c(nmax),d(nmax)
       ns=1
       dif=dabs(x-xa(1))
       do k=1,n
@@ -1270,22 +1288,22 @@ MODULE THERMEV2_SUBS
         y=y+dy
       end do
       return
-      END SUBROUTINE polint
+      end subroutine polint
 !=======================================================================
-      SUBROUTINE trapzd(func,a,b,s,n)
-      INTEGER, INTENT(IN) :: n
-      REAL (KIND=DP), INTENT(IN) :: a,b
-      REAL (KIND=DP), INTENT(OUT) :: s
-      INTEGER :: it,j
-      REAL (KIND=DP) :: del,sum,tnm,x,func
+      subroutine trapzd(func,a,b,s,n)
+      integer, intent(in) :: n
+      real (kind=dp), intent(in) :: a,b
+      real (kind=dp), intent(out) :: s
+      integer :: it,j
+      real (kind=dp) :: del,sum,tnm,x,func
       if (n.eq.1) then
-        s=0.5D0*(b-a)*(func(a)+func(b))
+        s=0.5d0*(b-a)*(func(a)+func(b))
       else
         it=2**(n-2)
         tnm=it
         del=(b-a)/tnm
-        x=a+0.5D0*del
-        sum=0.D0
+        x=a+0.5d0*del
+        sum=0.d0
         do j=1,it
           sum=sum+func(x)
           x=x+del
@@ -1293,373 +1311,373 @@ MODULE THERMEV2_SUBS
         s=0.5d0*(s+(b-a)*sum/tnm)
       end if
       return
-      END SUBROUTINE trapzd
+      end subroutine trapzd
 !=======================================================================
-    FUNCTION GAMMLN(XX)
-      IMPLICIT NONE
-      REAL(KIND=DP) :: GAMMLN
-      REAL(KIND=DP), INTENT(IN) :: XX
-      INTEGER :: J
-      REAL(KIND=DP) :: SER,STP,TMP,X,Y,COF(6)
-      SAVE COF,STP
-      COF(1) = 76.18009172947146D0
-      COF(2) = -86.50532032941677D0
-      COF(3) = 24.01409824083091D0
-      COF(4) = -1.231739572450155D0
-      COF(5) = .1208650973866179D-2
-      COF(6) = -.5395239384953D-5
-      STP = 2.5066282746310005D0
-      X=XX
-      Y=X
-      TMP=X+5.5D0
-      TMP=(X+0.5D0)*DLOG(TMP)-TMP
-      SER=1.000000000190015D0
-      DO J=1,6
-        Y=Y+1.D0
-        SER=SER+COF(J)/Y
-      END DO
-      GAMMLN=TMP+DLOG(STP*SER/X)
-      RETURN
-    END FUNCTION GAMMLN
+    function gammln(xx)
+      implicit none
+      real(kind=dp) :: gammln
+      real(kind=dp), intent(in) :: xx
+      integer :: j
+      real(kind=dp) :: ser,stp,tmp,x,y,cof(6)
+      save cof,stp
+      cof(1) = 76.18009172947146d0
+      cof(2) = -86.50532032941677d0
+      cof(3) = 24.01409824083091d0
+      cof(4) = -1.231739572450155d0
+      cof(5) = .1208650973866179d-2
+      cof(6) = -.5395239384953d-5
+      stp = 2.5066282746310005d0
+      x=xx
+      y=x
+      tmp=x+5.5d0
+      tmp=(x+0.5d0)*dlog(tmp)-tmp
+      ser=1.000000000190015d0
+      do j=1,6
+        y=y+1.d0
+        ser=ser+cof(j)/y
+      end do
+      gammln=tmp+dlog(stp*ser/x)
+      return
+    end function gammln
 !=======================================================================
-    SUBROUTINE ODEINT(YSTART,NVAR,X1,X2,EPS,H1,HMIN,NOK,NBAD,DERIVS,RKQS)
-    INTEGER NBAD,NOK,NVAR,KMAXX,MAXSTP,NMAX
-    REAL*8 EPS,H1,HMIN,X1,X2,YSTART(NVAR),TINY
-    EXTERNAL DERIVS,RKQS
-    PARAMETER (MAXSTP=10000,NMAX=50,KMAXX=200,TINY=1.E-30)
-    INTEGER K,KMAX,KOUNT,NSTP
-    REAL*8 DXSAV,H,HDID,HNEXT,X,XSAV,DYDX(NMAX),XP(KMAXX),Y(NMAX), &
-           YP(NMAX,KMAXX),YSCAL(NMAX)
-    COMMON /PATH/ KMAX,KOUNT,DXSAV,XP,YP
-    X=X1
-    H=SIGN(H1,X2-X1)
-    NOK=0
-    NBAD=0
-    KOUNT=0
-    DO K=1,NVAR
-      Y(K)=YSTART(K)
-    END DO
-    IF (KMAX.GT.0) XSAV=X-2.*DXSAV
-    DO NSTP=1,MAXSTP
-      CALL DERIVS(X,Y,DYDX)
-      DO K=1,NVAR
-        YSCAL(K)=ABS(Y(K))+ABS(H*DYDX(K))+TINY
-      END DO
-      IF(KMAX.GT.0)THEN
-        IF(ABS(X-XSAV).GT.ABS(DXSAV)) THEN
-          IF(KOUNT.LT.KMAX-1)THEN
-            KOUNT=KOUNT+1
-            XP(KOUNT)=X
-            DO K=1,NVAR
-              YP(K,KOUNT)=Y(K)
-            END DO
-            XSAV=X
-          ENDIF
-        ENDIF
-      ENDIF
-      IF((X+H-X2)*(X+H-X1).GT.0.) H=X2-X
-      CALL RKQS(Y,DYDX,NVAR,X,H,EPS,YSCAL,HDID,HNEXT,DERIVS)
-      IF(HDID.EQ.H)THEN
-        NOK=NOK+1
-      ELSE
-        NBAD=NBAD+1
-      ENDIF
-      IF((X-X2)*(X2-X1).GE.0.)THEN
-        DO K=1,NVAR
-          YSTART(K)=Y(K)
-        END DO
-        IF(KMAX.NE.0)THEN
-          KOUNT=KOUNT+1
-          XP(KOUNT)=X
-          DO K=1,NVAR
-            YP(K,KOUNT)=Y(K)
-          END DO
-        ENDIF
-        RETURN
-      ENDIF
-      IF(ABS(HNEXT).LT.HMIN) PRINT *,'STEPSIZE SMALLER THAN MINIMUM IN ODEINT'
-      H=HNEXT
-    END DO
-    PRINT *,'TOO MANY STEPS IN ODEINT'
-    RETURN
-    END
+    subroutine odeint(ystart,nvar,x1,x2,eps,h1,hmin,nok,nbad,derivs,rkqs)
+    integer nbad,nok,nvar,kmaxx,maxstp,nmax
+    real*8 eps,h1,hmin,x1,x2,ystart(nvar),tiny
+    external derivs,rkqs
+    parameter (maxstp=10000,nmax=50,kmaxx=200,tiny=1.e-30)
+    integer k,kmax,kount,nstp
+    real*8 dxsav,h,hdid,hnext,x,xsav,dydx(nmax),xp(kmaxx),y(nmax), &
+           yp(nmax,kmaxx),yscal(nmax)
+    common /path/ kmax,kount,dxsav,xp,yp
+    x=x1
+    h=sign(h1,x2-x1)
+    nok=0
+    nbad=0
+    kount=0
+    do k=1,nvar
+      y(k)=ystart(k)
+    end do
+    if (kmax.gt.0) xsav=x-2.*dxsav
+    do nstp=1,maxstp
+      call derivs(x,y,dydx)
+      do k=1,nvar
+        yscal(k)=abs(y(k))+abs(h*dydx(k))+tiny
+      end do
+      if(kmax.gt.0)then
+        if(abs(x-xsav).gt.abs(dxsav)) then
+          if(kount.lt.kmax-1)then
+            kount=kount+1
+            xp(kount)=x
+            do k=1,nvar
+              yp(k,kount)=y(k)
+            end do
+            xsav=x
+          endif
+        endif
+      endif
+      if((x+h-x2)*(x+h-x1).gt.0.) h=x2-x
+      call rkqs(y,dydx,nvar,x,h,eps,yscal,hdid,hnext,derivs)
+      if(hdid.eq.h)then
+        nok=nok+1
+      else
+        nbad=nbad+1
+      endif
+      if((x-x2)*(x2-x1).ge.0.)then
+        do k=1,nvar
+          ystart(k)=y(k)
+        end do
+        if(kmax.ne.0)then
+          kount=kount+1
+          xp(kount)=x
+          do k=1,nvar
+            yp(k,kount)=y(k)
+          end do
+        endif
+        return
+      endif
+      if(abs(hnext).lt.hmin) print *,'stepsize smaller than minimum in odeint'
+      h=hnext
+    end do
+    print *,'too many steps in odeint'
+    return
+    end
 !=======================================================================
-    SUBROUTINE BSSTEP(Y,DYDX,NV,X,HTRY,EPS,YSCAL,HDID,HNEXT,DERIVS)
-    INTEGER NV,NMAX,KMAXX,IMAX
-    REAL*8 EPS,HDID,HNEXT,HTRY,X,DYDX(NV),Y(NV),YSCAL(NV),SAFE1,SAFE2, &
-           REDMAX,REDMIN,TINY,SCALMX
-    PARAMETER (NMAX=50,KMAXX=8,IMAX=KMAXX+1,SAFE1=.25,SAFE2=.7, &
-               REDMAX=1.E-5,REDMIN=.7,TINY=1.E-30,SCALMX=.1)
-!   USES DERIVS,MMID,PZEXTR
-    INTEGER K,IQ,J,KK,KM,KMAX,KOPT,NSEQ(IMAX)
-    REAL*8 EPS1,EPSOLD,ERRMAX,FACT,H,RED,SCALE,WORK,WRKMIN,XEST,XNEW, &
-           A(IMAX),ALF(KMAXX,KMAXX),ERR(KMAXX),YERR(NMAX),YSAV(NMAX),YSEQ(NMAX)
-    LOGICAL FIRST,REDUCT
-    SAVE A,ALF,EPSOLD,FIRST,KMAX,KOPT,NSEQ,XNEW
-    EXTERNAL :: DERIVS
-    DATA FIRST/.TRUE./,EPSOLD/-1./
-    DATA NSEQ /2,4,6,8,10,12,14,16,18/
-    IF(EPS.NE.EPSOLD)THEN
-      HNEXT=-1.E29
-      XNEW=-1.E29
-      EPS1=SAFE1*EPS
-      A(1)=NSEQ(1)+1
-      DO K=1,KMAXX
-        A(K+1)=A(K)+NSEQ(K+1)
-      END DO
-      DO IQ=2,KMAXX
-        DO K=1,IQ-1
-          ALF(K,IQ)=EPS1**((A(K+1)-A(IQ+1))/((A(IQ+1)-A(1)+1.)*(2*K+1)))
-        END DO
-      END DO
-      EPSOLD=EPS
-      DO KOPT=2,KMAXX-1
-        IF(A(KOPT+1).GT.A(KOPT)*ALF(KOPT-1,KOPT))GOTO 1
-      END DO
-1     KMAX=KOPT
-    ENDIF
-    H=HTRY
-    DO K=1,NV
-      YSAV(K)=Y(K)
-    END DO
-    IF(H.NE.HNEXT.OR.X.NE.XNEW)THEN
-      FIRST=.TRUE.
-      KOPT=KMAX
-    ENDIF
-    REDUCT=.FALSE.
-2   DO K=1,KMAX
-      XNEW=X+H
-      IF(XNEW.EQ.X) PRINT *,'STEP SIZE UNDERFLOW IN BSSTEP'
-      CALL MMID(YSAV,DYDX,NV,X,H,NSEQ(K),YSEQ,DERIVS)
-      XEST=(H/NSEQ(K))**2
-      CALL PZEXTR(K,XEST,YSEQ,Y,YERR,NV)
-      IF(K.NE.1)THEN
-        ERRMAX=TINY
-        DO J=1,NV
-          ERRMAX=MAX(ERRMAX,ABS(YERR(J)/YSCAL(J)))
-        END DO
-        ERRMAX=ERRMAX/EPS
-        KM=K-1
-        ERR(KM)=(ERRMAX/SAFE1)**(1./(2*KM+1))
-      ENDIF
-      IF(K.NE.1.AND.(K.GE.KOPT-1.OR.FIRST))THEN
-        IF(ERRMAX.LT.1.)GOTO 4
-        IF(K.EQ.KMAX.OR.K.EQ.KOPT+1)THEN
-          RED=SAFE2/ERR(KM)
-          GOTO 3
-        ELSE IF(K.EQ.KOPT)THEN
-          IF(ALF(KOPT-1,KOPT).LT.ERR(KM))THEN
-            RED=1./ERR(KM)
-            GOTO 3
-          ENDIF
-        ELSE IF(KOPT.EQ.KMAX)THEN
-          IF(ALF(KM,KMAX-1).LT.ERR(KM))THEN
-            RED=ALF(KM,KMAX-1)*SAFE2/ERR(KM)
-            GOTO 3
-          ENDIF
-        ELSE IF(ALF(KM,KOPT).LT.ERR(KM))THEN
-          RED=ALF(KM,KOPT-1)/ERR(KM)
-          GOTO 3
-        ENDIF
-      ENDIF
-    END DO
-3   RED=MIN(RED,REDMIN)
-    RED=MAX(RED,REDMAX)
-    H=H*RED
-    REDUCT=.TRUE.
-    GOTO 2
-4   X=XNEW
-    HDID=H
-    FIRST=.FALSE.
-    WRKMIN=1.E35
-    DO KK=1,KM
-      FACT=MAX(ERR(KK),SCALMX)
-      WORK=FACT*A(KK+1)
-      IF(WORK.LT.WRKMIN)THEN
-        SCALE=FACT
-        WRKMIN=WORK
-        KOPT=KK+1
-      ENDIF
-    END DO
-    HNEXT=H/SCALE
-    IF(KOPT.GE.K.AND.KOPT.NE.KMAX.AND..NOT.REDUCT)THEN
-      FACT=MAX(SCALE/ALF(KOPT-1,KOPT),SCALMX)
-      IF(A(KOPT+1)*FACT.LE.WRKMIN)THEN
-        HNEXT=H/FACT
-        KOPT=KOPT+1
-      ENDIF
-    ENDIF
-    RETURN
-    END
+    subroutine bsstep(y,dydx,nv,x,htry,eps,yscal,hdid,hnext,derivs)
+    integer nv,nmax,kmaxx,imax
+    real*8 eps,hdid,hnext,htry,x,dydx(nv),y(nv),yscal(nv),safe1,safe2, &
+           redmax,redmin,tiny,scalmx
+    parameter (nmax=50,kmaxx=8,imax=kmaxx+1,safe1=.25,safe2=.7, &
+               redmax=1.e-5,redmin=.7,tiny=1.e-30,scalmx=.1)
+!   uses derivs,mmid,pzextr
+    integer k,iq,j,kk,km,kmax,kopt,nseq(imax)
+    real*8 eps1,epsold,errmax,fact,h,red,scale,work,wrkmin,xest,xnew, &
+           a(imax),alf(kmaxx,kmaxx),err(kmaxx),yerr(nmax),ysav(nmax),yseq(nmax)
+    logical first,reduct
+    save a,alf,epsold,first,kmax,kopt,nseq,xnew
+    external :: derivs
+    data first/.true./,epsold/-1./
+    data nseq /2,4,6,8,10,12,14,16,18/
+    if(eps.ne.epsold)then
+      hnext=-1.e29
+      xnew=-1.e29
+      eps1=safe1*eps
+      a(1)=nseq(1)+1
+      do k=1,kmaxx
+        a(k+1)=a(k)+nseq(k+1)
+      end do
+      do iq=2,kmaxx
+        do k=1,iq-1
+          alf(k,iq)=eps1**((a(k+1)-a(iq+1))/((a(iq+1)-a(1)+1.)*(2*k+1)))
+        end do
+      end do
+      epsold=eps
+      do kopt=2,kmaxx-1
+        if(a(kopt+1).gt.a(kopt)*alf(kopt-1,kopt))goto 1
+      end do
+1     kmax=kopt
+    endif
+    h=htry
+    do k=1,nv
+      ysav(k)=y(k)
+    end do
+    if(h.ne.hnext.or.x.ne.xnew)then
+      first=.true.
+      kopt=kmax
+    endif
+    reduct=.false.
+2   do k=1,kmax
+      xnew=x+h
+      if(xnew.eq.x) print *,'step size underflow in bsstep'
+      call mmid(ysav,dydx,nv,x,h,nseq(k),yseq,derivs)
+      xest=(h/nseq(k))**2
+      call pzextr(k,xest,yseq,y,yerr,nv)
+      if(k.ne.1)then
+        errmax=tiny
+        do j=1,nv
+          errmax=max(errmax,abs(yerr(j)/yscal(j)))
+        end do
+        errmax=errmax/eps
+        km=k-1
+        err(km)=(errmax/safe1)**(1./(2*km+1))
+      endif
+      if(k.ne.1.and.(k.ge.kopt-1.or.first))then
+        if(errmax.lt.1.)goto 4
+        if(k.eq.kmax.or.k.eq.kopt+1)then
+          red=safe2/err(km)
+          goto 3
+        else if(k.eq.kopt)then
+          if(alf(kopt-1,kopt).lt.err(km))then
+            red=1./err(km)
+            goto 3
+          endif
+        else if(kopt.eq.kmax)then
+          if(alf(km,kmax-1).lt.err(km))then
+            red=alf(km,kmax-1)*safe2/err(km)
+            goto 3
+          endif
+        else if(alf(km,kopt).lt.err(km))then
+          red=alf(km,kopt-1)/err(km)
+          goto 3
+        endif
+      endif
+    end do
+3   red=min(red,redmin)
+    red=max(red,redmax)
+    h=h*red
+    reduct=.true.
+    goto 2
+4   x=xnew
+    hdid=h
+    first=.false.
+    wrkmin=1.e35
+    do kk=1,km
+      fact=max(err(kk),scalmx)
+      work=fact*a(kk+1)
+      if(work.lt.wrkmin)then
+        scale=fact
+        wrkmin=work
+        kopt=kk+1
+      endif
+    end do
+    hnext=h/scale
+    if(kopt.ge.k.and.kopt.ne.kmax.and..not.reduct)then
+      fact=max(scale/alf(kopt-1,kopt),scalmx)
+      if(a(kopt+1)*fact.le.wrkmin)then
+        hnext=h/fact
+        kopt=kopt+1
+      endif
+    endif
+    return
+    end
 !=======================================================================
-    SUBROUTINE MMID(Y,DYDX,NVAR,XS,HTOT,NSTEP,YOUT,DERIVS)
-    INTEGER NSTEP,NVAR,NMAX
-    REAL*8 HTOT,XS,DYDX(NVAR),Y(NVAR),YOUT(NVAR)
-    EXTERNAL DERIVS
-    PARAMETER (NMAX=50)
-    INTEGER K,N
-    REAL*8 H,H2,SWAP,X,YM(NMAX),YN(NMAX)
-    H=HTOT/NSTEP
-    DO K=1,NVAR
-      YM(K)=Y(K)
-      YN(K)=Y(K)+H*DYDX(K)
-    END DO
-    X=XS+H
-    CALL DERIVS(X,YN,YOUT)
-    H2=2.*H
-    DO N=2,NSTEP
-      DO K=1,NVAR
-        SWAP=YM(K)+H2*YOUT(K)
-        YM(K)=YN(K)
-        YN(K)=SWAP
-      END DO
-      X=X+H
-      CALL DERIVS(X,YN,YOUT)
-    END DO
-    DO K=1,NVAR
-      YOUT(K)=0.5*(YM(K)+YN(K)+H*YOUT(K))
-    END DO
-    RETURN
-    END
+    subroutine mmid(y,dydx,nvar,xs,htot,nstep,yout,derivs)
+    integer nstep,nvar,nmax
+    real*8 htot,xs,dydx(nvar),y(nvar),yout(nvar)
+    external derivs
+    parameter (nmax=50)
+    integer k,n
+    real*8 h,h2,swap,x,ym(nmax),yn(nmax)
+    h=htot/nstep
+    do k=1,nvar
+      ym(k)=y(k)
+      yn(k)=y(k)+h*dydx(k)
+    end do
+    x=xs+h
+    call derivs(x,yn,yout)
+    h2=2.*h
+    do n=2,nstep
+      do k=1,nvar
+        swap=ym(k)+h2*yout(k)
+        ym(k)=yn(k)
+        yn(k)=swap
+      end do
+      x=x+h
+      call derivs(x,yn,yout)
+    end do
+    do k=1,nvar
+      yout(k)=0.5*(ym(k)+yn(k)+h*yout(k))
+    end do
+    return
+    end
 !=======================================================================
-    SUBROUTINE PZEXTR(IEST,XEST,YEST,YZ,DY,NV)
-    INTEGER IEST,NV,IMAX,NMAX
-    REAL*8 XEST,DY(NV),YEST(NV),YZ(NV)
-    PARAMETER (IMAX=13,NMAX=50)
-    INTEGER J,K1
-    REAL*8 DELTA,F1,F2,Q,D(NMAX),QCOL(NMAX,IMAX),X(IMAX)
-    SAVE QCOL,X
-    X(IEST)=XEST
-    DO J=1,NV
-      DY(J)=YEST(J)
-      YZ(J)=YEST(J)
-    END DO
-    IF(IEST.EQ.1) THEN
-      DO J=1,NV
-        QCOL(J,1)=YEST(J)
-      END DO
-    ELSE
-      DO J=1,NV
-        D(J)=YEST(J)
-      END DO
-      DO K1=1,IEST-1
-        DELTA=1./(X(IEST-K1)-XEST)
-        F1=XEST*DELTA
-        F2=X(IEST-K1)*DELTA
-        DO J=1,NV
-          Q=QCOL(J,K1)
-          QCOL(J,K1)=DY(J)
-          DELTA=D(J)-Q
-          DY(J)=F1*DELTA
-          D(J)=F2*DELTA
-          YZ(J)=YZ(J)+DY(J)
-        END DO
-      END DO
-      DO J=1,NV
-        QCOL(J,IEST)=DY(J)
-      END DO
-    ENDIF
-    RETURN
-    END
+    subroutine pzextr(iest,xest,yest,yz,dy,nv)
+    integer iest,nv,imax,nmax
+    real*8 xest,dy(nv),yest(nv),yz(nv)
+    parameter (imax=13,nmax=50)
+    integer j,k1
+    real*8 delta,f1,f2,q,d(nmax),qcol(nmax,imax),x(imax)
+    save qcol,x
+    x(iest)=xest
+    do j=1,nv
+      dy(j)=yest(j)
+      yz(j)=yest(j)
+    end do
+    if(iest.eq.1) then
+      do j=1,nv
+        qcol(j,1)=yest(j)
+      end do
+    else
+      do j=1,nv
+        d(j)=yest(j)
+      end do
+      do k1=1,iest-1
+        delta=1./(x(iest-k1)-xest)
+        f1=xest*delta
+        f2=x(iest-k1)*delta
+        do j=1,nv
+          q=qcol(j,k1)
+          qcol(j,k1)=dy(j)
+          delta=d(j)-q
+          dy(j)=f1*delta
+          d(j)=f2*delta
+          yz(j)=yz(j)+dy(j)
+        end do
+      end do
+      do j=1,nv
+        qcol(j,iest)=dy(j)
+      end do
+    endif
+    return
+    end
 !=======================================================================
-    SUBROUTINE RKQS(Y,DYDX,N,X,HTRY,EPS,YSCAL,HDID,HNEXT,DERIVS)
-    INTEGER N,NMAX
-    REAL*8 EPS,HDID,HNEXT,HTRY,X,DYDX(N),Y(N),YSCAL(N)
-    EXTERNAL DERIVS
-    PARAMETER (NMAX=50)
-!   USES DERIVS,RKCK
-    INTEGER K
-    REAL*8 ERRMAX,H,XNEW,YERR(NMAX),YTEMP(NMAX),SAFETY,PGROW,PSHRNK,ERRCON
-    PARAMETER (SAFETY=0.9,PGROW=-.2,PSHRNK=-.25,ERRCON=1.89E-4)
-    H=HTRY
-1   CALL RKCK(Y,DYDX,N,X,H,YTEMP,YERR,DERIVS)
-    ERRMAX=0.
-    DO K=1,N
-      ERRMAX=MAX(ERRMAX,ABS(YERR(K)/YSCAL(K)))
-    END DO
-    ERRMAX=ERRMAX/EPS
-    IF(ERRMAX.GT.1.)THEN
-      H=SAFETY*H*(ERRMAX**PSHRNK)
-      IF(H.LT.0.1*H)THEN
-        H=.1*H
-      ENDIF
-      XNEW=X+H
-      IF(XNEW.EQ.X)PRINT *,'STEPSIZE UNDERFLOW IN RKQS'
-      GOTO 1
-    ELSE
-      IF(ERRMAX.GT.ERRCON)THEN
-        HNEXT=SAFETY*H*(ERRMAX**PGROW)
-      ELSE
-        HNEXT=5.*H
-      ENDIF
-      HDID=H
-      X=X+H
-      DO K=1,N
-        Y(K)=YTEMP(K)
-      END DO
-      RETURN
-    ENDIF
-    END
+    subroutine rkqs(y,dydx,n,x,htry,eps,yscal,hdid,hnext,derivs)
+    integer n,nmax
+    real*8 eps,hdid,hnext,htry,x,dydx(n),y(n),yscal(n)
+    external derivs
+    parameter (nmax=50)
+!   uses derivs,rkck
+    integer k
+    real*8 errmax,h,xnew,yerr(nmax),ytemp(nmax),safety,pgrow,pshrnk,errcon
+    parameter (safety=0.9,pgrow=-.2,pshrnk=-.25,errcon=1.89e-4)
+    h=htry
+1   call rkck(y,dydx,n,x,h,ytemp,yerr,derivs)
+    errmax=0.
+    do k=1,n
+      errmax=max(errmax,abs(yerr(k)/yscal(k)))
+    end do
+    errmax=errmax/eps
+    if(errmax.gt.1.)then
+      h=safety*h*(errmax**pshrnk)
+      if(h.lt.0.1*h)then
+        h=.1*h
+      endif
+      xnew=x+h
+      if(xnew.eq.x)print *,'stepsize underflow in rkqs'
+      goto 1
+    else
+      if(errmax.gt.errcon)then
+        hnext=safety*h*(errmax**pgrow)
+      else
+        hnext=5.*h
+      endif
+      hdid=h
+      x=x+h
+      do k=1,n
+        y(k)=ytemp(k)
+      end do
+      return
+    endif
+    end
 !======================================================================
-    SUBROUTINE RKCK(Y,DYDX,N,X,H,YOUT,YERR,DERIVS)
-    INTEGER N,NMAX
-    REAL*8 H,X,DYDX(N),Y(N),YERR(N),YOUT(N)
-    EXTERNAL DERIVS
-    PARAMETER (NMAX=50)
-!   USES DERIVS
-    INTEGER K
-    REAL*8 AK2(NMAX),AK3(NMAX),AK4(NMAX),AK5(NMAX),AK6(NMAX), &
-    YTEMP(NMAX),A2,A3,A4,A5,A6,B21,B31,B32,B41,B42,B43,B51,B52,B53, &
-    B54,B61,B62,B63,B64,B65,C1,C3,C4,C6,DC1,DC3,DC4,DC5,DC6
-    PARAMETER (A2=.2,A3=.3,A4=.6,A5=1.,A6=.875,B21=.2,B31=3./40., &
-    B32=9./40.,B41=.3,B42=-.9,B43=1.2,B51=-11./54.,B52=2.5, &
-    B53=-70./27.,B54=35./27.,B61=1631./55296.,B62=175./512., &
-    B63=575./13824.,B64=44275./110592.,B65=253./4096.,C1=37./378., &
-    C3=250./621.,C4=125./594.,C6=512./1771.,DC1=C1-2825./27648., &
-    DC3=C3-18575./48384.,DC4=C4-13525./55296.,DC5=-277./14336., &
-    DC6=C6-.25)
-    DO K=1,N
-        YTEMP(K)=Y(K)+B21*H*DYDX(K)
-    END DO
-    CALL DERIVS(X+A2*H,YTEMP,AK2)
-    DO K=1,N
-      YTEMP(K)=Y(K)+H*(B31*DYDX(K)+B32*AK2(K))
-    END DO
-    CALL DERIVS(X+A3*H,YTEMP,AK3)
-    DO K=1,N
-      YTEMP(K)=Y(K)+H*(B41*DYDX(K)+B42*AK2(K)+B43*AK3(K))
-    END DO
-    CALL DERIVS(X+A4*H,YTEMP,AK4)
-    DO K=1,N
-      YTEMP(K)=Y(K)+H*(B51*DYDX(K)+B52*AK2(K)+B53*AK3(K)+B54*AK4(K))
-    END DO
-    CALL DERIVS(X+A5*H,YTEMP,AK5)
-    DO K=1,N
-      YTEMP(K)=Y(K)+H*(B61*DYDX(K)+B62*AK2(K)+B63*AK3(K)+B64*AK4(K)+B65*AK5(K))
-    END DO
-    CALL DERIVS(X+A6*H,YTEMP,AK6)
-    DO K=1,N
-      YOUT(K)=Y(K)+H*(C1*DYDX(K)+C3*AK3(K)+C4*AK4(K)+C6*AK6(K))
-    END DO
-    DO K=1,N
-      YERR(K)=H*(DC1*DYDX(K)+DC3*AK3(K)+DC4*AK4(K)+DC5*AK5(K)+DC6*AK6(K))
-    END DO
-    RETURN
-    END
+    subroutine rkck(y,dydx,n,x,h,yout,yerr,derivs)
+    integer n,nmax
+    real*8 h,x,dydx(n),y(n),yerr(n),yout(n)
+    external derivs
+    parameter (nmax=50)
+!   uses derivs
+    integer k
+    real*8 ak2(nmax),ak3(nmax),ak4(nmax),ak5(nmax),ak6(nmax), &
+    ytemp(nmax),a2,a3,a4,a5,a6,b21,b31,b32,b41,b42,b43,b51,b52,b53, &
+    b54,b61,b62,b63,b64,b65,c1,c3,c4,c6,dc1,dc3,dc4,dc5,dc6
+    parameter (a2=.2,a3=.3,a4=.6,a5=1.,a6=.875,b21=.2,b31=3./40., &
+    b32=9./40.,b41=.3,b42=-.9,b43=1.2,b51=-11./54.,b52=2.5, &
+    b53=-70./27.,b54=35./27.,b61=1631./55296.,b62=175./512., &
+    b63=575./13824.,b64=44275./110592.,b65=253./4096.,c1=37./378., &
+    c3=250./621.,c4=125./594.,c6=512./1771.,dc1=c1-2825./27648., &
+    dc3=c3-18575./48384.,dc4=c4-13525./55296.,dc5=-277./14336., &
+    dc6=c6-.25)
+    do k=1,n
+        ytemp(k)=y(k)+b21*h*dydx(k)
+    end do
+    call derivs(x+a2*h,ytemp,ak2)
+    do k=1,n
+      ytemp(k)=y(k)+h*(b31*dydx(k)+b32*ak2(k))
+    end do
+    call derivs(x+a3*h,ytemp,ak3)
+    do k=1,n
+      ytemp(k)=y(k)+h*(b41*dydx(k)+b42*ak2(k)+b43*ak3(k))
+    end do
+    call derivs(x+a4*h,ytemp,ak4)
+    do k=1,n
+      ytemp(k)=y(k)+h*(b51*dydx(k)+b52*ak2(k)+b53*ak3(k)+b54*ak4(k))
+    end do
+    call derivs(x+a5*h,ytemp,ak5)
+    do k=1,n
+      ytemp(k)=y(k)+h*(b61*dydx(k)+b62*ak2(k)+b63*ak3(k)+b64*ak4(k)+b65*ak5(k))
+    end do
+    call derivs(x+a6*h,ytemp,ak6)
+    do k=1,n
+      yout(k)=y(k)+h*(c1*dydx(k)+c3*ak3(k)+c4*ak4(k)+c6*ak6(k))
+    end do
+    do k=1,n
+      yerr(k)=h*(dc1*dydx(k)+dc3*ak3(k)+dc4*ak4(k)+dc5*ak5(k)+dc6*ak6(k))
+    end do
+    return
+    end
 !=======================================================================
-    SUBROUTINE RESOLVENTE(A,B,C,X1,X2)
+    subroutine resolvente(a,b,c,x1,x2)
 !-----------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !-----------------------------------------------------------------------
-    REAL (KIND=DP), INTENT(IN) :: A,B,C
-    REAL (KIND=DP), INTENT(OUT) :: X1,X2
-    REAL (KIND=DP) :: Q
+    real (kind=dp), intent(in) :: a,b,c
+    real (kind=dp), intent(out) :: x1,x2
+    real (kind=dp) :: q
 !-----------------------------------------------------------------------
-    Q = -0.5D0*(B+DSIGN(1.D0,B)*DSQRT(B*B-4.D0*A*C))
-    X1 = Q/A
-    X2 = C/Q
+    q = -0.5d0*(b+dsign(1.d0,b)*dsqrt(b*b-4.d0*a*c))
+    x1 = q/a
+    x2 = c/q
 !-----------------------------------------------------------------------
-    END
+    end
 !=======================================================================
 
-END MODULE THERMEV2_SUBS
+end module thermev2_subs

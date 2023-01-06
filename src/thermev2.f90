@@ -1,186 +1,186 @@
 !=======================================================================
-PROGRAM THERMEV_DB
+program thermev_db
 !-----------------------------------------------------------------------
-    USE THERMEV2_SUBS
+    use thermev2_subs
 !-----------------------------------------------------------------------
-    IMPLICIT NONE
+    implicit none
 !-----------------------------------------------------------------------
-    INTEGER, PARAMETER :: NVAR = 2
-    INTEGER :: NBAD,NOK,L,M,P,Q,OK
-    CHARACTER CR
-    REAL (KIND=DP) :: T,TPRINT,Y(NVAR),DYDT(NVAR),AVGTC,AVGTM,A,LOD,RIC,&
-                      UR,URTOT,DUM,DLM,DLIT,QCMB,QCONV,QMELT,QRADM, & 
-                      QRADC,VM,NUM,TCMB,TUBL,MELTF,QTIDAL,TPOT
-    REAL (KIND=DP), PARAMETER :: EPS = 1.D-6
-    REAL (KIND=DP), PARAMETER :: DT = 1.D-3
-    COMMON /PRINTOUT/ A,LOD,DUM,DLM,UR,URTOT,QCMB,QCONV,QMELT, &
-                      QRADM,QRADC,QTIDAL,VM,RIC,NUM,TCMB,TUBL,MELTF
+    integer, parameter :: nvar = 2
+    integer :: nbad,nok,l,m,p,q,ok
+    character cr
+    real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),avgtc,avgtm,a,lod,ric,&
+                      ur,urtot,dum,dlm,dlit,qcmb,qconv,qmelt,qradm, & 
+                      qradc,vm,num,tcmb,tubl,meltf,qtidal,tpot
+    real (kind=dp), parameter :: eps = 1.d-6
+    real (kind=dp), parameter :: dt = 1.d-3
+    common /printout/ a,lod,dum,dlm,ur,urtot,qcmb,qconv,qmelt, &
+                      qradm,qradc,qtidal,vm,ric,num,tcmb,tubl,meltf
 !-----------------------------------------------------------------------
-!   CÁLCULOS PRELIMINARES
+!   cálculos preliminares
 !-----------------------------------------------------------------------
-    PRINT *,'REALIZANDO CALCULOS PRELIMINARES...'
-    GAMALF = DEXP(GAMMLN(ALPHA + 1.D0))
-    GAMMAC = GAMALF*DCOS(0.5D0*ALPHA*PI)
-    GAMMAS = GAMALF*DSIN(0.5D0*ALPHA*PI)
+    print *,'realizando calculos preliminares...'
+    gamalf = dexp(gammln(alpha + 1.d0))
+    gammac = gamalf*dcos(0.5d0*alpha*pi)
+    gammas = gamalf*dsin(0.5d0*alpha*pi)
 !   --------------------------------------------------------------------
-    CR = ACHAR(13)
-    PRINT *,'... LISTO!'
+    cr = achar(13)
+    print *,'... listo!'
 !-----------------------------------------------------------------------
-!   FORMATOS DE SALIDA
+!   formatos de salida
 !-----------------------------------------------------------------------
-!10    FORMAT (A6,1X,F7.2,1X,A6,1X,F7.2,1X,A3,1X,I2)
-!11  FORMAT(F5.3,1X,F7.2,1X,F7.2,1X,F7.2,1X,F6.2,1X,F4.2,1X,F4.2,1X, &
-!            F8.6,1X,F10.3,1X,F6.2,1X,F6.2)
-12  FORMAT(A,'PROGRESO =',1X,F5.1,1X,A1)
-13  FORMAT(A9,1X,F7.2,1X,A2)
+!10    format (a6,1x,f7.2,1x,a6,1x,f7.2,1x,a3,1x,i2)
+!11  format(f5.3,1x,f7.2,1x,f7.2,1x,f7.2,1x,f6.2,1x,f4.2,1x,f4.2,1x, &
+!            f8.6,1x,f10.3,1x,f6.2,1x,f6.2)
+12  format(a,'progreso =',1x,f5.1,1x,a1)
+13  format(a9,1x,f7.2,1x,a2)
 !-----------------------------------------------------------------------
-!   LECTURA DE ARCHIVO DE ENTRADA
+!   lectura de archivo de entrada
 !-----------------------------------------------------------------------
-    PRINT *,'LEYENDO ARCHIVO DE ENTRADA...'
-    CALL LEER_ENTRADA()
-    PRINT *,'... LISTO!'
-    NTERMS = 0
-    DO L=2,LMAX
-        DO M = 0,L
-            DO P = 0,L
-                DO Q = -QMAX,QMAX
-                    NTERMS = NTERMS + 1
-                END DO
-            END DO
-        END DO
-    END DO
-    ALLOCATE(ASUMA(NTERMS),STAT=OK)
-    IF (OK.NE.0) THEN
-        PRINT *,'ERROR EN LA ASIGANOCION DE MEMORIA DE ASUMA'
-        STOP
-    ENDIF
+    print *,'leyendo archivo de entrada...'
+    call leer_entrada()
+    print *,'... listo!'
+    nterms = 0
+    do l=2,lmax
+        do m = 0,l
+            do p = 0,l
+                do q = -qmax,qmax
+                    nterms = nterms + 1
+                end do
+            end do
+        end do
+    end do
+    allocate(asuma(nterms),stat=ok)
+    if (ok.ne.0) then
+        print *,'error en la asiganocion de memoria de asuma'
+        stop
+    endif
 !-----------------------------------------------------------------------
-!   EVALUACIÓN DE LOS FACTORES K_LM, FUNCIONES DE LA INCLINACIÓN Y DE LA
-!   EXCENTRICIDAD
+!   evaluación de los factores k_lm, funciones de la inclinación y de la
+!   excentricidad
 !-----------------------------------------------------------------------
-    PRINT *,'EVALUANDO FACTORES K_LM...'
-    CALL EVALKLM()
-    PRINT *,'... LISTO!'
-    PRINT *,'EVALUANDO FUNCIONES DE LA INCLINACIÓN...'
-    CALL EVALFI(I,FFI)
-    PRINT *,'... LISTO!'
-    PRINT *,'EVALUANDO FUNCIONES DE LA EXCENTRICIDAD...'
-    CALL EVALGE(E,GGE)
-    PRINT *,'... LISTO!'
+    print *,'evaluando factores k_lm...'
+    call evalklm()
+    print *,'... listo!'
+    print *,'evaluando funciones de la inclinación...'
+    call evalfi(i,ffi)
+    print *,'... listo!'
+    print *,'evaluando funciones de la excentricidad...'
+    call evalge(e,gge)
+    print *,'... listo!'
 !-----------------------------------------------------------------------
-!   CREACIÓN DE ARCHIVO DE SALIDA
+!   creación de archivo de salida
 !-----------------------------------------------------------------------
-    PRINT *,'CREANDO ARCHIVO DE SALIDA...'
-    CALL CREAR_ARCHIVO_SALIDA()
-    PRINT *,'... LISTO!'
+    print *,'creando archivo de salida...'
+    call crear_archivo_salida()
+    print *,'... listo!'
 !-----------------------------------------------------------------------
-!   INICIALIZACIÓN DE LAS TEMPERATURAS MEDIAS DEL MANTO Y DEL NÚCLEO
+!   inicialización de las temperaturas medias del manto y del núcleo
 !-----------------------------------------------------------------------
-    PRINT *,'INCIALIZANDO VARIABLES...'
-         T = 0.D0
-    TPRINT = 0.D0
-    DTPRINT = DTPRINT/1000.D0
-    AVGTC = TC0
-    AVGTM = TM0
-      Y(1) = TC0
-      Y(2) = TM0
-    CALL DERIVS(T,Y,DYDT)
-    DLIT = RT - RLIT
-    PRINT *,'... LISTO!'
-    PRINT *,' '
-    PRINT *,'==================='
-    PRINT *,'  ESTADO INICIAL:  '
-    PRINT *,'==================='
-    PRINT 13,'    T_C =',AVGTC,'K'
-    PRINT 13,'  T_CMB =',ETAC*AVGTC,'K'
-    PRINT 13,'    T_M =',AVGTM,'K'
-    PRINT 13,'  T_UBL =',ETAUM*AVGTM,'K'
-    PRINT 13,'   R_IC =',RIC/1000.D0,'KM'
-    PRINT 13,'    LIT =',DLIT,'KM'
-    PRINT 13,'  Q_CMB =',QCMB*1.D-12,'TW'
-    PRINT 13,' Q_CONV =',QCONV*1.D-12,'TW'
-    PRINT 13,' Q_MELT =',QMELT*1.D-12,'TW'
-    PRINT 13,'Q_RAD,M =',QRADM*1.D-12,'TW'
-    PRINT 13,'Q_RAD,C =',QRADC*1.D-12,'TW'
-    PRINT 13,' UR_TOT =',URTOT,'ND'
-    PRINT *,' '
+    print *,'incializando variables...'
+         t = 0.d0
+    tprint = 0.d0
+    dtprint = dtprint/1000.d0
+    avgtc = tc0
+    avgtm = tm0
+      y(1) = tc0
+      y(2) = tm0
+    call derivs(t,y,dydt)
+    dlit = rt - rlit
+    print *,'... listo!'
+    print *,' '
+    print *,'==================='
+    print *,'  estado inicial:  '
+    print *,'==================='
+    print 13,'    t_c =',avgtc,'k'
+    print 13,'  t_cmb =',etac*avgtc,'k'
+    print 13,'    t_m =',avgtm,'k'
+    print 13,'  t_ubl =',etaum*avgtm,'k'
+    print 13,'   r_ic =',ric/1000.d0,'km'
+    print 13,'    lit =',dlit,'km'
+    print 13,'  q_cmb =',qcmb*1.d-12,'tw'
+    print 13,' q_conv =',qconv*1.d-12,'tw'
+    print 13,' q_melt =',qmelt*1.d-12,'tw'
+    print 13,'q_rad,m =',qradm*1.d-12,'tw'
+    print 13,'q_rad,c =',qradc*1.d-12,'tw'
+    print 13,' ur_tot =',urtot,'nd'
+    print *,' '
 !   --------------------------------------------------------------------
-!   ESCRITURA DEL ESTADO INICIAL EN EL ARCHIVO DE SALIDA
+!   escritura del estado inicial en el archivo de salida
 !   --------------------------------------------------------------------
-    PRINT *,'ESCRIBIENDO ESTADO INICIAL EN ARCHIVO DE SALIDA...'     
-    WRITE(11,*) T,AVGTC,AVGTM,DLIT,A/A0,LOD/LODF,RIC/1.D3,UR,URTOT,DUM/1000.D0,DLM/1000.D0, &
-                QCMB*1.D-12,QCONV*1.D-12,QMELT*1.D-12,QRADM*1.D-12,QRADC*1.D-12,QTIDAL*1D-12, & 
-                VISC(AVGTM),TCMB,MELTF
-    PRINT *,'... LISTO!'
+    print *,'escribiendo estado inicial en archivo de salida...'     
+    write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lodf,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
+                qcmb*1.d-12,qconv*1.d-12,qmelt*1.d-12,qradm*1.d-12,qradc*1.d-12,qtidal*1d-12, & 
+                visc(avgtm),tcmb,meltf
+    print *,'... listo!'
 !   --------------------------------------------------------------------
-!   PERFIL DE TEMPERATURA INICIAL
+!   perfil de temperatura inicial
 !   --------------------------------------------------------------------
-    PRINT *,'IMPRIMIENDO PERFIL DE TEMPERATURA INICIAL...'
-    CALL IMPRIMIR_PERFIL(TPRINT,AVGTC,DLM,AVGTM,DUM)
-    PRINT *,'... LISTO!'
+    print *,'imprimiendo perfil de temperatura inicial...'
+    call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
+    print *,'... listo!'
 !-----------------------------------------------------------------------
-!   INTEGRACION DE LAS ECUACIONES DIFERENCIALES
+!   integracion de las ecuaciones diferenciales
 !-----------------------------------------------------------------------
-    PRINT *,'INTEGRANDO ECUACIONES DIFERENCIALES...'
-    DO WHILE (T+DT.LE.TF)
+    print *,'integrando ecuaciones diferenciales...'
+    do while (t+dt.le.tf)
 !       ----------------------------------------------------------------
-!       IMPRESIÓN DEL PERFIL DE TEMPERATURA
+!       impresión del perfil de temperatura
 !       ----------------------------------------------------------------
-        IF (T.GE.TPRINT) THEN
-            CALL IMPRIMIR_PERFIL(TPRINT,AVGTC,DLM,AVGTM,DUM)
-            TPRINT = TPRINT + DTPRINT
-        END IF
+        if (t.ge.tprint) then
+            call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
+            tprint = tprint + dtprint
+        end if
 !       ----------------------------------------------------------------
-        CALL ODEINT(Y,NVAR,T,T+DT,EPS,DT,0.D0,NOK,NBAD,DERIVS,BSSTEP)    
-        AVGTC = Y(1)
-        AVGTM = Y(2)
+        call odeint(y,nvar,t,t+dt,eps,dt,0.d0,nok,nbad,derivs,bsstep)    
+        avgtc = y(1)
+        avgtm = y(2)
 !       ----------------------------------------------------------------
-!       CALCULO DEL ESPESOR DE LA LITOSFERA
+!       calculo del espesor de la litosfera
 !       ----------------------------------------------------------------
-        DLIT = RT - RLIT
+        dlit = rt - rlit
 !       ----------------------------------------------------------------
-!       CALCULO DE LA TEMPERATURA POTENCIAL
+!       calculo de la temperatura potencial
 !       ----------------------------------------------------------------
-        TPOT = TUBL*DEXP(-GUM*ALFAM*DUM/CM)
+        tpot = tubl*dexp(-gum*alfam*dum/cm)
 !       ----------------------------------------------------------------
-!       ESCRITURA DE RESULTADOS EN EL ARCHIVO DE SALIDA
+!       escritura de resultados en el archivo de salida
 !       ----------------------------------------------------------------
 !                    1   2     3   4    5      6      7       8     9     10          11
-        WRITE(11,*) T,AVGTC,AVGTM,DLIT,A/A0,LOD/LODF,RIC/1.D3,UR,URTOT,DUM/1000.D0,DLM/1000.D0, &
+        write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lodf,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
 !             12           13          14           15           16            17           18
-             QCMB*1.D-12,QCONV*1.D-12,QMELT*1.D-12,QRADM*1.D-12,QRADC*1.D-12,QTIDAL*1.D-12,VISC(AVGTM), &
+             qcmb*1.d-12,qconv*1.d-12,qmelt*1.d-12,qradm*1.d-12,qradc*1.d-12,qtidal*1.d-12,visc(avgtm), &
 !              19  20 
-             TCMB,MELTF
-        WRITE(*,12,ADVANCE='NO') CR,T*100.D0/TF,'%'
-        T = T + DT
-    END DO
-    PRINT *,' '
-    PRINT *,'... LISTO!'
-    PRINT *,' '
-    PRINT *,'==================='
-    PRINT *,'   ESTADO FINAL:   '
-    PRINT *,'==================='
-    PRINT 13,'    T_C = ',AVGTC,'K'
-    PRINT 13,'  T_CMB = ',ETAC*AVGTC,'K'
-    PRINT 13,'    T_M = ',AVGTM,'K'
-    PRINT 13,'  T_UBL = ',ETAUM*AVGTM,'K'
-    PRINT 13,'   R_IC = ',RIC/1000.D0,'KM'
-    PRINT 13,'    LIT = ',DLIT,'KM'
-    PRINT 13,'  Q_CMB = ',QCMB*1.D-12,'TW'
-    PRINT 13,' Q_CONV = ',QCONV*1.D-12,'TW'
-    PRINT 13,' Q_MELT = ',QMELT*1.D-12,'TW'
-    PRINT 13,'Q_RAD,M = ',QRADM*1.D-12,'TW'
-    PRINT 13,'Q_RAD,C = ',QRADC*1.D-12,'TW'
-    PRINT 13,' UR_TOT = ',URTOT,'ND'
-    PRINT 13,' '
+             tcmb,meltf
+        write(*,12,advance='no') cr,t*100.d0/tf,'%'
+        t = t + dt
+    end do
+    print *,' '
+    print *,'... listo!'
+    print *,' '
+    print *,'==================='
+    print *,'   estado final:   '
+    print *,'==================='
+    print 13,'    t_c = ',avgtc,'k'
+    print 13,'  t_cmb = ',etac*avgtc,'k'
+    print 13,'    t_m = ',avgtm,'k'
+    print 13,'  t_ubl = ',etaum*avgtm,'k'
+    print 13,'   r_ic = ',ric/1000.d0,'km'
+    print 13,'    lit = ',dlit,'km'
+    print 13,'  q_cmb = ',qcmb*1.d-12,'tw'
+    print 13,' q_conv = ',qconv*1.d-12,'tw'
+    print 13,' q_melt = ',qmelt*1.d-12,'tw'
+    print 13,'q_rad,m = ',qradm*1.d-12,'tw'
+    print 13,'q_rad,c = ',qradc*1.d-12,'tw'
+    print 13,' ur_tot = ',urtot,'nd'
+    print 13,' '
 !   --------------------------------------------------------------------
-!   PERFIL DE TEMPERATURA FINAL
+!   perfil de temperatura final
 !   --------------------------------------------------------------------
-    PRINT *,'IMPRIMIENDO PERFIL DE TEMPERATURA FINAL...'
-    CALL IMPRIMIR_PERFIL(TPRINT,AVGTC,DLM,AVGTM,DUM)
-    PRINT *,'... LISTO!'
+    print *,'imprimiendo perfil de temperatura final...'
+    call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
+    print *,'... listo!'
 !   --------------------------------------------------------------------
-    PRINT *,' '
+    print *,' '
 !-----------------------------------------------------------------------
-END PROGRAM THERMEV_DB
+end program thermev_db
 !=======================================================================
