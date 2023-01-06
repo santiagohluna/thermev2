@@ -263,7 +263,7 @@ module thermev2_subs
         else 
             Ric = dsqrt(2.d0*(pec-pio(tcmb))*1.d9*rc/(rhoc*glm))
         end if
-        dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Mc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
+        dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Cc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
     else
     !   --------------------------------------------------------------------
     !   calculo del radio del nucleo interno
