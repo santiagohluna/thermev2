@@ -10,12 +10,13 @@ module thermev2_subs
 !   parametros generales
 !   --------------------------------------------------------------------
     real (kind=dp), parameter ::   pi = 4.d0*datan(1.d0)
-    real (kind=dp), parameter ::  cgu = 6.67408d-11
-    real (kind=dp), parameter ::   mt = 5.9722d24
-    real (kind=dp), parameter ::   rt = 6.371d6
+    real (kind=dp), parameter ::  CGU = 6.67408d-11
+    real (kind=dp), parameter ::   Me = 5.9722d24
+    real (kind=dp), parameter ::   rt = 6.3781366d6
     real (kind=dp), parameter ::   rc = 3.480d6
-    real (kind=dp), parameter ::   ml = 7.342d22
-    real (kind=dp), parameter ::   mu = cgu*(mt+ml)
+    real (kind=dp), parameter ::   Ml = 7.342d22
+    real (kind=dp), parameter ::   mu = CGU*(Me+Ml)
+    real (kind=dp), parameter :: mred = Me*Ml/(Me+Ml)
     real (kind=dp), parameter :: rhot = 5515.d0
     real (kind=dp), parameter ::   dd = 86400.d0
     real (kind=dp), parameter ::   aa = 365.25d0*dd
@@ -23,6 +24,10 @@ module thermev2_subs
     real (kind=dp), parameter ::   t0 = 4.5d0
     real (kind=dp), parameter ::   tf = 4.5d0
     real (kind=dp), parameter ::   dr = 1.d2
+    real (kind=dp), parameter ::   a0 = 60.142611d0*Rt
+    real (kind=dp), parameter :: LOD0 = 23.934468d0
+    real (kind=dp), parameter :: eps0 = 23.2545d0*pi/180.d0
+    real (kind=dp), parameter ::   p0 = 50.467718d0
 !   --------------------------------------------------------------------
 !   parametros del modelo de driscoll & bercovici (2014)
 !   tabla 3
@@ -80,9 +85,11 @@ module thermev2_subs
     real (kind=dp), parameter :: taurdc = 1.2d0         ! core radioactive decay time scale
     real (kind=dp), parameter :: phidis = 0.6d0         ! disgregation point
     real (kind=dp), parameter :: denric = 2.d0*(1.d0 - 1.d0/(3.d0*grun))*(dn/dfe)**2 - 1.d0
-    real (kind=dp), parameter :: tlc0 = 1980.d0, tlc1 = 6.14d-3, &
-    tlc2 = -4.5d-6
-    real (kind=dp), parameter :: ta1 = 3.96d-3, ta2 = -3.3d-6
+    real (kind=dp), parameter :: tlc0 = 1980.d0
+    real (kind=dp), parameter :: tlc1 = 6.14d-3
+    real (kind=dp), parameter :: tlc2 = -4.5d-6
+    real (kind=dp), parameter :: ta1 = 3.96d-3
+    real (kind=dp), parameter :: ta2 = -3.3d-6
     real (kind=dp), parameter :: x0 = 0.1d0            ! initial concetration of light constituent in the core
     real (kind=dp), parameter ::  xi = tlc0*(1.d0 - 2.d0*x0)*(1.d0 + (ta1 + ta2*pcmb)*pcmb)
 !   --------------------------------------------------------------------
@@ -99,7 +106,6 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   demid = 2
 !   ---------
-    real (kind=dp), parameter ::    a0 = 3.84402d8
     real (kind=dp), parameter :: dadt0 = 3.82d-2
     real (kind=dp), parameter :: lodi1 = 6.15d0
     real (kind=dp), parameter ::  lodf = 23.93
@@ -113,6 +119,10 @@ module thermev2_subs
     real (kind=dp), parameter :: lodi2 = 2.53d0
     real (kind=dp), parameter ::   ma2 = (af-ai)/4.5d0
     real (kind=dp), parameter :: mlod2 = (lodf-lodi2)/4.5d0
+!   --------------------------------------------------------------------
+!   Valor actual de la velocidad angular de rotación terrestre
+!   --------------------------------------------------------------------
+    real (kind=dp), parameter :: thp0 = 2.d0*pi/(lodf*3600.d0)
 !   --------------------------------------------------------------------
 !   parametros de elementos radiogenicos
 !   tabla 4.2 de turcotte & schubert (2014)
@@ -128,7 +138,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     real (kind=dp), parameter ::  rigdz = 8.0e10
     real (kind=dp), parameter ::   flex = 1.d0/rigdz
-    real (kind=dp), parameter ::  ksubb = rt/(cgu*mt*rhot)
+    real (kind=dp), parameter ::  ksubb = rt/(CGU*Me*rhot)
     real (kind=dp), parameter ::  kflex = 0.2d0
     real (kind=dp), parameter ::   keta = 0.02d0
     real (kind=dp), parameter ::  alpha = 0.2
@@ -338,7 +348,7 @@ module thermev2_subs
         end do
     end do
     sumapm = sumar(j-1,asuma)
-    pm = ftvf*((cgu*ml)*(ml/a))*sumapm
+    pm = ftvf*((CGU*Ml)*(Ml/a))*sumapm
 !   --------------------------------------------------------------------
     end function pm
 !=======================================================================
@@ -353,19 +363,19 @@ module thermev2_subs
 !   --------------------------------------------------------------------
      if (ldem1) then
 !     -------------------------------------------------------------------
-        a = (t0-t)*((t0-t)*(ca(1)*(t0-t) + ca(2)) + ca(3)) + ca(4)
+        a = t*(t*(ca(1)*t + ca(2)) + ca(3)) + ca(4)
         a = a*1.d8
-      lod = (t0-t)*((t0-t)*(clod(1)*(t0-t) + clod(2)) + clod(3)) + clod(4)
+      lod = t*(t*(clod(1)*t + clod(2)) + clod(3)) + clod(4)
 !     ------------------------------------------------------------------
      else if (ldem2) then
 !    -------------------------------------------------------------------
-        a = ma1*(t-t0) + a0
-      lod = mlod1*(t-t0) + lodf
+        a = ma1*t + a0
+      lod = mlod1*t + lodf
 !    -------------------------------------------------------------------
      else if (ldem3) then
 !    -------------------------------------------------------------------
-        a = ma2*(t-t0) + a0
-      lod = mlod2*(t-t0) + lodf
+        a = ma2*t + a0
+      lod = mlod2*t + lodf
 !    -------------------------------------------------------------------
      else
         print *,'error en el identificador del modelo dinamico'
@@ -1667,17 +1677,41 @@ module thermev2_subs
 !=======================================================================
     subroutine resolvente(a,b,c,x1,x2)
 !-----------------------------------------------------------------------
-    implicit none
+        implicit none
 !-----------------------------------------------------------------------
-    real (kind=dp), intent(in) :: a,b,c
-    real (kind=dp), intent(out) :: x1,x2
-    real (kind=dp) :: q
+        real (kind=dp), intent(in) :: a,b,c
+        real (kind=dp), intent(out) :: x1,x2
+        real (kind=dp) :: q
 !-----------------------------------------------------------------------
-    q = -0.5d0*(b+dsign(1.d0,b)*dsqrt(b*b-4.d0*a*c))
-    x1 = q/a
-    x2 = c/q
+        q = -0.5d0*(b+dsign(1.d0,b)*dsqrt(b*b-4.d0*a*c))
+        x1 = q/a
+        x2 = c/q
 !-----------------------------------------------------------------------
-    end
+    end subroutine resolvente
+!=======================================================================
+    subroutine depsda(t, eps, deps)
+
+        implicit none
+
+        real (kind=8), intent(in) :: t,eps
+        real (kind=8), intent(out) :: deps
+        real (kind=8) :: a,lod,n,thp,Cthp,frac1,frac2
+        real (kind=8), parameter :: Cthp0 = 0.3306947357075918999972d0*Me*rt**2
+        real (kind=8), parameter :: kf2 = 0.93d0
+    
+        call modelo_dinamico(t,a,lod)
+    
+        n = dsqrt(mu/a)/a
+        thp = 2.d0*pi/(lod*3600.d0)
+
+        Cthp = Cthp0 + 2.d0*kf2*(Rt**5)*(thp**2 - thp0**2)/(9.d0*CGU)
+
+        frac1 = 0.25d0*mred*n*a/(Cthp*thp)
+        frac2 = (thp*dcos(eps) - 2.d0*n)/(thp*dcos(eps) - n)
+
+        deps = frac1*dsin(eps)*frac2
+
+    end subroutine depsda
 !=======================================================================
 
 end module thermev2_subs
