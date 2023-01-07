@@ -51,7 +51,7 @@ program thermev_db
     end do
     allocate(asuma(nterms),stat=ok)
     if (ok.ne.0) then
-        print *,'error en la asiganocion de memoria de asuma'
+        print *,'Error en la asignación de memoria de asuma'
         stop
     endif
 !-----------------------------------------------------------------------
