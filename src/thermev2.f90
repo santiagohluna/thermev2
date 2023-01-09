@@ -108,7 +108,7 @@ program thermev_db
 !   escritura del estado inicial en el archivo de salida
 !   --------------------------------------------------------------------
     print *,'escribiendo estado inicial en archivo de salida...'     
-    write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lodf,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
+    write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lod0,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
                 qcmb*1.d-12,qconv*1.d-12,qmelt*1.d-12,qradm*1.d-12,qradc*1.d-12,qtidal*1d-12, & 
                 visc(avgtm),tcmb,meltf
     print *,'... listo!'
@@ -146,7 +146,7 @@ program thermev_db
 !       escritura de resultados en el archivo de salida
 !       ----------------------------------------------------------------
 !                    1   2     3   4    5      6      7       8     9     10          11
-        write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lodf,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
+        write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lod0,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
 !             12           13          14           15           16            17           18
              qcmb*1.d-12,qconv*1.d-12,qmelt*1.d-12,qradm*1.d-12,qradc*1.d-12,qtidal*1.d-12,visc(avgtm), &
 !              19  20 
