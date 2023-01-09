@@ -122,7 +122,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   Valor actual de la velocidad angular de rotación terrestre
 !   --------------------------------------------------------------------
-    real (kind=dp), parameter :: thp0 = 2.d0*pi/(lodf*3600.d0)
+    real (kind=dp), parameter :: thp0 = 2.d0*pi/(LOD0*3600.d0)
 !   --------------------------------------------------------------------
 !   parametros de elementos radiogenicos
 !   tabla 4.2 de turcotte & schubert (2014)
@@ -180,7 +180,7 @@ module thermev2_subs
                       dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
                       qradc,tcmb,tlbl,vm,meltfm,dvupdt,qtidal, &
                       a,lod,ur,urtot,radic,num,delt,a1,a2,int,etavg, &
-                      ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc
+                      ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc,n,thp
     real (kind=dp) :: asumaq(4)
     common /printout/ a,lod,dubl,dlbl,ur,urtot,qcmb,qconv,qmelt, &
                       qradm,qradc,qtidal,vm,ric,num,tcmb,tubl,meltfm
@@ -248,14 +248,14 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   calculo de qtidal
 !   --------------------------------------------------------------------
-    call modelo_dinamico(t,a,lod)
+    call modelo_dinamico(t,a,n,lod,thp)
     if (ltide) then
         a1 = tlbl
         a2 = tubl
         delt = tubl - tlbl
         call qromb(visc,a1,a2,int)
         etavg = rhom*int/delt
-        qtidal = pm(etavg,tubl,dubl,a,lod)
+        qtidal = pm(etavg,tubl,dubl,a,n,thp)
     else
         qtidal = 0.d0
     end if
@@ -305,7 +305,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end subroutine derivs
 !=======================================================================
-    function pm(eta,tubl,dubl,a,lod)
+    function pm(eta,tubl,dubl,a,n,thp)
 !   --------------------------------------------------------------------
 !   esta función calcula el calor generado por interacción de mareas
 !   usando la expresión derivada por efroimsky y makarov (2014)
@@ -313,8 +313,8 @@ module thermev2_subs
     implicit none
 !   --------------------------------------------------------------------
     integer :: j,l,m,p,q
-    real (kind=dp),intent(in) :: eta,tubl,a,lod,dubl
-    real (kind=dp) :: n,thp,rsa,wlmpq,xlmpq,sumapm,ftvf,rsal
+    real (kind=dp),intent(in) :: eta,tubl,a,n,dubl,thp
+    real (kind=dp) :: rsa,wlmpq,xlmpq,sumapm,ftvf,rsal
     real (kind=dp) :: rphi,pm,kr,ki
 !   --------------------------------------------------------------------
 !   calculo de la fraccion de volumen del manto activo para la 
@@ -327,8 +327,6 @@ module thermev2_subs
     ftvf = (rphi/rt)**3-(rc/rt)**3
 !   --------------------------------------------------------------------
     rsa = rt/a
-      n = dsqrt(mu/a)/a
-    thp = 2.d0*pi/(lod*3600.d0)
 !   --------------------------------------------------------------------
 !   calculo de la tasa de produccion de calor por mareas
 !   --------------------------------------------------------------------
@@ -352,35 +350,37 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function pm
 !=======================================================================
-    subroutine modelo_dinamico(t,a,lod)
+    subroutine modelo_dinamico(t,a,n,lod,thp)
 !   --------------------------------------------------------------------
 !   calculo de los valores de a y de lod
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
     real (kind=dp), intent(in) :: t
-    real (kind=dp), intent(out) :: a,lod
+    real (kind=dp), intent(out) :: a,n,lod,thp
 !   --------------------------------------------------------------------
-     if (ldem1) then
-!     -------------------------------------------------------------------
-        a = t*(t*(ca(1)*t + ca(2)) + ca(3)) + ca(4)
-        a = a*1.d8
-      lod = t*(t*(clod(1)*t + clod(2)) + clod(3)) + clod(4)
-!     ------------------------------------------------------------------
-     else if (ldem2) then
-!    -------------------------------------------------------------------
-        a = ma1*t + a0
-      lod = mlod1*t + lodf
-!    -------------------------------------------------------------------
-     else if (ldem3) then
-!    -------------------------------------------------------------------
-        a = ma2*t + a0
-      lod = mlod2*t + lodf
-!    -------------------------------------------------------------------
-     else
+    if (ldem1) then
+!   --------------------------------------------------------------------
+          a = (t*(t*(ca(1)*t + ca(2)) + ca(3)) + ca(4))*a0
+        lod = (t*(t*(clod(1)*t + clod(2)) + clod(3)) + clod(4))*LOD0
+!  ---------------------------------------------------------------------
+    else if (ldem2) then
+!   --------------------------------------------------------------------
+          a = ma1*t + a0
+        lod = mlod1*t + lodf
+!   --------------------------------------------------------------------
+    else if (ldem3) then
+!   --------------------------------------------------------------------
+          a = ma2*t + a0
+        lod = mlod2*t + lodf
+!   --------------------------------------------------------------------
+    else
         print *,'error en el identificador del modelo dinamico'
         return
-     end if
+    end if
+!    
+      n = dsqrt(mu/a)/a
+    thp = 2.d0*pi/(lod*3600.d0)
 !   --------------------------------------------------------------------
     end subroutine modelo_dinamico
 !=======================================================================
@@ -1689,29 +1689,30 @@ module thermev2_subs
 !-----------------------------------------------------------------------
     end subroutine resolvente
 !=======================================================================
-    subroutine depsda(t, eps, deps)
-
+    function depsda(t, x)
+!   --------------------------------------------------------------------
+!   Esta subrutina calcula la derivada temporal de la oblicuidad
+!   terrestre utilizando la expresión dada por la ec. (A.6) del trabajo
+!   de Farhat et al. (2022).
+!   --------------------------------------------------------------------
         implicit none
-
-        real (kind=8), intent(in) :: t,eps
-        real (kind=8), intent(out) :: deps
+!       ----------------------------------------------------------------
+        real (kind=8), intent(in) :: t,x
+        real (kind=8) :: depsda
         real (kind=8) :: a,lod,n,thp,Cthp,frac1,frac2
         real (kind=8), parameter :: Cthp0 = 0.3306947357075918999972d0*Me*rt**2
         real (kind=8), parameter :: kf2 = 0.93d0
-    
-        call modelo_dinamico(t,a,lod)
-    
-        n = dsqrt(mu/a)/a
-        thp = 2.d0*pi/(lod*3600.d0)
-
+!       ----------------------------------------------------------------    
+        call modelo_dinamico(t,a,n,lod,thp)
+!       ----------------------------------------------------------------
         Cthp = Cthp0 + 2.d0*kf2*(Rt**5)*(thp**2 - thp0**2)/(9.d0*CGU)
-
+!       ----------------------------------------------------------------
         frac1 = 0.25d0*mred*n*a/(Cthp*thp)
-        frac2 = (thp*dcos(eps) - 2.d0*n)/(thp*dcos(eps) - n)
-
-        deps = frac1*dsin(eps)*frac2
-
-    end subroutine depsda
+        frac2 = (thp*dcos(x) - 2.d0*n)/(thp*dcos(x) - n)
+!       ----------------------------------------------------------------
+        depsda = frac1*dsin(x)*frac2
+!   --------------------------------------------------------------------
+    end function depsda
 !=======================================================================
 
 end module thermev2_subs
