@@ -162,6 +162,7 @@ module thermev2_subs
                corefl,nterms
 !   --------------------------------------------------------------------
     real (kind=dp), allocatable :: asuma(:)
+    real (kind=dp), dimension(1:60) :: xa,ya
 !   --------------------------------------------------------------------
 !   bloque de procedimientos
 !   --------------------------------------------------------------------
@@ -1713,6 +1714,99 @@ module thermev2_subs
         depsda = frac1*dsin(x)*frac2
 !   --------------------------------------------------------------------
     end function depsda
+!=======================================================================
+    SUBROUTINE hunt(xx,n,x,jlo)
+        INTEGER :: jlo,n
+        REAL (kind=dp) x,xx(n)
+        INTEGER :: inc,jhi,jm
+        LOGICAL :: ascnd
+        ascnd=xx(n).gt.xx(1)
+        if(jlo.le.0.or.jlo.gt.n)then
+          jlo=0
+          jhi=n+1
+          goto 3
+        endif
+        inc=1
+        if(x.ge.xx(jlo).eqv.ascnd)then
+  1       jhi=jlo+inc
+          if(jhi.gt.n)then
+            jhi=n+1
+          else if(x.ge.xx(jhi).eqv.ascnd)then
+            jlo=jhi
+            inc=inc+inc
+            goto 1
+          endif
+        else
+          jhi=jlo
+  2       jlo=jhi-inc
+          if(jlo.lt.1)then
+            jlo=0
+          else if(x.lt.xx(jlo).eqv.ascnd)then
+            jhi=jlo
+            inc=inc+inc
+            goto 2
+          endif
+        endif
+  3     if(jhi-jlo.eq.1)return
+        jm=(jhi+jlo)/2
+        if(x.gt.xx(jm).eqv.ascnd)then
+          jlo=jm
+        else
+          jhi=jm
+        endif
+        goto 3
+        END SUBROUTINE hunt
+!=======================================================================
+    subroutine leer_oblicuidad(count)
+
+        implicit none
+
+        integer :: feof,k
+        integer, intent(out) :: count
+        real (kind=dp) :: t,eps,p,a,lod
+
+        open(unit=10,file='../out/oblicuidad.out')
+
+        feof = 0
+        count = 1
+        
+        do while(feof.eq.0)
+        
+            read(10,*,iostat=feof) k,t,eps,p,a,lod
+!           ------------------------------------------------------------
+            if (feof.gt.0) then
+                print *,'revisar archivo de entrada'
+                exit
+            else if (feof.lt.0) then
+                print *,  'listo!'
+                exit
+            else 
+                xa(k) = t
+                ya(k) = eps
+                count = count + 1
+            end if
+!           ------------------------------------------------------------
+
+        end do
+
+        count = count - 1
+  
+    end subroutine leer_oblicuidad
+!=======================================================================
+    function oblicuidad(x,kmax,l)
+
+        real(kind=dp), intent(in) :: x
+        real(kind=dp) :: y,dy,oblicuidad
+        integer, intent(in) :: l,kmax
+        integer :: j,kk
+    
+        call hunt(xa,kmax,x,j)
+        kk = min(max(j-(l-1)/2,1),kmax+1-l)
+        call polint(xa(kk),ya(kk),l,x,y,dy)
+        
+        oblicuidad = y
+
+    end function oblicuidad
 !=======================================================================
 
 end module thermev2_subs
