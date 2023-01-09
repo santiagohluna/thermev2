@@ -12,6 +12,8 @@ program evaleps
 
     call leer_oblicuidad(kmax)
 
+    print *,'kmax = ',kmax
+
     open(unit=11,file='../out/evaleps.out')
 
     x = xin
