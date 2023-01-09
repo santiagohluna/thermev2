@@ -27,7 +27,7 @@ module thermev2_subs
     real (kind=dp), parameter ::   a0 = 60.142611d0*Rt
     real (kind=dp), parameter :: LOD0 = 23.934468d0
     real (kind=dp), parameter :: eps0 = 23.2545d0*pi/180.d0
-    real (kind=dp), parameter ::   p0 = 50.467718d0
+    real (kind=dp), parameter ::   p0 = 50.467718d0*pi/(180.d0*3600.d0*aa)
 !   --------------------------------------------------------------------
 !   parametros del modelo de driscoll & bercovici (2014)
 !   tabla 3

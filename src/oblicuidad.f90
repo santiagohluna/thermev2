@@ -26,7 +26,7 @@ program oblicuidad
     eps = eps0
     epsdeg = eps*180.d0/pi
     call modelo_dinamico(t,a1,n,lod1,thp)
-    p = 1.5d0*(GMs/(ae**3) + GMl/(a1**3))*Ed*thp*dcos(eps)/(thp0**2)
+    p = p0
 
     do while (t.le.tf)
         write(10,10) t,epsdeg,p*(180.d0/pi)*3600.d0*aa,a1/a0,lod1/LOD0
@@ -40,10 +40,10 @@ program oblicuidad
 !       de Runge-Kutta de orden 4.
 !       -----------------------------------------------------------------------
         h1 = depsda(t,eps)
-        h2 = depsda(t+0.5d0*dt,eps+0.5d0*h1*da)
-        h3 = depsda(t+0.5d0*dt,eps+0.5d0*h2*da)
+        h2 = depsda(t+dt2,eps+h1*da2)
+        h3 = depsda(t+dt2,eps+h2*da2)
         h4 = depsda(t+dt,eps+h3*da)
-        eps = eps + da*(h1 + 2.d0*(h2 + h3) + h4)/6.d0
+        eps = eps + da6*(h1 + 2.d0*(h2 + h3) + h4)
 !       -----------------------------------------------------------------------
         epsdeg = eps*180.d0/pi
         t = t + dt
