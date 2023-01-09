@@ -7,7 +7,7 @@ program oblicuidad
     real (kind=8) :: t,a1,a2,eps,da,p,lod1,lod2,thp,n,epsdeg
     real (kind=8) :: h1,h2,h3,h4
     real (kind=8), parameter :: ti = 0.d0
-    real (kind=8), parameter :: dt = 0.01d0
+    real (kind=8), parameter :: dt = 0.1d0
     real (kind=8), parameter :: tol = 1.d-6
     real (kind=8), parameter :: ae = 1.495978707e8
     real (kind=8), parameter :: GMs = 2.959122082853813556248d-4*ae**3/dd**2
@@ -15,6 +15,8 @@ program oblicuidad
     real (kind=8), parameter :: Ed = 0.003243d0
     
     open(unit=10,file='../out/oblicuidad.out')
+
+10  format(f4.2,1x,f7.4,1x,f11.6,1x,f4.2,1x,f4.2)
 
     demid = 1
     ldem1 = demid.eq.1
@@ -24,10 +26,9 @@ program oblicuidad
     epsdeg = eps*180.d0/pi
     call modelo_dinamico(t,a1,n,lod1,thp)
     p = 1.5d0*(GMs/(ae**3) + GMl/(a1**3))*Ed*thp*dcos(eps)/(thp0**2)
-    print *,'p = ',p*(180.d0/pi)*3600.d0*aa
 
-    do while (t.lt.tf)
-        write(10,*) t,epsdeg,p*(180.d0/pi)*3600.d0*aa,a1/a0,lod1/LOD0
+    do while (t.le.tf)
+        write(10,10) t,epsdeg,p*(180.d0/pi)*3600.d0*aa,a1/a0,lod1/LOD0
         call modelo_dinamico(t,a1,n,lod1,thp)
         call modelo_dinamico(t+dt,a2,n,lod2,thp)
         da = a2 - a1
