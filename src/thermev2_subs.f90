@@ -1757,18 +1757,18 @@ module thermev2_subs
         goto 3
         END SUBROUTINE hunt
 !=======================================================================
-    subroutine leer_oblicuidad(count)
+    subroutine leer_oblicuidad(kmax)
 
         implicit none
 
         integer :: feof,k
-        integer, intent(out) :: count
+        integer, intent(out) :: kmax
         real (kind=dp) :: t,eps,p,a,lod
 
         open(unit=10,file='../out/oblicuidad.out')
 
         feof = 0
-        count = 1
+        kmax = 1
         
         do while(feof.eq.0)
         
@@ -1783,13 +1783,13 @@ module thermev2_subs
             else 
                 xa(k) = t
                 ya(k) = eps
-                count = count + 1
+                kmax = kmax + 1
             end if
 !           ------------------------------------------------------------
 
         end do
 
-        count = count - 1
+        kmax = kmax - 1
   
     end subroutine leer_oblicuidad
 !=======================================================================
