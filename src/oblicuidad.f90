@@ -5,7 +5,7 @@ program oblicuidad
     implicit none
 
     real (kind=8) :: t,a1,a2,eps,da,p,lod1,lod2,thp,n,epsdeg
-    real (kind=8) :: h1,h2,h3,h4
+    real (kind=8) :: h1,h2,h3,h4,da2,da6
     real (kind=8), parameter :: ti = 0.d0
     real (kind=8), parameter :: dt = 0.1d0
     real (kind=8), parameter :: tol = 1.d-6
@@ -13,6 +13,7 @@ program oblicuidad
     real (kind=8), parameter :: GMs = 2.959122082853813556248d-4*ae**3/dd**2
     real (kind=8), parameter :: GMl = 4902.800d9
     real (kind=8), parameter :: Ed = 0.003243d0
+    real (kind=8), parameter :: dt2 = 0.5d0*dt
     
     open(unit=10,file='../out/oblicuidad.out')
 
@@ -32,6 +33,8 @@ program oblicuidad
         call modelo_dinamico(t,a1,n,lod1,thp)
         call modelo_dinamico(t+dt,a2,n,lod2,thp)
         da = a2 - a1
+        da2 = 0.5d0*da
+        da6 = da/6.d0
 !       -----------------------------------------------------------------------
 !       Integrtación de la ec. (A.6) de Farhat et al. (2020) usando el método
 !       de Runge-Kutta de orden 4.
