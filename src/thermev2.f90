@@ -5,16 +5,18 @@ program thermev_db
 !-----------------------------------------------------------------------
     implicit none
 !-----------------------------------------------------------------------
-    integer, parameter :: nvar = 2
+    integer, parameter :: nvar = 3
     integer :: nbad,nok,l,m,p,q,ok
     character cr
-    real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),avgtc,avgtm,a,lod,ric,&
+    real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),avgtc,avgtm,a,ric,&
                       ur,urtot,dum,dlm,dlit,qcmb,qconv,qmelt,qradm, & 
                       qradc,vm,num,tcmb,tubl,meltf,qtidal,tpot
     real (kind=dp), parameter :: eps = 1.d-6
     real (kind=dp), parameter :: dt = 1.d-3
-    common /printout/ a,lod,dum,dlm,ur,urtot,qcmb,qconv,qmelt, &
-                      qradm,qradc,qtidal,vm,ric,num,tcmb,tubl,meltf
+    real (kind=dp), parameter :: tera = 1.d-12
+    real (kind=dp), parameter :: km = 1.d-3
+    common /printout/ dum,dlm,ur,urtot,qcmb,qconv,qmelt, &
+                      qradm,qradc,qtidal,vm,num,tcmb,tubl,meltf
 !-----------------------------------------------------------------------
 !   cálculos preliminares
 !-----------------------------------------------------------------------
@@ -31,7 +33,7 @@ program thermev_db
 !10    format (a6,1x,f7.2,1x,a6,1x,f7.2,1x,a3,1x,i2)
 !11  format(f5.3,1x,f7.2,1x,f7.2,1x,f7.2,1x,f6.2,1x,f4.2,1x,f4.2,1x, &
 !            f8.6,1x,f10.3,1x,f6.2,1x,f6.2)
-12  format(a,'progreso =',1x,f5.1,1x,a1)
+12  format(a,'Progreso =',1x,f5.1,1x,a1)
 13  format(a9,1x,f7.2,1x,a2)
 !-----------------------------------------------------------------------
 !   lectura de archivo de entrada
@@ -58,66 +60,54 @@ program thermev_db
 !   evaluación de los factores k_lm, funciones de la inclinación y de la
 !   excentricidad
 !-----------------------------------------------------------------------
-    print *,'evaluando factores k_lm...'
+    print *,'Evaluando factores k_lm ...'
     call evalklm()
     print *,'... listo!'
-    print *,'evaluando funciones de la inclinación...'
-    call evalfi(i,ffi)
+    print *,'Leyendo datos para la evaluación de la oblicuidad ...'
+    call leer_oblicuidad()
     print *,'... listo!'
-    print *,'evaluando funciones de la excentricidad...'
+    print *,'Evaluando funciones de la excentricidad ...'
     call evalge(e,gge)
     print *,'... listo!'
 !-----------------------------------------------------------------------
 !   creación de archivo de salida
 !-----------------------------------------------------------------------
-    print *,'creando archivo de salida...'
+    print *,'Creando archivo de salida...'
     call crear_archivo_salida()
     print *,'... listo!'
 !-----------------------------------------------------------------------
 !   inicialización de las temperaturas medias del manto y del núcleo
 !-----------------------------------------------------------------------
-    print *,'incializando variables...'
+    print *,'Incializando variables...'
          t = 0.d0
     tprint = 0.d0
     dtprint = dtprint/1000.d0
     avgtc = tc0
     avgtm = tm0
       y(1) = tc0
-      y(2) = tm0
+      y(2) = 0.d0
+      Ric = dsqrt(y(2))
+      y(3) = tm0
     call derivs(t,y,dydt)
     dlit = rt - rlit
     print *,'... listo!'
     print *,' '
     print *,'==================='
-    print *,'  estado inicial:  '
+    print *,'  Estado inicial:  '
     print *,'==================='
-    print 13,'    t_c =',avgtc,'k'
-    print 13,'  t_cmb =',etac*avgtc,'k'
-    print 13,'    t_m =',avgtm,'k'
-    print 13,'  t_ubl =',etaum*avgtm,'k'
-    print 13,'   r_ic =',ric/1000.d0,'km'
-    print 13,'    lit =',dlit,'km'
-    print 13,'  q_cmb =',qcmb*1.d-12,'tw'
-    print 13,' q_conv =',qconv*1.d-12,'tw'
-    print 13,' q_melt =',qmelt*1.d-12,'tw'
-    print 13,'q_rad,m =',qradm*1.d-12,'tw'
-    print 13,'q_rad,c =',qradc*1.d-12,'tw'
-    print 13,' ur_tot =',urtot,'nd'
+    print 13,'    T_c =',avgtc,'K'
+    print 13,'  T_cmb =',etac*avgtc,'K'
+    print 13,'    T_m =',avgtm,'K'
+    print 13,'  T_ubl =',etaum*avgtm,'K'
+    print 13,'   R_ic =',ric*km,'km'
+    print 13,'    Lit =',dlit,'km'
+    print 13,'  Q_cmb =',qcmb*tera,'TW'
+    print 13,' Q_conv =',qconv*tera,'TW'
+    print 13,' Q_melt =',qmelt*tera,'TW'
+    print 13,'Q_rad,m =',qradm*tera,'TW'
+    print 13,'Q_rad,c =',qradc*tera,'TW'
+    print 13,' Ur_tot =',urtot,'nd'
     print *,' '
-!   --------------------------------------------------------------------
-!   escritura del estado inicial en el archivo de salida
-!   --------------------------------------------------------------------
-    print *,'escribiendo estado inicial en archivo de salida...'     
-    write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lod0,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
-                qcmb*1.d-12,qconv*1.d-12,qmelt*1.d-12,qradm*1.d-12,qradc*1.d-12,qtidal*1d-12, & 
-                visc(avgtm),tcmb,meltf
-    print *,'... listo!'
-!   --------------------------------------------------------------------
-!   perfil de temperatura inicial
-!   --------------------------------------------------------------------
-    print *,'imprimiendo perfil de temperatura inicial...'
-    call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
-    print *,'... listo!'
 !-----------------------------------------------------------------------
 !   integracion de las ecuaciones diferenciales
 !-----------------------------------------------------------------------
@@ -131,10 +121,6 @@ program thermev_db
             tprint = tprint + dtprint
         end if
 !       ----------------------------------------------------------------
-        call odeint(y,nvar,t,t+dt,eps,dt,0.d0,nok,nbad,derivs,bsstep)    
-        avgtc = y(1)
-        avgtm = y(2)
-!       ----------------------------------------------------------------
 !       calculo del espesor de la litosfera
 !       ----------------------------------------------------------------
         dlit = rt - rlit
@@ -145,12 +131,20 @@ program thermev_db
 !       ----------------------------------------------------------------
 !       escritura de resultados en el archivo de salida
 !       ----------------------------------------------------------------
-!                    1   2     3   4    5      6      7       8     9     10          11
-        write(11,*) t,avgtc,avgtm,dlit,a/a0,lod/lod0,ric/1.d3,ur,urtot,dum/1000.d0,dlm/1000.d0, &
-!             12           13          14           15           16            17           18
-             qcmb*1.d-12,qconv*1.d-12,qmelt*1.d-12,qradm*1.d-12,qradc*1.d-12,qtidal*1.d-12,visc(avgtm), &
-!              19  20 
-             tcmb,meltf
+!                   1   2     3    4    5    6   7    8
+        write(11,*) t,avgtc,avgtm,Tcmb,Tubl,Tpot,ur,urtot, &
+!                    9     10     11     12  
+                    dlit,ric*km,dum*km,dlm*km, &
+        !                13       14         15         16
+                    qcmb*tera,qconv*tera,qmelt*tera,qradm*tera, &
+        !               17          18        19            
+                    qradc*tera,qtidal*tera,visc(avgtm)
+!       ----------------------------------------------------------------
+        call odeint(y,nvar,t,t+dt,eps,dt,0.d0,nok,nbad,derivs,bsstep)    
+        avgtc = y(1)
+        Ric = dsqrt(y(2))
+        avgtm = y(3)
+!       ----------------------------------------------------------------
         write(*,12,advance='no') cr,t*100.d0/tf,'%'
         t = t + dt
     end do
@@ -158,20 +152,20 @@ program thermev_db
     print *,'... listo!'
     print *,' '
     print *,'==================='
-    print *,'   estado final:   '
+    print *,'   Estado final:   '
     print *,'==================='
-    print 13,'    t_c = ',avgtc,'k'
-    print 13,'  t_cmb = ',etac*avgtc,'k'
-    print 13,'    t_m = ',avgtm,'k'
-    print 13,'  t_ubl = ',etaum*avgtm,'k'
-    print 13,'   r_ic = ',ric/1000.d0,'km'
-    print 13,'    lit = ',dlit,'km'
-    print 13,'  q_cmb = ',qcmb*1.d-12,'tw'
-    print 13,' q_conv = ',qconv*1.d-12,'tw'
-    print 13,' q_melt = ',qmelt*1.d-12,'tw'
-    print 13,'q_rad,m = ',qradm*1.d-12,'tw'
-    print 13,'q_rad,c = ',qradc*1.d-12,'tw'
-    print 13,' ur_tot = ',urtot,'nd'
+    print 13,'    T_c = ',avgtc,'K'
+    print 13,'  T_cmb = ',etac*avgtc,'K'
+    print 13,'    T_m = ',avgtm,'K'
+    print 13,'  T_ubl = ',etaum*avgtm,'K'
+    print 13,'   R_ic = ',ric/1000.d0,'km'
+    print 13,'    Lit = ',dlit,'km'
+    print 13,'  Q_cmb = ',qcmb*tera,'TW'
+    print 13,' Q_conv = ',qconv*tera,'TW'
+    print 13,' Q_melt = ',qmelt*tera,'TW'
+    print 13,'Q_rad,m = ',qradm*tera,'TW'
+    print 13,'Q_rad,c = ',qradc*tera,'TW'
+    print 13,' Ur_tot = ',urtot,'nd'
     print 13,' '
 !   --------------------------------------------------------------------
 !   perfil de temperatura final
