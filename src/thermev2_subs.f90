@@ -151,7 +151,10 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     logical ldem1,ldem2,ldem3,ltide,lradc,lradm,ltherm,lcore,lRic
 !   --------------------------------------------------------------------
-    integer, parameter :: lmaxp = 3,qmaxp = 10
+    integer, parameter :: lmaxp = 3
+    integer, parameter :: qmaxp = 10
+    integer, parameter :: mpol = 3
+    integer :: nmax
     real (kind=dp) :: ffi(lmaxp,0:lmaxp,0:lmaxp), &
                       gge(lmaxp,0:lmaxp,-qmaxp:qmaxp),alm(lmaxp,0:lmaxp)
 !   --------------------------------------------------------------------
@@ -175,30 +178,31 @@ module thermev2_subs
     implicit none
 !   --------------------------------------------------------------------
     integer :: k
-    real (kind=dp),intent(in) :: t,y(2)
-    real (kind=dp),intent(out) :: dydt(2)
+    real (kind=dp),intent(in) :: t,y(3)
+    real (kind=dp),intent(out) :: dydt(3)
     real (kind=dp) :: avgtc,avgtm,dtubl,tubl,ric,dricdt,dlbl,dubl,aic, &
                       dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
                       qradc,tcmb,tlbl,vm,meltfm,dvupdt,qtidal, &
-                      a,lod,ur,urtot,radic,num,delt,a1,a2,int,etavg, &
-                      ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc,n,thp
+                      ur,urtot,radic,num,delt,a1,a2,int,etavg, &
+                      ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc
     real (kind=dp) :: asumaq(4)
-    common /printout/ a,lod,dubl,dlbl,ur,urtot,qcmb,qconv,qmelt, &
-                      qradm,qradc,qtidal,vm,ric,num,tcmb,tubl,meltfm
+    common /printout/ dubl,dlbl,ur,urtot,qcmb,qconv,qmelt, &
+                      qradm,qradc,qtidal,vm,num,tcmb,tubl,meltfm
 !   --------------------------------------------------------------------
     avgtc = y(1)
-    avgtm = y(2)
+    Ric = dsqrt(y(2))
+    avgtm = y(3)
 !   --------------------------------------------------------------------
 !   calculo de tcmb, tubl y tlbl
 !   --------------------------------------------------------------------
-    tcmb = etac*avgtc
-    tlbl = etalm*avgtm
-    tubl = etaum*avgtm
+    Tcmb = etac*avgtc
+    Tlbl = etalm*avgtm
+    Tubl = etaum*avgtm
 !   --------------------------------------------------------------------
 !   calculo de los saltos de temperatura
 !   --------------------------------------------------------------------
-    dtlbl = tcmb - tlbl
-    dtubl = tubl - tsup
+    DTlbl = Tcmb - Tlbl
+    DTubl = Tubl - Tsup
 !   --------------------------------------------------------------------
 !   calculo de qcmb
 !   --------------------------------------------------------------------
@@ -249,14 +253,13 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   calculo de qtidal
 !   --------------------------------------------------------------------
-    call modelo_dinamico(t,a,n,lod,thp)
     if (ltide) then
         a1 = tlbl
         a2 = tubl
         delt = tubl - tlbl
         call qromb(visc,a1,a2,int)
         etavg = rhom*int/delt
-        qtidal = pm(etavg,tubl,dubl,a,n,thp)
+        qtidal = pm(t,etavg,tubl,dubl)
     else
         qtidal = 0.d0
     end if
@@ -269,12 +272,14 @@ module thermev2_subs
     if (lcore) then
         dpiodtc = (1.d0 + (ta1 + ta2*pio(tcmb))*pio(tcmb))/(xi*(tlc1 + 2.d0*tlc2) - &
                   tcmb*(ta1 + 2.d0*ta2*pio(tcmb)))
-        if (lRic) then
-            Ric = 0.d0
-        else 
-            Ric = dsqrt(2.d0*(pec-pio(tcmb))*1.d9*rc/(rhoc*glm))
-        end if
         dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Cc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
+        if (lRic) then
+            ! Ric = dsqrt(2.d0*(pec-pio(tcmb))*1.d9*rc/(rhoc*glm))
+            dydt(2) = - 2.d0*Rc*dpiodtc*dydt(1)/(rhoc*glm)
+        else 
+            ! Ric = 0.d0
+            dydt(2) = 0.d0
+        end if
     else
     !   --------------------------------------------------------------------
     !   calculo del radio del nucleo interno
@@ -296,17 +301,18 @@ module thermev2_subs
         dricdt = - (dn**2)/(2.d0*rc*tcmb*num)
     !   --------------------------------------------------------------------
         dydt(1) = (qradc - qcmb)*ga/(mc*cc - aic*rhoic*etac*dricdt*(lfe+eg))
+    !   --------------------------------------------------------------------
     end if
     if (ltherm) then
-        dydt(2) = (qcmb + qradm - qconv - qmelt)*ga/(mm*cm)
+        dydt(3) = (qcmb + qradm - qconv - qmelt)*ga/(mm*cm)
     else
-        dydt(2) = (qcmb + qradm + qtidal - qconv - qmelt)*ga/ &
+        dydt(3) = (qcmb + qradm + qtidal - qconv - qmelt)*ga/ &
                   (mm*cm*(1.d0 + st))
     end if
 !   --------------------------------------------------------------------
     end subroutine derivs
 !=======================================================================
-    function pm(eta,tubl,dubl,a,n,thp)
+    function pm(t,eta,tubl,dubl)
 !   --------------------------------------------------------------------
 !   esta función calcula el calor generado por interacción de mareas
 !   usando la expresión derivada por efroimsky y makarov (2014)
@@ -314,9 +320,9 @@ module thermev2_subs
     implicit none
 !   --------------------------------------------------------------------
     integer :: j,l,m,p,q
-    real (kind=dp),intent(in) :: eta,tubl,a,n,dubl,thp
+    real (kind=dp),intent(in) :: t,eta,tubl,dubl
     real (kind=dp) :: rsa,wlmpq,xlmpq,sumapm,ftvf,rsal
-    real (kind=dp) :: rphi,pm,kr,ki
+    real (kind=dp) :: rphi,pm,kr,ki,a,n,lod,thp
 !   --------------------------------------------------------------------
 !   calculo de la fraccion de volumen del manto activo para la 
 !   interaccion de mareas
@@ -327,7 +333,13 @@ module thermev2_subs
     end do
     ftvf = (rphi/rt)**3-(rc/rt)**3
 !   --------------------------------------------------------------------
+    call modelo_dinamico(t,a,n,lod,thp)
     rsa = rt/a
+!   --------------------------------------------------------------------
+!   Evaluación de las funciones de la inclinación
+!   --------------------------------------------------------------------
+    i = oblicuidad(t)
+    call evalfi(i,ffi)
 !   --------------------------------------------------------------------
 !   calculo de la tasa de produccion de calor por mareas
 !   --------------------------------------------------------------------
@@ -1226,13 +1238,13 @@ module thermev2_subs
 !       -----------------------------------------------------------------------
         if ((x1-pcmb)*(pec-x1).gt.0.d0) then
             pio = x1
-            lRic = .false.
+            lRic = .true.
         else if ((x2-pcmb)*(pec-x2).gt.0.d0) then
             pio = x2
-            lRic = .false.
+            lRic = .true.
         else 
             pio = pec
-            lRic = .true.
+            lRic = .false.
         end if
 !       -----------------------------------------------------------------------
     end function pio
@@ -1757,22 +1769,21 @@ module thermev2_subs
         goto 3
         END SUBROUTINE hunt
 !=======================================================================
-    subroutine leer_oblicuidad(kmax)
+    subroutine leer_oblicuidad()
 
         implicit none
 
         integer :: feof,k
-        integer, intent(out) :: kmax
         real (kind=dp) :: t,eps,p,a,lod
 
         open(unit=10,file='../out/oblicuidad.out')
 
         feof = 0
-        kmax = 1
+        k = 1
         
         do while(feof.eq.0)
         
-            read(10,*,iostat=feof) k,t,eps,p,a,lod
+            read(10,*,iostat=feof) t,eps,p,a,lod
 !           ------------------------------------------------------------
             if (feof.gt.0) then
                 print *,'revisar archivo de entrada'
@@ -1783,26 +1794,24 @@ module thermev2_subs
             else 
                 xa(k) = t
                 ya(k) = eps
-                kmax = kmax + 1
+                k = k + 1
             end if
 !           ------------------------------------------------------------
-
         end do
 
-        kmax = kmax - 1
+        nmax = k - 1
   
     end subroutine leer_oblicuidad
 !=======================================================================
-    function oblicuidad(x,kmax,l)
+    function oblicuidad(x)
 
         real(kind=dp), intent(in) :: x
         real(kind=dp) :: y,dy,oblicuidad
-        integer, intent(in) :: l,kmax
-        integer :: j,kk
+        integer :: j,k
     
-        call hunt(xa,kmax,x,j)
-        kk = min(max(j-(l-1)/2,1),kmax+1-l)
-        call polint(xa(kk),ya(kk),l,x,y,dy)
+        call hunt(xa,nmax,x,j)
+        k = min(max(j-(mpol-1)/2,1),nmax+1-mpol)
+        call polint(xa(k),ya(k),mpol,x,y,dy)
         
         oblicuidad = y
 
