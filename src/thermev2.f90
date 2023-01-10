@@ -11,7 +11,7 @@ program thermev_db
     real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),avgtc,avgtm,a,ric,&
                       ur,urtot,dum,dlm,dlit,qcmb,qconv,qmelt,qradm, & 
                       qradc,vm,num,tcmb,tubl,meltf,qtidal,tpot
-    real (kind=dp), parameter :: eps = 1.d-6
+    real (kind=dp), parameter :: tol = 1.d-6
     real (kind=dp), parameter :: dt = 1.d-3
     real (kind=dp), parameter :: tera = 1.d-12
     real (kind=dp), parameter :: km = 1.d-3
@@ -20,7 +20,7 @@ program thermev_db
 !-----------------------------------------------------------------------
 !   cálculos preliminares
 !-----------------------------------------------------------------------
-    print *,'realizando calculos preliminares...'
+    print *,'Realizando calculos preliminares...'
     gamalf = dexp(gammln(alpha + 1.d0))
     gammac = gamalf*dcos(0.5d0*alpha*pi)
     gammas = gamalf*dsin(0.5d0*alpha*pi)
@@ -38,7 +38,7 @@ program thermev_db
 !-----------------------------------------------------------------------
 !   lectura de archivo de entrada
 !-----------------------------------------------------------------------
-    print *,'leyendo archivo de entrada...'
+    print *,'Leyendo archivo de entrada...'
     call leer_entrada()
     print *,'... listo!'
     nterms = 0
@@ -106,12 +106,13 @@ program thermev_db
     print 13,' Q_melt =',qmelt*tera,'TW'
     print 13,'Q_rad,m =',qradm*tera,'TW'
     print 13,'Q_rad,c =',qradc*tera,'TW'
+    print 13,'Q_tidal =',qtidal*tera,'TW'
     print 13,' Ur_tot =',urtot,'nd'
     print *,' '
 !-----------------------------------------------------------------------
 !   integracion de las ecuaciones diferenciales
 !-----------------------------------------------------------------------
-    print *,'integrando ecuaciones diferenciales...'
+    print *,'Integrando ecuaciones diferenciales...'
     do while (t+dt.le.tf)
 !       ----------------------------------------------------------------
 !       impresión del perfil de temperatura
@@ -140,7 +141,7 @@ program thermev_db
         !               17          18        19            
                     qradc*tera,qtidal*tera,visc(avgtm)
 !       ----------------------------------------------------------------
-        call odeint(y,nvar,t,t+dt,eps,dt,0.d0,nok,nbad,derivs,bsstep)    
+        call odeint(y,nvar,t,t+dt,tol,dt,0.d0,nok,nbad,derivs,bsstep)    
         avgtc = y(1)
         Ric = dsqrt(y(2))
         avgtm = y(3)
@@ -165,12 +166,13 @@ program thermev_db
     print 13,' Q_melt = ',qmelt*tera,'TW'
     print 13,'Q_rad,m = ',qradm*tera,'TW'
     print 13,'Q_rad,c = ',qradc*tera,'TW'
+    print 13,'Q_tidal =',qtidal*tera,'TW'
     print 13,' Ur_tot = ',urtot,'nd'
     print 13,' '
 !   --------------------------------------------------------------------
 !   perfil de temperatura final
 !   --------------------------------------------------------------------
-    print *,'imprimiendo perfil de temperatura final...'
+    print *,'Imprimiendo perfil de temperatura final...'
     call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
     print *,'... listo!'
 !   --------------------------------------------------------------------
