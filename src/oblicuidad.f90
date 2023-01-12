@@ -17,7 +17,7 @@ program prueba_oblicuidad
     
     open(unit=10,file='../out/oblicuidad.out')
 
-10  format(f4.2,1x,f7.4,1x,f15.6,1x,f10.8,1x,f10.8)
+10  format(f4.2,1x,f7.4,1x,f7.4,1x,f15.6,1x,f10.8,1x,f10.8)
 
     demid = 1
     ldem1 = demid.eq.1
@@ -33,8 +33,8 @@ program prueba_oblicuidad
         da = a2 - a1
         da2 = 0.5d0*da
         da6 = da/6.d0
-!                    1   2                3              4       5
-        write(10,10) t,epsdeg,p*(180.d0/pi)*3600.d0*aa,a1/a0,lod1/LOD0
+!                    1  2    3              4                5       6
+        write(10,10) t,eps,epsdeg,p*(180.d0/pi)*3600.d0*aa,a1/a0,lod1/LOD0
 !       -----------------------------------------------------------------------
 !       Integración de la ec. (A.6) de Farhat et al. (2020) usando el método
 !       de Runge-Kutta de orden 4.
