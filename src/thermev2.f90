@@ -10,13 +10,13 @@ program thermev_db
     character cr
     real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),avgtc,avgtm,a,ric,&
                       ur,urtot,dum,dlm,dlit,qcmb,qconv,qmelt,qradm, & 
-                      qradc,vm,num,tcmb,tubl,meltf,qtidal,tpot
+                      qradc,vm,num,tcmb,tubl,qtidal,tpot,Ra,den,int
     real (kind=dp), parameter :: tol = 1.d-6
     real (kind=dp), parameter :: dt = 1.d-3
     real (kind=dp), parameter :: tera = 1.d-12
     real (kind=dp), parameter :: km = 1.d-3
     common /printout/ dum,dlm,ur,urtot,qcmb,qconv,qmelt, &
-                      qradm,qradc,qtidal,vm,num,tcmb,tubl,meltf
+                      qradm,qradc,qtidal,vm,num,tcmb,tubl,Ra
 !-----------------------------------------------------------------------
 !   cálculos preliminares
 !-----------------------------------------------------------------------
@@ -24,6 +24,19 @@ program thermev_db
     gamalf = dexp(gammln(alpha + 1.d0))
     gammac = gamalf*dcos(0.5d0*alpha*pi)
     gammas = gamalf*dsin(0.5d0*alpha*pi)
+    ai = afit(0.d0)
+    af = afit(t0)
+    ma = (af-ai)/4.5d0
+    mlod = (lodf-lodi)/4.5d0
+!-----------------------------------------------------------------------
+!   cálculos de los valores medios de las temperatura de liquidus y de
+!   solidus en el manto
+!-----------------------------------------------------------------------
+    den = (rt**3 - rc**3)
+    call qromb(tsolr2,rc,rt,int)
+    tsolm = 3.d0*int/den
+    call qromb(tliqr2,rc,rt,int)
+    tliqm = 3.d0*int/den
 !   --------------------------------------------------------------------
     cr = achar(13)
     print *,'... listo!'
@@ -84,21 +97,26 @@ program thermev_db
     dtprint = dtprint/1000.d0
     avgtc = tc0
     avgtm = tm0
-      y(1) = tc0
+      y(1) = etac*tc0
       y(2) = 0.d0
-      Ric = dsqrt(y(2))
       y(3) = tm0
     call derivs(t,y,dydt)
-    dlit = rt - rlit
+    print *,'dTcmb/dt = ',dydt(1)
+    print *,'dRic2/dt = ',dydt(2)
+    print *,'dTm/dt = ',dydt(3)
+    dlit = (rt - Rlit(tubl,dum))*km
+    tpot = tubl*dexp(-gum*alfam*dum/cm)
     print *,'... listo!'
     print *,' '
     print *,'==================='
     print *,'  Estado inicial:  '
     print *,'==================='
     print 13,'    T_c =',avgtc,'K'
-    print 13,'  T_cmb =',etac*avgtc,'K'
+    print 13,'  T_cmb =',Tcmb,'K'
     print 13,'    T_m =',avgtm,'K'
-    print 13,'  T_ubl =',etaum*avgtm,'K'
+    print 13,'  T_ubl =',Tubl,'K'
+    print 13,'  T_lbl = ',etalm*avgtm,'K'
+    print 13,'  T_pot = ',Tpot,'K'
     print 13,'   R_ic =',ric*km,'km'
     print 13,'    Lit =',dlit,'km'
     print 13,'  Q_cmb =',qcmb*tera,'TW'
@@ -124,7 +142,7 @@ program thermev_db
 !       ----------------------------------------------------------------
 !       calculo del espesor de la litosfera
 !       ----------------------------------------------------------------
-        dlit = rt - rlit
+        dlit = (rt - Rlit(tubl,dum))*km
 !       ----------------------------------------------------------------
 !       calculo de la temperatura potencial
 !       ----------------------------------------------------------------
@@ -149,6 +167,7 @@ program thermev_db
         write(*,12,advance='no') cr,t*100.d0/tf,'%'
         t = t + dt
     end do
+!   --------------------------------------------------------------------
     print *,' '
     print *,'... listo!'
     print *,' '
@@ -158,7 +177,9 @@ program thermev_db
     print 13,'    T_c = ',avgtc,'K'
     print 13,'  T_cmb = ',etac*avgtc,'K'
     print 13,'    T_m = ',avgtm,'K'
+    print 13,'  T_lbl = ',etalm*avgtm,'K'
     print 13,'  T_ubl = ',etaum*avgtm,'K'
+    print 13,'  T_pot = ',Tpot,'K'
     print 13,'   R_ic = ',ric/1000.d0,'km'
     print 13,'    Lit = ',dlit,'km'
     print 13,'  Q_cmb = ',qcmb*tera,'TW'

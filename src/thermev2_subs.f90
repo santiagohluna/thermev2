@@ -23,7 +23,6 @@ module thermev2_subs
     real (kind=dp), parameter ::   ga = aa*1.d9
     real (kind=dp), parameter ::   t0 = 4.5d0
     real (kind=dp), parameter ::   tf = 4.5d0
-    real (kind=dp), parameter ::   dr = 1.d2
     real (kind=dp), parameter ::   a0 = 60.142611d0*Rt
     real (kind=dp), parameter :: LOD0 = 23.934468d0
     real (kind=dp), parameter :: eps0 = 23.2545d0*pi/180.d0
@@ -34,7 +33,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     real (kind=dp), parameter ::     at = 4.d0*pi*rt**2 ! earth surface area
     real (kind=dp), parameter ::     ac = 4.d0*pi*rc**2 ! core surface area
-    real (kind=dp), parameter ::  alfam = 3.d-5         ! thermal expansivity of mantle
+    real (kind=dp), parameter ::  alfam = 2.d-5         ! thermal expansivity of mantle
     real (kind=dp), parameter ::  alfac = 1.d-5         ! thermal expansivity of core
     real (kind=dp), parameter ::   beta = 0.3d0         ! thermal boundary layer exponent
     real (kind=dp), parameter ::     cm = 1265.d0       ! specific heat of mantle
@@ -60,8 +59,8 @@ module thermev2_subs
     real (kind=dp), parameter :: gammad = 1.d-3         ! magma adiabatic gradient
     real (kind=dp), parameter ::   grun = 1.3d0         ! core gruneisen parameter
     real (kind=dp), parameter ::  gammz = 3.9d-3        ! mantle solidus gradient
-    real (kind=dp), parameter ::    kum = 4.2d0         ! upper mantle thermal conductivity
-    real (kind=dp), parameter ::    klm = 10.d0         ! lower mantle thermal conductivity
+    real (kind=dp), parameter ::    kum = 4.d0         ! upper mantle thermal conductivity
+    real (kind=dp), parameter ::    klm = 4.d0         ! lower mantle thermal conductivity
     real (kind=dp), parameter ::   kapm = 1.d-6         ! mantle thermal diffusivity
     real (kind=dp), parameter ::    lfe = 750.d3        ! latent heat of inner core crystallization
     real (kind=dp), parameter ::  lmelt = 320.d3        ! latent heat of mantle melting
@@ -70,9 +69,9 @@ module thermev2_subs
     real (kind=dp), parameter ::    pec = 363.85d0      ! pressure at the earth's centre (in gpa)
     real (kind=dp), parameter ::   pcmb = 135.75d0      ! pressure at the cmb (in gpa)
     real (kind=dp), parameter ::  qrad0 = 13.d12        ! present-day mantle radiogenic heat flow
-    real (kind=dp), parameter :: qrad0c = 2.d12         ! present-day mantle radiogenic heat flow
+    real (kind=dp), parameter :: qrad0c = 2.d12         ! present-day core radiogenic heat flow
     real (kind=dp), parameter ::     rm = 4.925d6       ! radius to average mantle temperature
-    real (kind=dp), parameter ::   racr = 660.d0        ! critical rayleigh number
+    real (kind=dp), parameter ::   Racr = 500.d0        ! critical rayleigh number
     real (kind=dp), parameter :: racrcmb = 2000.d0      ! critical rayleigh number at the cmb
     real (kind=dp), parameter ::   rhoc = 11900.d0      ! core density
     real (kind=dp), parameter ::  rhoic = 13000.d0      ! inner core density
@@ -106,19 +105,12 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   demid = 2
 !   ---------
-    real (kind=dp), parameter :: dadt0 = 3.82d-2
-    real (kind=dp), parameter :: lodi1 = 6.15d0
-    real (kind=dp), parameter ::  lodf = 23.93
-    real (kind=dp), parameter ::   ma1 = dadt0*ga/aa
-    real (kind=dp), parameter :: mlod1 = (lodf-lodi1)/4.5d0
+    real (kind=dp), parameter :: dadt0 = 3.82d-2*ga/aa
+    real (kind=dp), parameter :: dLODdt0 = 6.653d0
 !   --------------------------------------------------------------------
 !   demid = 3
 !   ---------
-    real (kind=dp), parameter ::    ai = 20.d0*rt
-    real (kind=dp), parameter ::    af = a0
-    real (kind=dp), parameter :: lodi2 = 2.53d0
-    real (kind=dp), parameter ::   ma2 = (af-ai)/4.5d0
-    real (kind=dp), parameter :: mlod2 = (lodf-lodi2)/4.5d0
+    real (kind=dp) ::    ai,af,LODi,LODf,ma,mLOD
 !   --------------------------------------------------------------------
 !   Valor actual de la velocidad angular de rotación terrestre
 !   --------------------------------------------------------------------
@@ -160,12 +152,13 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     character (len=50) algo
 !   --------------------------------------------------------------------
-    real (kind=dp) :: tsup,e,i,dtprint,rast,rlit
+    real (kind=dp) :: tsup,e,i,dtprint
     integer :: idreo,demid,lmax,qmax,tidefl,radcfl,radmfl,thermfl, &
                corefl,nterms
 !   --------------------------------------------------------------------
     real (kind=dp), allocatable :: asuma(:)
     real (kind=dp), dimension(1:60) :: xa,ya
+    real (kind=dp) :: tsolm,tliqm
 !   --------------------------------------------------------------------
 !   bloque de procedimientos
 !   --------------------------------------------------------------------
@@ -182,20 +175,20 @@ module thermev2_subs
     real (kind=dp),intent(out) :: dydt(3)
     real (kind=dp) :: avgtc,avgtm,dtubl,tubl,ric,dricdt,dlbl,dubl,aic, &
                       dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
-                      qradc,tcmb,tlbl,vm,meltfm,dvupdt,qtidal, &
+                      qradc,tcmb,tlbl,vm,dvupdt,qtidal, &
                       ur,urtot,radic,num,delt,a1,a2,int,etavg, &
                       ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc
     real (kind=dp) :: asumaq(4)
     common /printout/ dubl,dlbl,ur,urtot,qcmb,qconv,qmelt, &
-                      qradm,qradc,qtidal,vm,num,tcmb,tubl,meltfm
+                      qradm,qradc,qtidal,vm,num,tcmb,tubl,Ra
 !   --------------------------------------------------------------------
-    avgtc = y(1)
+    !avgtc = y(1)
     Ric = dsqrt(y(2))
     avgtm = y(3)
 !   --------------------------------------------------------------------
 !   calculo de tcmb, tubl y tlbl
 !   --------------------------------------------------------------------
-    Tcmb = etac*avgtc
+    Tcmb = y(1) ! etac*avgtc
     Tlbl = etalm*avgtm
     Tubl = etaum*avgtm
 !   --------------------------------------------------------------------
@@ -207,20 +200,20 @@ module thermev2_subs
 !   calculo de qcmb
 !   --------------------------------------------------------------------
     vlbl = visc(0.5d0*(tlbl + tcmb))
-    dlbl = (racrcmb*kapm*vlbl)/(glm*alpha*dtlbl)**(1.d0/3.d0)
-    qcmb = ac*klm*dtlbl/dlbl
+    dlbl = ((racrcmb*kapm*vlbl)/(glm*alfam*dtlbl))**(1.d0/3.d0)
+    Qcmb = Ac*klm*DTlbl/dlbl
 !   --------------------------------------------------------------------
 !   calculo de qconv
 !   --------------------------------------------------------------------
     vubl = visc(tubl)
-    ra = gum*alpha*(dtubl + dtlbl)*(rt - rc)**3/(kapm*vubl)
+    Ra = gum*alfam*(dtubl + dtlbl)*(rt - rc)**3/(kapm*vubl)
     dubl = (rt - rc)*(racr/ra)**beta
-    qconv = at*kum*etaum*dtubl/dubl
+    Qconv = At*kum*DTubl/dubl
 !   --------------------------------------------------------------------
 !   calculo del numero de stefan
 !   --------------------------------------------------------------------
-    st = stefan(tubl,dubl)
-!   print '(a4,1x,f7.2)','st =',st
+    St = lmelt/(cm*(tliqm - tsolm))
+!    print '(a4,1x,f7.2)','St =',st
 !   --------------------------------------------------------------------
 !   calculo de qmelt
 !   --------------------------------------------------------------------
@@ -229,16 +222,17 @@ module thermev2_subs
     zmelt = 0.5d0*(tubl-tsol0)/gammz
     dtmelt = tmelt - tsup - zmelt*gammad
     zum = rt - dubl
-    mmeltp = dvupdt*rhosol*fmelt(zum,dubl,tubl)
+    mmeltp = dvupdt*rhosol*fmelt(Tcmb,avgtm,dlbl,dubl,zum)
     qmelt = erupt*mmeltp*(lmelt + cm*dtmelt)
 !   --------------------------------------------------------------------
 !   calculo de qradm
 !   --------------------------------------------------------------------
     if (lradm) then
-        do k=1,4
-            asumaq(k) = mm*fc(k)*c0(k)*hi(k)*dexp(lam(k)*(t0-t))
-        end do
-        qradm = sumar(4,asumaq)
+        !do k=1,4
+        !    asumaq(k) = mm*fc(k)*c0(k)*hi(k)*dexp(lam(k)*(t0-t))
+        !end do
+        !qradm = sumar(4,asumaq)
+        Qradm = qrad0*dexp((t0-t)/taurad)
     else
         qradm = 0.d0
     end if
@@ -259,7 +253,7 @@ module thermev2_subs
         delt = tubl - tlbl
         call qromb(visc,a1,a2,int)
         etavg = rhom*int/delt
-        qtidal = pm(t,etavg,tubl,dubl)
+        qtidal = pm(t0-t,etavg,Tcmb,avgtm,dlbl,dubl)
     else
         qtidal = 0.d0
     end if
@@ -270,7 +264,7 @@ module thermev2_subs
     urtot = qradm/(qconv+qmelt)
 !   --------------------------------------------------------------------
     if (lcore) then
-        dpiodtc = (1.d0 + (ta1 + ta2*pio(tcmb))*pio(tcmb))/(xi*(tlc1 + 2.d0*tlc2) - &
+        dPiodTc = (1.d0 + (ta1 + ta2*pio(tcmb))*pio(tcmb))/(xi*(tlc1 + 2.d0*tlc2) - &
                   tcmb*(ta1 + 2.d0*ta2*pio(tcmb)))
         dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Cc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
         if (lRic) then
@@ -307,12 +301,12 @@ module thermev2_subs
         dydt(3) = (qcmb + qradm - qconv - qmelt)*ga/(mm*cm)
     else
         dydt(3) = (qcmb + qradm + qtidal - qconv - qmelt)*ga/ &
-                  (mm*cm*(1.d0 + st))
+                  (mm*cm*(1.d0 + St))
     end if
 !   --------------------------------------------------------------------
     end subroutine derivs
 !=======================================================================
-    function pm(t,eta,tubl,dubl)
+    function pm(t,eta,Tcmb,Tmavg,dlbl,dubl)
 !   --------------------------------------------------------------------
 !   esta función calcula el calor generado por interacción de mareas
 !   usando la expresión derivada por efroimsky y makarov (2014)
@@ -320,15 +314,17 @@ module thermev2_subs
     implicit none
 !   --------------------------------------------------------------------
     integer :: j,l,m,p,q
-    real (kind=dp),intent(in) :: t,eta,tubl,dubl
-    real (kind=dp) :: rsa,wlmpq,xlmpq,sumapm,ftvf,rsal
+    real (kind=dp),intent(in) :: t,eta,Tcmb,Tmavg,dlbl,dubl
+    real (kind=dp) :: rsa,wlmpq,xlmpq,sumapm,ftvf,rsal,Tubl
     real (kind=dp) :: rphi,pm,kr,ki,a,n,lod,thp
+    real (kind=dp), parameter :: dr = 1.d2
 !   --------------------------------------------------------------------
 !   calculo de la fraccion de volumen del manto activo para la 
 !   interaccion de mareas
 !   --------------------------------------------------------------------
-    rphi = rast
-    do while (fmelt(rphi,dubl,tubl).lt.phidis)
+    Tubl = etaum*Tmavg
+    rphi = Rast(Tubl,dubl)
+    do while (fmelt(Tcmb,Tmavg,dlbl,dubl,rphi).lt.phidis)
         rphi = rphi + dr
     end do
     ftvf = (rphi/rt)**3-(rc/rt)**3
@@ -363,6 +359,28 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function pm
 !=======================================================================
+    function afit(t)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: t
+        real (kind=dp) :: afit
+!       ----------------------------------------------------------------
+        afit = (t*(t*(ca(1)*t + ca(2)) + ca(3)) + ca(4))*a0
+!   --------------------------------------------------------------------
+    end function afit
+!=======================================================================
+    function LODfit(t)
+!   --------------------------------------------------------------------        
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: t
+        real (kind=dp) :: LODfit
+!       ----------------------------------------------------------------
+        LODfit = (t*(t*(clod(1)*t + clod(2)) + clod(3)) + clod(4))*LOD0
+!   --------------------------------------------------------------------    
+    end function LODfit
+!=======================================================================
     subroutine modelo_dinamico(t,a,n,lod,thp)
 !   --------------------------------------------------------------------
 !   calculo de los valores de a y de lod
@@ -374,18 +392,18 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     if (ldem1) then
 !   --------------------------------------------------------------------
-          a = (t*(t*(ca(1)*t + ca(2)) + ca(3)) + ca(4))*a0
-        lod = (t*(t*(clod(1)*t + clod(2)) + clod(3)) + clod(4))*LOD0
+          a = afit(t)
+        lod = LODfit(t)
 !  ---------------------------------------------------------------------
     else if (ldem2) then
 !   --------------------------------------------------------------------
-          a = ma1*t + a0
-        lod = mlod1*t + lodf
+          a = dadt0*t + a0
+        lod = dLODdt0*t + lodf
 !   --------------------------------------------------------------------
     else if (ldem3) then
 !   --------------------------------------------------------------------
-          a = ma2*t + a0
-        lod = mlod2*t + lodf
+          a = ma*t + a0
+        lod = mlod*t + lodf
 !   --------------------------------------------------------------------
     else
         print *,'error en el identificador del modelo dinamico'
@@ -403,14 +421,14 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   archivo de entrada
 !   --------------------------------------------------------------------
-    open(unit=10,file='../entrada/thermev2db.in',status='unknown')
+    open(unit=10,file='../in/THERMEV2.IN',status='unknown')
 !   --------------------------------------------------------------------
 !     inicializacion de variables
 !   --------------------------------------------------------------------
     read(10,*) algo
     read(10,*) tsup,tc0,tm0
     read(10,*) algo
-    read(10,*) e,i
+    read(10,*) e
     read(10,*) algo
     read(10,*) tidefl,radcfl,radmfl
     read(10,*) algo
@@ -547,6 +565,7 @@ module thermev2_subs
         character (len=4) :: chanio,chmes,chdia,chhora,chmins,chsegs
         real (kind=dp) :: r,tdr
         character (len=4) :: chtprint
+        real (kind=dp), parameter ::   dr = 1.d2
 !       ----------------------------------------------------------------
 !       impresión de los perfiles de temperatura a lo largo de la 
 !       integración
@@ -567,8 +586,8 @@ module thermev2_subs
 !       ----------------------------------------------------------------
         r = 0.d0
         do while (r.le.rt)
-            tdr = tprof(avgtc,avgtm,dlm,dum,r)
-            write(12,*) r,tdr,visc(tdr)
+            tdr = Temprof(avgtc,avgtm,dlm,dum,r)
+            write(12,*) r,tdr,pdr(r),tsol(r),tliq(r),visc(tdr)
             r = r + dr
         end do
     !   --------------------------------------------------------------------
@@ -945,14 +964,15 @@ module thermev2_subs
         implicit none
 !       ----------------------------------------------------------------
         real (kind=dp), intent(in) :: r
-        real (kind=dp) :: pdr
+        real (kind=dp) :: pdr,rkm
         real (kind=dp), parameter, dimension(3) :: coefm = (/ 4.35256d-6, -0.0901277d0, 397.012d0 /)
         real (kind=dp), parameter, dimension(3) :: coefc = (/ -1.52163d-5, -0.0144178d0, 367.767d0 /)
-!       ----------------------------------------------------------------        
+!       ----------------------------------------------------------------
+        rkm = r*1.d-3
         if (r.le.rc) then
-            pdr = (coefc(1)*r + coefc(2))*r + coefc(3)
+            pdr = (coefc(1)*rkm + coefc(2))*rkm + coefc(3)
         else
-            pdr = (coefm(1)*r + coefm(2))*r + coefm(3)
+            pdr = (coefm(1)*rkm + coefm(2))*rkm + coefm(3)
         end if
 !   --------------------------------------------------------------------
     end function pdr
@@ -1009,28 +1029,35 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function tcondlbl
 !=======================================================================
-    function tprof(tcavg,tmavg,dlm,dum,r)
+    function Temprof(Tcmb,Tmavg,dlm,dum,r)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,dlm,dum,tcavg,tmavg
-    real (kind=dp) :: tprof,tcmb,tubl,tlbl
+    real (kind=dp), intent(in) :: r,dlm,dum,Tcmb,Tmavg
+    real (kind=dp) :: Temprof,Tlbl,Tubl
+    logical :: incore,inlbl,inmantle,inubl
 !   --------------------------------------------------------------------
-    tcmb = etac*tcavg
-    tubl = etaum*tmavg
-    tlbl = etalm*tmavg
+    Tubl = etaum*Tmavg
+    Tlbl = etalm*Tmavg
 !   --------------------------------------------------------------------
-    if (r.le.rc) then
-        tprof = tc(tcmb,r)
-    else if ((r.gt.rc).and.(r.le.(rc+dlm))) then
-        tprof = tcondlbl(tcmb,tlbl,dlm,r)
-    else if ((r.ge.(rc+dlm)).and.(r.le.(rt-dum))) then
-        tprof = tm(tubl,dum,r)
+    incore = r*(Rc-r).ge.0.d0
+    inlbl = (r-Rc)*((Rc+dlm)-r).ge.0d0
+    inmantle = (r-(Rc+dlm))*((Rt-dum)-r).ge.0d0
+    inubl = (r-(Rt-dum))*(r-Rt).ge.0d0
+!   --------------------------------------------------------------------
+    if (incore) then
+        Temprof = tc(tcmb,r)
+    else if (inlbl) then
+        Temprof = tcondlbl(tcmb,tlbl,dlm,r)
+    else if (inmantle) then
+        Temprof = tm(tubl,dum,r)
+    else if (inubl) then
+        Temprof = tcondubl(tubl,dum,r)
     else
-        tprof = tcondubl(tubl,dum,r)
+        print *,'Error in Temprof: r is out of domain.'
     end if
 !   --------------------------------------------------------------------
-    end function tprof
+    end function Temprof
 !=======================================================================
     function visc(t)
 !   --------------------------------------------------------------------
@@ -1048,7 +1075,7 @@ module thermev2_subs
     real (kind=dp), parameter ::   tref = 1600.d0   ! reference temperature
 !   --------------------------------------------------------------------
     visc = visc0*dexp(act0/t)
-    ! visc = etaref*dexp(eact*(1.d0/t - 1.d0/tref)/rgas)
+    !visc = etaref*dexp(eact*(1.d0/t - 1.d0/tref)/rgas)
 !   --------------------------------------------------------------------
     end function visc
 !=======================================================================
@@ -1140,25 +1167,25 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function tm
 !=======================================================================
-    function fmelt(r,dum,tubl)
+    function fmelt(Tcmb,Tmavg,dlm,dum,r)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,dum,tubl
+    real (kind=dp), intent(in) :: r,dum,dlm,Tcmb,Tmavg
     real (kind=dp) :: fmelt
 !   --------------------------------------------------------------------
-    fmelt = (tm(tubl,dum,r) - tsol(r))/(tliq(r) - tsol(r))
+    fmelt = (Temprof(Tcmb,Tmavg,dlm,dum,r) - tsol(r))/(tliq(r) - tsol(r))
 !   --------------------------------------------------------------------
     end function fmelt
 !=======================================================================
-    function fmeltr2(r,dum,tubl)
+    function fmeltr2(Tcmb,Tmavg,dlm,dum,r)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,dum,tubl
+    real (kind=dp), intent(in) :: Tcmb,Tmavg,dlm,dum,r
     real (kind=dp) :: fmeltr2
 !   --------------------------------------------------------------------
-    fmeltr2 = fmelt(r,dum,tubl)*r**2
+    fmeltr2 = fmelt(Tcmb,Tmavg,dlm,dum,r)*r**2
 !   --------------------------------------------------------------------
     end function fmeltr2
 !=======================================================================
@@ -1169,7 +1196,28 @@ module thermev2_subs
         implicit none
 !       ----------------------------------------------------------------
         real (kind=dp), intent(in) :: tubl,dubl
-        real (kind=dp) :: stefan,r1,r2,den,tsolm,tliqm,int
+        real (kind=dp) :: stefan
+!       ----------------------------------------------------------------
+!       calculo de los valores medios de las temperaturas de solidus y 
+!       liquidus
+!       ----------------------------------------------------------------
+!        r1 = rast
+!        r2 = rlit
+!        den = (r2**3 - r1**3)
+!        call qromb(tsolr2,r1,r2,int)
+!        tsolm = 3.d0*int/den
+!        call qromb(tliqr2,r1,r2,int)
+!        tliqm = 3.d0*int/den
+!       ----------------------------------------------------------------
+        stefan = lmelt/(cm*(tliqm - tsolm))
+!   --------------------------------------------------------------------
+    end function stefan
+!=======================================================================
+    function rast(tubl,dubl)
+!   --------------------------------------------------------------------
+        real (kind=dp), intent(in) :: tubl,dubl
+        real (kind=dp) :: rast
+        real (kind=dp), parameter ::   dr = 1.d1
 !       ----------------------------------------------------------------
 !       determinacion de la distancia entre el centro de la tierra y el
 !       limite inferior de la astenosfera
@@ -1178,6 +1226,14 @@ module thermev2_subs
         do while ((tm(tubl,dubl,rast)-tsol(rast)).gt.0.d0)
             rast = rast - dr
         end do
+!   --------------------------------------------------------------------
+    end function rast
+!=======================================================================
+    function Rlit(tubl,dubl)
+!   --------------------------------------------------------------------
+        real (kind=dp), intent(in) :: tubl,dubl
+        real (kind=dp) :: Rlit
+        real (kind=dp), parameter ::   dr = 1.d1
 !       ----------------------------------------------------------------
 !       determinación de la distancia radial entre el centro de la 
 !       tierra yla base de la litósfera o límite superior de la astenósfera
@@ -1186,21 +1242,8 @@ module thermev2_subs
         do while ((tcondubl(tubl,dubl,rlit)-tsol(rlit)).gt.0.d0)
             rlit = rlit + dr
         end do
-!       ----------------------------------------------------------------
-!       calculo de los valores medios de las temperaturas de solidus y 
-!       liquidus
-!       ----------------------------------------------------------------
-        r1 = rast
-        r2 = rlit
-        den = (r2**3 - r1**3)
-        call qromb(tsolr2,r1,r2,int)
-        tsolm = 3.d0*int/den
-        call qromb(tliqr2,r1,r2,int)
-        tliqm = 3.d0*int/den
-!       ----------------------------------------------------------------
-        stefan = lmelt/(cm*(tliqm - tsolm))
 !   --------------------------------------------------------------------
-    end function stefan
+    end function Rlit
 !=======================================================================
     function tsolr2(r)
 !   --------------------------------------------------------------------
@@ -1774,7 +1817,7 @@ module thermev2_subs
         implicit none
 
         integer :: feof,k
-        real (kind=dp) :: t,eps,p,a,lod
+        real (kind=dp) :: t,eps,epsdeg,p,a,lod
 
         open(unit=10,file='../out/oblicuidad.out')
 
@@ -1783,7 +1826,7 @@ module thermev2_subs
         
         do while(feof.eq.0)
         
-            read(10,*,iostat=feof) t,eps,p,a,lod
+            read(10,*,iostat=feof) t,eps,epsdeg,p,a,lod
 !           ------------------------------------------------------------
             if (feof.gt.0) then
                 print *,'revisar archivo de entrada'
