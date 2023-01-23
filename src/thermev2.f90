@@ -97,6 +97,16 @@ program thermev_db
       y(2) = 0.d0
       y(3) = tm0/epsm
     call derivs(t,y,dydt)
+    Ur = printout(1)
+    Urtot = printout(2)
+     Qcmb = printout(3)
+    Qconv = printout(4)
+    Qmelt = printout(5)
+    Qradm = printout(6)
+    Qradc = printout(7)
+   Qtidal = printout(8)
+       St = printout(9)
+       Ra = printout(10)
     print *,'dTcmb/dt = ',dydt(1)
     print *,'dRic2/dt = ',dydt(2)
     print *,'dTm/dt = ',dydt(3)
