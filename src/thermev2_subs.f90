@@ -173,7 +173,6 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    integer, parameter :: kmax = 10
     real (kind=dp),intent(in) :: t,y(3)
     real (kind=dp),intent(out) :: dydt(3)
     real (kind=dp) :: dtubl,Tubl,ric,dricdt,dlbl,dubl,aic, &
