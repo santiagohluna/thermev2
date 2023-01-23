@@ -9,8 +9,9 @@ program thermev_db
     integer :: nbad,nok,l,m,p,q,ok
     character cr
     real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),a,ric,&
-                      ur,urtot,dum,dlm,dlit,qcmb,qconv,qmelt,qradm, & 
-                      qradc,tcmb,tubl,qtidal,tpot,Ra,den,int
+                      ur,urtot,dlit,qcmb,qconv,qmelt,qradm, & 
+                      qradc,tcmb,tubl,qtidal,tpot,Ra,den,int, &
+                      Tlbl,DTubl,DTlbl,dubl,dlbl
     real (kind=dp), parameter :: tol = 1.d-6
     real (kind=dp), parameter :: dt = 1.d-3
     real (kind=dp), parameter :: tera = 1.d-12
@@ -96,7 +97,7 @@ program thermev_db
       y(1) = tc0/epsc
       y(2) = 0.d0
       y(3) = tm0/epsm
-    call derivs(t,y,dydt)
+    call dTdt(t,y,dydt)
     Ur = printout(1)
     Urtot = printout(2)
      Qcmb = printout(3)
@@ -107,11 +108,13 @@ program thermev_db
    Qtidal = printout(8)
        St = printout(9)
        Ra = printout(10)
+       Ric = dsqrt(y(2))
+       call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
     print *,'dTcmb/dt = ',dydt(1)
     print *,'dRic2/dt = ',dydt(2)
     print *,'dTm/dt = ',dydt(3)
-    dlit = (rt - Rlit(tubl,dum))*km
-    tpot = tubl*dexp(-gum*alfam*dum/cm)
+    dlit = (rt - Rlit(tubl,dubl))*km
+    tpot = tubl*dexp(-gum*alfam*dubl/cm)
     print *,'... listo!'
     print *,' '
     print *,'==================='
@@ -145,13 +148,15 @@ program thermev_db
             tprint = tprint + dtprint
         end if
 !       ----------------------------------------------------------------
+        call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+!       ----------------------------------------------------------------
 !       calculo del espesor de la litosfera
 !       ----------------------------------------------------------------
-        dlit = (rt - Rlit(tubl,dum))*km
+        dlit = (rt - Rlit(tubl,dubl))*km
 !       ----------------------------------------------------------------
 !       calculo de la temperatura potencial
 !       ----------------------------------------------------------------
-        tpot = tubl*dexp(-gum*alfam*dum/cm)
+        tpot = tubl*dexp(-gum*alfam*dubl/cm)
 !       ----------------------------------------------------------------
            Ur = printout(1)
         Urtot = printout(2)
@@ -169,7 +174,7 @@ program thermev_db
 !                   1   2   3    4   5    6
         write(11,*) t,Tcmb,Tubl,Tpot,ur,urtot, &
 !                    7     8     9     10  
-                    dlit,Ric*km,dum*km,dlm*km, &
+                    dlit,Ric*km,dubl*km,dlbl*km, &
         !                11       12         13         14
                     qcmb*tera,qconv*tera,qmelt*tera,qradm*tera, &
         !               15          16        17      18      
