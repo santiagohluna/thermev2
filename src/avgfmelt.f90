@@ -13,6 +13,13 @@ program avg_fmelt
     avgTm = 2350.d0
 
     Tcmb = avgTc/epsc
+    Tubl = avgTm/epsm
+
+    call capas_limites(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+
+!    print *,'T_lbl = ',Tlbl
+!    Tlbl = Tubl*(1.d0 + alfam*gum*(Rt-Rc-dubl-dlbl)/cm)
+!    print *,'T_lbl = ',Tlbl
 
     do while(avgTm.le.3000.d0)
         Tubl = avgTm/epsm
@@ -21,7 +28,7 @@ program avg_fmelt
 
         St = stefan(Tcmb,Tubl)
 
-        write(20,*) avgTm,Tubl,3.d0*avgfmelt(Tcmb,Tubl)/denVm,St
+        write(20,*) avgTm,Tubl,avgfmelt(Tcmb,Tubl),St
 
         avgTm = avgTm + 10.d0
     end do
