@@ -8,15 +8,13 @@ program thermev_db
     integer, parameter :: nvar = 3
     integer :: nbad,nok,l,m,p,q,ok
     character cr
-    real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),avgtc,avgtm,a,ric,&
+    real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),a,ric,&
                       ur,urtot,dum,dlm,dlit,qcmb,qconv,qmelt,qradm, & 
-                      qradc,vm,num,tcmb,tubl,qtidal,tpot,Ra,den,int
+                      qradc,tcmb,tubl,qtidal,tpot,Ra,den,int
     real (kind=dp), parameter :: tol = 1.d-6
     real (kind=dp), parameter :: dt = 1.d-3
     real (kind=dp), parameter :: tera = 1.d-12
     real (kind=dp), parameter :: km = 1.d-3
-    common /printout/ dum,dlm,ur,urtot,qcmb,qconv,qmelt, &
-                      qradm,qradc,qtidal,vm,num,tcmb,tubl,Ra
 !-----------------------------------------------------------------------
 !   cálculos preliminares
 !-----------------------------------------------------------------------
@@ -29,7 +27,7 @@ program thermev_db
     ma = (af-ai)/4.5d0
     mlod = (lodf-lodi)/4.5d0
 !-----------------------------------------------------------------------
-!   cálculos de los valores medios de las temperatura de liquidus y de
+!   Cálculo de los valores medios de las temperatura de liquidus y de
 !   solidus en el manto
 !-----------------------------------------------------------------------
     den = (rt**3 - rc**3)
@@ -95,11 +93,9 @@ program thermev_db
          t = 0.d0
     tprint = 0.d0
     dtprint = dtprint/1000.d0
-    avgtc = tc0
-    avgtm = tm0
-      y(1) = etac*tc0
+      y(1) = tc0/epsc
       y(2) = 0.d0
-      y(3) = tm0
+      y(3) = tm0/epsm
     call derivs(t,y,dydt)
     print *,'dTcmb/dt = ',dydt(1)
     print *,'dRic2/dt = ',dydt(2)
@@ -111,11 +107,10 @@ program thermev_db
     print *,'==================='
     print *,'  Estado inicial:  '
     print *,'==================='
-    print 13,'    T_c =',avgtc,'K'
+    print 13,'    T_c =',Tc0,'K'
     print 13,'  T_cmb =',Tcmb,'K'
-    print 13,'    T_m =',avgtm,'K'
+    print 13,'    T_m =',Tm0,'K'
     print 13,'  T_ubl =',Tubl,'K'
-    print 13,'  T_lbl = ',etalm*avgtm,'K'
     print 13,'  T_pot = ',Tpot,'K'
     print 13,'   R_ic =',ric*km,'km'
     print 13,'    Lit =',dlit,'km'
@@ -136,7 +131,7 @@ program thermev_db
 !       impresión del perfil de temperatura
 !       ----------------------------------------------------------------
         if (t.ge.tprint) then
-            call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
+            call imprimir_perfil(tprint,Tcmb,Tubl)
             tprint = tprint + dtprint
         end if
 !       ----------------------------------------------------------------
@@ -148,21 +143,32 @@ program thermev_db
 !       ----------------------------------------------------------------
         tpot = tubl*dexp(-gum*alfam*dum/cm)
 !       ----------------------------------------------------------------
+           Ur = printout(1)
+        Urtot = printout(2)
+         Qcmb = printout(3)
+        Qconv = printout(4)
+        Qmelt = printout(5)
+        Qradm = printout(6)
+        Qradc = printout(7)
+       Qtidal = printout(8)
+           St = printout(9)
+           Ra = printout(10)
+!       ----------------------------------------------------------------
 !       escritura de resultados en el archivo de salida
 !       ----------------------------------------------------------------
-!                   1   2     3    4    5    6   7    8
-        write(11,*) t,avgtc,avgtm,Tcmb,Tubl,Tpot,ur,urtot, &
-!                    9     10     11     12  
-                    dlit,ric*km,dum*km,dlm*km, &
-        !                13       14         15         16
+!                   1   2   3    4   5    6
+        write(11,*) t,Tcmb,Tubl,Tpot,ur,urtot, &
+!                    7     8     9     10  
+                    dlit,Ric*km,dum*km,dlm*km, &
+        !                11       12         13         14
                     qcmb*tera,qconv*tera,qmelt*tera,qradm*tera, &
-        !               17          18        19            
-                    qradc*tera,qtidal*tera,visc(avgtm)
+        !               15          16        17      18      
+                    qradc*tera,qtidal*tera,visc(Tubl),Ra
 !       ----------------------------------------------------------------
-        call odeint(y,nvar,t,t+dt,tol,dt,0.d0,nok,nbad,derivs,bsstep)    
-        avgtc = y(1)
+        call odeint(y,nvar,t,t+dt,tol,dt,0.d0,nok,nbad,dTdt,bsstep)    
+        Tcmb = y(1)
         Ric = dsqrt(y(2))
-        avgtm = y(3)
+        Tubl = y(3)
 !       ----------------------------------------------------------------
         write(*,12,advance='no') cr,t*100.d0/tf,'%'
         t = t + dt
@@ -174,11 +180,10 @@ program thermev_db
     print *,'==================='
     print *,'   Estado final:   '
     print *,'==================='
-    print 13,'    T_c = ',avgtc,'K'
-    print 13,'  T_cmb = ',etac*avgtc,'K'
-    print 13,'    T_m = ',avgtm,'K'
-    print 13,'  T_lbl = ',etalm*avgtm,'K'
-    print 13,'  T_ubl = ',etaum*avgtm,'K'
+    print 13,'    T_c = ',epsc*Tcmb,'K'
+    print 13,'  T_cmb = ',Tcmb,'K'
+    print 13,'    T_m = ',epsm*Tubl,'K'
+    print 13,'  T_ubl = ',Tubl,'K'
     print 13,'  T_pot = ',Tpot,'K'
     print 13,'   R_ic = ',ric/1000.d0,'km'
     print 13,'    Lit = ',dlit,'km'
@@ -194,7 +199,7 @@ program thermev_db
 !   perfil de temperatura final
 !   --------------------------------------------------------------------
     print *,'Imprimiendo perfil de temperatura final...'
-    call imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
+    call imprimir_perfil(tprint,Tcmb,Tubl)
     print *,'... listo!'
 !   --------------------------------------------------------------------
     print *,' '
