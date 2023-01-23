@@ -12,8 +12,8 @@ module thermev2_subs
     real (kind=dp), parameter ::   pi = 4.d0*datan(1.d0)
     real (kind=dp), parameter ::  CGU = 6.67408d-11
     real (kind=dp), parameter ::   Me = 5.9722d24
-    real (kind=dp), parameter ::   rt = 6.3781366d6
-    real (kind=dp), parameter ::   rc = 3.480d6
+    real (kind=dp), parameter ::   Rt = 6.3781366d6
+    real (kind=dp), parameter ::   Rc = 3.480d6
     real (kind=dp), parameter ::   Ml = 7.342d22
     real (kind=dp), parameter ::   mu = CGU*(Me+Ml)
     real (kind=dp), parameter :: mred = Me*Ml/(Me+Ml)
@@ -31,13 +31,14 @@ module thermev2_subs
 !   parametros del modelo de driscoll & bercovici (2014)
 !   tabla 3
 !   --------------------------------------------------------------------
-    real (kind=dp), parameter ::     at = 4.d0*pi*rt**2 ! earth surface area
-    real (kind=dp), parameter ::     ac = 4.d0*pi*rc**2 ! core surface area
+    real (kind=dp), parameter ::     at = 4.d0*pi*Rt**2 ! earth surface area
+    real (kind=dp), parameter ::     ac = 4.d0*pi*Rc**2 ! core surface area
     real (kind=dp), parameter ::  alfam = 2.d-5         ! thermal expansivity of mantle
     real (kind=dp), parameter ::  alfac = 1.d-5         ! thermal expansivity of core
     real (kind=dp), parameter ::   beta = 0.3d0         ! thermal boundary layer exponent
-    real (kind=dp), parameter ::     cm = 1265.d0       ! specific heat of mantle
-    real (kind=dp), parameter ::     cc = 840.d0        ! specific heat of core
+    real (kind=dp), parameter ::     cm = 1100.d0       ! specific heat of mantle
+    real (kind=dp), parameter ::     cc = 800.d0        ! specific heat of core
+    real (kind=dp), parameter :: denVm = (Rt**3 - Rc**3)
     real (kind=dp), parameter ::     dm = 2891.d3       ! mantle depth
     real (kind=dp), parameter ::    dfe = 7000.d3       ! iron solidus length scale
     real (kind=dp), parameter ::     dn = 6340.d3       ! core adiabatic length scale
@@ -59,11 +60,11 @@ module thermev2_subs
     real (kind=dp), parameter :: gammad = 1.d-3         ! magma adiabatic gradient
     real (kind=dp), parameter ::   grun = 1.3d0         ! core gruneisen parameter
     real (kind=dp), parameter ::  gammz = 3.9d-3        ! mantle solidus gradient
-    real (kind=dp), parameter ::    kum = 4.d0         ! upper mantle thermal conductivity
-    real (kind=dp), parameter ::    klm = 4.d0         ! lower mantle thermal conductivity
+    real (kind=dp), parameter ::    kum = 4.d0          ! upper mantle thermal conductivity
+    real (kind=dp), parameter ::    klm = 4.d0          ! lower mantle thermal conductivity
     real (kind=dp), parameter ::   kapm = 1.d-6         ! mantle thermal diffusivity
     real (kind=dp), parameter ::    lfe = 750.d3        ! latent heat of inner core crystallization
-    real (kind=dp), parameter ::  lmelt = 320.d3        ! latent heat of mantle melting
+    real (kind=dp), parameter ::  Lmelt = 6.d5          ! latent heat of mantle melting
     real (kind=dp), parameter ::     mm = 4.06d24       ! mantle mass
     real (kind=dp), parameter ::     mc = 1.95d24       ! core mass
     real (kind=dp), parameter ::    pec = 363.85d0      ! pressure at the earth's centre (in gpa)
@@ -75,7 +76,7 @@ module thermev2_subs
     real (kind=dp), parameter :: racrcmb = 2000.d0      ! critical rayleigh number at the cmb
     real (kind=dp), parameter ::   rhoc = 11900.d0      ! core density
     real (kind=dp), parameter ::  rhoic = 13000.d0      ! inner core density
-    real (kind=dp), parameter ::   rhom = 4800.d0       ! mantle density
+    real (kind=dp), parameter ::   rhom = 3500.d0       ! mantle density
     real (kind=dp), parameter :: rhomel = 2700.d0       ! mantle melt density
     real (kind=dp), parameter :: rhosol = 3300.d0       ! mantle upwelling solid density
     real (kind=dp), parameter ::   tfe0 = 5600.d0       ! iron solidus coefficient
@@ -89,8 +90,9 @@ module thermev2_subs
     real (kind=dp), parameter :: tlc2 = -4.5d-6
     real (kind=dp), parameter :: ta1 = 3.96d-3
     real (kind=dp), parameter :: ta2 = -3.3d-6
-    real (kind=dp), parameter :: x0 = 0.1d0            ! initial concetration of light constituent in the core
-    real (kind=dp), parameter ::  xi = tlc0*(1.d0 - 2.d0*x0)*(1.d0 + (ta1 + ta2*pcmb)*pcmb)
+    real (kind=dp), parameter :: u0 = 2.d-12            ! Convection velocity scalex
+    real (kind=dp), parameter :: Vact = 4.d-6           ! Activation volume
+    real (kind=dp), parameter :: x0 = 0.1d0             ! initial concetration of light constituent in the core
 !   --------------------------------------------------------------------
 !   parametros de integracion
 !   --------------------------------------------------------------------
@@ -105,12 +107,12 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   demid = 2
 !   ---------
-    real (kind=dp), parameter :: dadt0 = 3.82d-2*ga/aa
-    real (kind=dp), parameter :: dLODdt0 = 6.653d0
+    real (kind=dp), parameter :: dadt0 = 3.82d-2*ga/aa  ! Bills & Ray (1999)
+    real (kind=dp), parameter :: dLODdt0 = 6.653d0      ! Williams & Boggs (2016)
 !   --------------------------------------------------------------------
 !   demid = 3
 !   ---------
-    real (kind=dp) ::    ai,af,LODi,LODf,ma,mLOD
+    real (kind=dp) :: ai,af,LODi,LODf,ma,mLOD
 !   --------------------------------------------------------------------
 !   Valor actual de la velocidad angular de rotación terrestre
 !   --------------------------------------------------------------------
@@ -130,7 +132,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     real (kind=dp), parameter ::  rigdz = 8.0e10
     real (kind=dp), parameter ::   flex = 1.d0/rigdz
-    real (kind=dp), parameter ::  ksubb = rt/(CGU*Me*rhot)
+    real (kind=dp), parameter ::  ksubb = Rt/(CGU*Me*rhot)
     real (kind=dp), parameter ::  kflex = 0.2d0
     real (kind=dp), parameter ::   keta = 0.02d0
     real (kind=dp), parameter ::  alpha = 0.2
@@ -152,13 +154,14 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     character (len=50) algo
 !   --------------------------------------------------------------------
-    real (kind=dp) :: tsup,e,i,dtprint
+    real (kind=dp) :: Tsup,e,i,dtprint
     integer :: idreo,demid,lmax,qmax,tidefl,radcfl,radmfl,thermfl, &
                corefl,nterms
 !   --------------------------------------------------------------------
     real (kind=dp), allocatable :: asuma(:)
     real (kind=dp), dimension(1:60) :: xa,ya
-    real (kind=dp) :: tsolm,tliqm
+    real (kind=dp) :: tsolm,tliqm,St
+    real(kind=dp), dimension(10) :: printout
 !   --------------------------------------------------------------------
 !   bloque de procedimientos
 !   --------------------------------------------------------------------
@@ -166,64 +169,46 @@ module thermev2_subs
     contains
 
 !=======================================================================
-    subroutine derivs(t,y,dydt)
+    subroutine dTdt(t,y,dydt)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    integer :: k
+    integer, parameter :: kmax = 10
     real (kind=dp),intent(in) :: t,y(3)
     real (kind=dp),intent(out) :: dydt(3)
-    real (kind=dp) :: avgtc,avgtm,dtubl,tubl,ric,dricdt,dlbl,dubl,aic, &
+    real (kind=dp) :: dtubl,Tubl,ric,dricdt,dlbl,dubl,aic, &
                       dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
-                      qradc,tcmb,tlbl,vm,dvupdt,qtidal, &
+                      qradc,Tcmb,Tlbl,dvupdt,qtidal, &
                       ur,urtot,radic,num,delt,a1,a2,int,etavg, &
-                      ra,st,tmelt,zmelt,zum,vubl,vlbl,dpiodtc
-    real (kind=dp) :: asumaq(4)
-    common /printout/ dubl,dlbl,ur,urtot,qcmb,qconv,qmelt, &
-                      qradm,qradc,qtidal,vm,num,tcmb,tubl,Ra
+                      tmelt,zmelt,zum,dpiodtc,ftvf,chi,Pio
+!    real (kind=dp) :: asumaq(4)
 !   --------------------------------------------------------------------
-    !avgtc = y(1)
+    Tcmb = y(1)
     Ric = dsqrt(y(2))
-    avgtm = y(3)
+    Tubl = y(3)
 !   --------------------------------------------------------------------
-!   calculo de tcmb, tubl y tlbl
+!   Cálculo de los saltos de temperatura en y espesores de las capas
+!   límite inferior y superior
 !   --------------------------------------------------------------------
-    Tcmb = y(1) ! etac*avgtc
-    Tlbl = etalm*avgtm
-    Tubl = etaum*avgtm
-!   --------------------------------------------------------------------
-!   calculo de los saltos de temperatura
-!   --------------------------------------------------------------------
-    DTlbl = Tcmb - Tlbl
-    DTubl = Tubl - Tsup
+    call capas_limites(Tcmb,Tubl,Tlbl,Dtubl,DTlbl,dubl,dlbl)
 !   --------------------------------------------------------------------
 !   calculo de qcmb
 !   --------------------------------------------------------------------
-    vlbl = visc(0.5d0*(tlbl + tcmb))
-    dlbl = ((racrcmb*kapm*vlbl)/(glm*alfam*dtlbl))**(1.d0/3.d0)
     Qcmb = Ac*klm*DTlbl/dlbl
 !   --------------------------------------------------------------------
 !   calculo de qconv
 !   --------------------------------------------------------------------
-    vubl = visc(tubl)
-    Ra = gum*alfam*(dtubl + dtlbl)*(rt - rc)**3/(kapm*vubl)
-    dubl = (rt - rc)*(racr/ra)**beta
     Qconv = At*kum*DTubl/dubl
-!   --------------------------------------------------------------------
-!   calculo del numero de stefan
-!   --------------------------------------------------------------------
-    St = lmelt/(cm*(tliqm - tsolm))
-!    print '(a4,1x,f7.2)','St =',st
 !   --------------------------------------------------------------------
 !   calculo de qmelt
 !   --------------------------------------------------------------------
     dvupdt = 1.16d0*kapm*at/dubl
-    tmelt = 0.5d0*(tubl + tsol0)
-    zmelt = 0.5d0*(tubl-tsol0)/gammz
-    dtmelt = tmelt - tsup - zmelt*gammad
-    zum = rt - dubl
-    mmeltp = dvupdt*rhosol*fmelt(Tcmb,avgtm,dlbl,dubl,zum)
-    qmelt = erupt*mmeltp*(lmelt + cm*dtmelt)
+    tmelt = 0.5d0*(Tubl + tsol0)
+    zmelt = 0.5d0*(Tubl-tsol0)/gammz
+    dtmelt = tmelt - Tsup - zmelt*gammad
+    zum = Rt - dubl
+    mmeltp = dvupdt*rhosol*fmeltm(Tubl,dubl,zum)
+    qmelt = erupt*mmeltp*(Lmelt + cm*dtmelt)
 !   --------------------------------------------------------------------
 !   calculo de qradm
 !   --------------------------------------------------------------------
@@ -232,31 +217,40 @@ module thermev2_subs
         !    asumaq(k) = mm*fc(k)*c0(k)*hi(k)*dexp(lam(k)*(t0-t))
         !end do
         !qradm = sumar(4,asumaq)
-        Qradm = qrad0*dexp((t0-t)/taurad)
+        Qradm = Qrad0*dexp((t0-t)/taurad)
     else
-        qradm = 0.d0
+        Qradm = 0.d0
     end if
 !   --------------------------------------------------------------------
 !   calculo de qradc
 !   --------------------------------------------------------------------
     if (lradc) then
-        qradc = qrad0c*dexp((t0-t)/taurdc)
+        Qradc = Qrad0c*dexp((t0-t)/taurdc)
     else
-        qradc = 0.d0
+        Qradc = 0.d0
     end if
+!   --------------------------------------------------------------------
+!   Cálculo de la fraccion de volumen del manto activo para la 
+!   interaccion de mareas
+!   --------------------------------------------------------------------
+    ftvf = (Rphim(Tubl,dubl)/Rt)**3-(Rc/Rt)**3
 !   --------------------------------------------------------------------
 !   calculo de qtidal
 !   --------------------------------------------------------------------
     if (ltide) then
-        a1 = tlbl
-        a2 = tubl
-        delt = tubl - tlbl
+        a1 = Tlbl
+        a2 = Tubl
+        delt = Tubl - Tlbl
         call qromb(visc,a1,a2,int)
         etavg = rhom*int/delt
-        qtidal = pm(t0-t,etavg,Tcmb,avgtm,dlbl,dubl)
+        Qtidal = ftvf*pm(t0-t,etavg)
     else
-        qtidal = 0.d0
+        Qtidal = 0.d0
     end if
+!   --------------------------------------------------------------------
+!   calculo del número de Stefan
+!   --------------------------------------------------------------------
+    St = stefan(Tcmb,Tubl)
 !   --------------------------------------------------------------------
 !   calculo de las razones de urey
 !   --------------------------------------------------------------------
@@ -264,24 +258,26 @@ module thermev2_subs
     urtot = qradm/(qconv+qmelt)
 !   --------------------------------------------------------------------
     if (lcore) then
-        dPiodTc = (1.d0 + (ta1 + ta2*pio(tcmb))*pio(tcmb))/(xi*(tlc1 + 2.d0*tlc2) - &
-                  tcmb*(ta1 + 2.d0*ta2*pio(tcmb)))
-        dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Cc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
-        if (lRic) then
-            ! Ric = dsqrt(2.d0*(pec-pio(tcmb))*1.d9*rc/(rhoc*glm))
-            dydt(2) = - 2.d0*Rc*dpiodtc*dydt(1)/(rhoc*glm)
-        else 
-            ! Ric = 0.d0
-            dydt(2) = 0.d0
+        chi = x0*Rc**3/(Rc**3-Ric**3)
+        lRic = fPio(Pcmb,Tcmb,chi)*fPio(Pec,Tcmb,chi).lt.0.d0
+        if(lRic) then 
+            Pio = rtbis(fPio,Tcmb,chi,Pcmb,Pec,1.d-6)
+            dPiodTc = (1.d0 + (ta1 + ta2*Pio)*Pio)/(xi(chi)*(tlc1 + 2.d0*tlc2) - &
+                       Tcmb*(ta1 + 2.d0*ta2*Pio))
+!           Ric = dsqrt(2.d0*(Pec-Pio)*1.d9*Rc/(rhoc*glm))
+        else
+            dPiodTc = 0.d0
         end if
+        dydt(1) = (Qradc - Qcmb)*Ga/(Mc*Cc*epsc + Ac*Ric*dPiodTc*(Lfe+Eg)/(glm*Rc))
+        dydt(2) = - 2.d0*Rc*dpiodtc*dydt(1)/(rhoc*glm)
     else
     !   --------------------------------------------------------------------
     !   calculo del radio del nucleo interno
     !   --------------------------------------------------------------------
-        num = dlog(tfe0/tcmb)*(dn/rc)**2 - 1.d0
+        num = dlog(tfe0/Tcmb)*(dn/Rc)**2 - 1.d0
         if (num.ge.0.d0) then
             radic = num/denric
-            ric = rc*dsqrt(radic)
+            ric = Rc*dsqrt(radic)
         else 
             ric = 0.d0
         end if
@@ -292,21 +288,91 @@ module thermev2_subs
     !   --------------------------------------------------------------------
     !   calculo de dr_ic / dt_cmb
     !   --------------------------------------------------------------------
-        dricdt = - (dn**2)/(2.d0*rc*tcmb*num)
+        dricdt = - (dn**2)/(2.d0*Rc*Tcmb*num)
     !   --------------------------------------------------------------------
         dydt(1) = (qradc - qcmb)*ga/(mc*cc - aic*rhoic*etac*dricdt*(lfe+eg))
     !   --------------------------------------------------------------------
     end if
+
     if (ltherm) then
-        dydt(3) = (qcmb + qradm - qconv - qmelt)*ga/(mm*cm)
+        dydt(3) = (qcmb + qradm - qconv - qmelt)*ga/(epsm*mm*cm)
     else
         dydt(3) = (qcmb + qradm + qtidal - qconv - qmelt)*ga/ &
-                  (mm*cm*(1.d0 + St))
+                  (epsm*mm*cm*(1.d0 + St))
     end if
 !   --------------------------------------------------------------------
-    end subroutine derivs
+    printout(1) = ur 
+    printout(2) = urtot
+    printout(3) = Qcmb
+    printout(4) = Qconv
+    printout(5) = Qmelt
+    printout(6) = Qradm
+    printout(7) = Qradc
+    printout(8) = Qtidal
+    printout(9) = St
+!   --------------------------------------------------------------------
+    end subroutine dTdt
 !=======================================================================
-    function pm(t,eta,Tcmb,Tmavg,dlbl,dubl)
+    subroutine conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+!   --------------------------------------------------------------------
+        implicit none 
+!       ----------------------------------------------------------------
+        real(kind=dp), intent(in) :: Tcmb, Tubl, Tlbl
+        real(kind=dp), intent(out) :: DTubl, DTlbl, dubl, dlbl
+        real(kind=dp) :: vlbl, vubl, Ra
+!       ----------------------------------------------------------------
+!       Cálculo de los saltos de temperatura
+!       ----------------------------------------------------------------
+        DTlbl = Tcmb - Tlbl
+        DTubl = Tubl - Tsup
+!       ----------------------------------------------------------------
+!       Cálculo del espesor de la capa límite inferior
+!       ----------------------------------------------------------------
+        vlbl = visc(0.5d0*(Tlbl + Tcmb))
+        dlbl = ((racrcmb*kapm*vlbl)/(glm*alfam*DTlbl))**(1.d0/3.d0)
+!       ----------------------------------------------------------------
+!       Cálculo del espesor de la capa límite superior
+!       ----------------------------------------------------------------
+        vubl = visc(Tubl)
+        Ra = gum*alfam*(dTubl + dTlbl)*(Rt - Rc)**3/(kapm*vubl)
+        printout(10) = Ra
+        dubl = (Rt - Rc)*(Racr/Ra)**beta
+!   --------------------------------------------------------------------        
+    end subroutine conveccion
+!=======================================================================
+    subroutine capas_limites(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+
+        implicit none
+
+        integer :: k
+        integer, parameter :: kmax = 10
+        real(kind=dp), intent(in) :: Tcmb,Tubl
+        real(kind=dp), intent(out) :: Tlbl,DTubl,DTlbl,dubl,dlbl
+        real(kind=dp) :: Tlbl0
+    
+        Tlbl = (2.d0*epsm - 1.d0)*Tubl
+
+        k = 1
+    
+        do
+    
+            Tlbl0 = Tlbl
+    
+            call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+    
+            Tlbl = tm(Tubl,dubl,Rc+dlbl)
+    
+            if((dabs(Tlbl-Tlbl0).lt.1.d-4).or.(k.eq.kmax)) exit
+    
+            k = k + 1
+    
+        end do
+
+        call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+        
+    end subroutine capas_limites
+!=======================================================================
+    function pm(t,eta)
 !   --------------------------------------------------------------------
 !   esta función calcula el calor generado por interacción de mareas
 !   usando la expresión derivada por efroimsky y makarov (2014)
@@ -314,23 +380,13 @@ module thermev2_subs
     implicit none
 !   --------------------------------------------------------------------
     integer :: j,l,m,p,q
-    real (kind=dp),intent(in) :: t,eta,Tcmb,Tmavg,dlbl,dubl
-    real (kind=dp) :: rsa,wlmpq,xlmpq,sumapm,ftvf,rsal,Tubl
-    real (kind=dp) :: rphi,pm,kr,ki,a,n,lod,thp
+    real (kind=dp),intent(in) :: t,eta
+    real (kind=dp) :: rsa,wlmpq,xlmpq,sumapm,rsal
+    real (kind=dp) :: pm,kr,ki,a,n,lod,thp
     real (kind=dp), parameter :: dr = 1.d2
 !   --------------------------------------------------------------------
-!   calculo de la fraccion de volumen del manto activo para la 
-!   interaccion de mareas
-!   --------------------------------------------------------------------
-    Tubl = etaum*Tmavg
-    rphi = Rast(Tubl,dubl)
-    do while (fmelt(Tcmb,Tmavg,dlbl,dubl,rphi).lt.phidis)
-        rphi = rphi + dr
-    end do
-    ftvf = (rphi/rt)**3-(rc/rt)**3
-!   --------------------------------------------------------------------
     call modelo_dinamico(t,a,n,lod,thp)
-    rsa = rt/a
+    rsa = Rt/a
 !   --------------------------------------------------------------------
 !   Evaluación de las funciones de la inclinación
 !   --------------------------------------------------------------------
@@ -355,7 +411,7 @@ module thermev2_subs
         end do
     end do
     sumapm = sumar(j-1,asuma)
-    pm = ftvf*((CGU*Ml)*(Ml/a))*sumapm
+    pm = ((CGU*Ml)*(Ml/a))*sumapm
 !   --------------------------------------------------------------------
     end function pm
 !=======================================================================
@@ -426,7 +482,7 @@ module thermev2_subs
 !     inicializacion de variables
 !   --------------------------------------------------------------------
     read(10,*) algo
-    read(10,*) tsup,tc0,tm0
+    read(10,*) Tsup,tc0,tm0
     read(10,*) algo
     read(10,*) e
     read(10,*) algo
@@ -557,13 +613,13 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end subroutine crear_archivo_salida
 !=======================================================================
-    subroutine imprimir_perfil(tprint,avgtc,dlm,avgtm,dum)
+    subroutine imprimir_perfil(tprint,Tcmb,Tubl)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: tprint,avgtc,dlm,avgtm,dum
+        real (kind=dp), intent(in) :: tprint,Tcmb,Tubl
         character (len=4) :: chanio,chmes,chdia,chhora,chmins,chsegs
-        real (kind=dp) :: r,tdr
+        real (kind=dp) :: r,tdr,Tlbl,dlm,dum,Dtubl,Dtlbl
         character (len=4) :: chtprint
         real (kind=dp), parameter ::   dr = 1.d2
 !       ----------------------------------------------------------------
@@ -584,10 +640,12 @@ module thermev2_subs
         '-'//trim(chmes)//'-'//trim(chdia)//'_'//trim(chhora)//'_'//trim(chmins)//'_' &
         //trim(chsegs)//'.out',status='unknown')
 !       ----------------------------------------------------------------
+        call capas_limites(Tcmb,Tubl,Tlbl,Dtubl,Dtlbl,dum,dlm)
+!       ----------------------------------------------------------------
         r = 0.d0
-        do while (r.le.rt)
-            tdr = Temprof(avgtc,avgtm,dlm,dum,r)
-            write(12,*) r,tdr,pdr(r),tsol(r),tliq(r),visc(tdr)
+        do while (r.le.Rt)
+            tdr = Temprof(Tcmb,Tlbl,Tubl,dlm,dum,r)
+            write(12,*) r,tdr,pdr(r),tsol(r),tliq(r),tsolc(r),visc(tdr)
             r = r + dr
         end do
     !   --------------------------------------------------------------------
@@ -969,7 +1027,7 @@ module thermev2_subs
         real (kind=dp), parameter, dimension(3) :: coefc = (/ -1.52163d-5, -0.0144178d0, 367.767d0 /)
 !       ----------------------------------------------------------------
         rkm = r*1.d-3
-        if (r.le.rc) then
+        if (r.le.Rc) then
             pdr = (coefc(1)*rkm + coefc(2))*rkm + coefc(3)
         else
             pdr = (coefm(1)*rkm + coefm(2))*rkm + coefm(3)
@@ -1007,52 +1065,49 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function tliq
 !=======================================================================
-    function tcondubl(tubl,dum,r)
+    function tcondubl(Tubl,dum,r)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
-        real (kind=dp), intent(in) ::tubl,dum,r
+        real (kind=dp), intent(in) ::Tubl,dum,r
         real (kind=dp) :: tcondubl
 !       ----------------------------------------------------------------
-        tcondubl = tsup + (tubl-tsup)*erf(2.d0*(rt-r)/dum)
+        tcondubl = Tsup + (Tubl-Tsup)*(Rt-r)/dum
 !   --------------------------------------------------------------------
     end function tcondubl
 !=======================================================================
-    function tcondlbl(tcmb,tlbl,dlm,r)
+    function tcondlbl(Tcmb,Tlbl,dlm,r)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: tcmb,tlbl,dlm,r
+        real (kind=dp), intent(in) :: Tcmb,Tlbl,dlm,r
         real (kind=dp) :: tcondlbl
 !       ----------------------------------------------------------------
-        tcondlbl = tcmb + (tcmb-tlbl)*erf(2.d0*(rc-r)/dlm)
+        tcondlbl = Tcmb + (Tcmb-Tlbl)*(Rc-r)/dlm
 !   --------------------------------------------------------------------
     end function tcondlbl
 !=======================================================================
-    function Temprof(Tcmb,Tmavg,dlm,dum,r)
+    function Temprof(Tcmb,Tlbl,Tubl,dlm,dum,r)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,dlm,dum,Tcmb,Tmavg
-    real (kind=dp) :: Temprof,Tlbl,Tubl
+    real (kind=dp), intent(in) :: r,dlm,dum,Tcmb,Tlbl,Tubl
+    real (kind=dp) :: Temprof
     logical :: incore,inlbl,inmantle,inubl
-!   --------------------------------------------------------------------
-    Tubl = etaum*Tmavg
-    Tlbl = etalm*Tmavg
 !   --------------------------------------------------------------------
     incore = r*(Rc-r).ge.0.d0
     inlbl = (r-Rc)*((Rc+dlm)-r).ge.0d0
     inmantle = (r-(Rc+dlm))*((Rt-dum)-r).ge.0d0
-    inubl = (r-(Rt-dum))*(r-Rt).ge.0d0
+    inubl = (r-(Rt-dum))*(Rt-r).ge.0d0
 !   --------------------------------------------------------------------
     if (incore) then
-        Temprof = tc(tcmb,r)
+        Temprof = tc(Tcmb,r)
     else if (inlbl) then
-        Temprof = tcondlbl(tcmb,tlbl,dlm,r)
+        Temprof = tcondlbl(Tcmb,Tlbl,dlm,r)
     else if (inmantle) then
-        Temprof = tm(tubl,dum,r)
+        Temprof = tm(Tubl,dum,r)
     else if (inubl) then
-        Temprof = tcondubl(tubl,dum,r)
+        Temprof = tcondubl(Tubl,dum,r)
     else
         print *,'Error in Temprof: r is out of domain.'
     end if
@@ -1129,119 +1184,211 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function tsolc
 !=======================================================================
-    function tc(tcmb,r)
+    function tc(Tcmb,r)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: tcmb,r
+        real (kind=dp), intent(in) :: Tcmb,r
         real (kind=dp) :: tc
 !       ----------------------------------------------------------------
-        tc = tcmb*(1.d0 + (ta1 + ta2*pdr(r))*pdr(r))/ &
+        tc = Tcmb*(1.d0 + (ta1 + ta2*pdr(r))*pdr(r))/ &
                       (1.d0 + (ta1 + ta2*pcmb)*pcmb)
 !   --------------------------------------------------------------------
     end function tc
 !=======================================================================
-    function tcdb(tcmb,r)
+    function tcdb(Tcmb,r)
 !   --------------------------------------------------------------------
 !   perfil adiabático de temperatura en el núcleo
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,tcmb
+    real (kind=dp), intent(in) :: r,Tcmb
     real (kind=dp) :: tcdb
 !   --------------------------------------------------------------------
-    tcdb = tcmb*dexp((rc**2 - r**2)/(dn**2))
+    tcdb = Tcmb*dexp((Rc**2 - r**2)/(dn**2))
 !   --------------------------------------------------------------------
     end function tcdb
 !=======================================================================
-    function tm(tubl,dum,r)
+    function tm(Tubl,dum,r)
 !   --------------------------------------------------------------------
 !   perfil adiabático de temperatura del manto
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,dum,tubl
+    real (kind=dp), intent(in) :: r,dum,Tubl
     real (kind=dp) :: tm
 !   --------------------------------------------------------------------
-    tm = tubl + 0.5d-3*(rt-dum-r)
+    tm = Tubl + 0.3d-3*(Rt-dum-r)
 !   --------------------------------------------------------------------
     end function tm
 !=======================================================================
-    function fmelt(Tcmb,Tmavg,dlm,dum,r)
+    function fmeltubl(Tubl,dum,r)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: r,dum,dlm,Tcmb,Tmavg
-    real (kind=dp) :: fmelt
+    real (kind=dp), intent(in) :: r,dum,Tubl
+    real (kind=dp) :: fmeltubl,tdr
 !   --------------------------------------------------------------------
-    fmelt = (Temprof(Tcmb,Tmavg,dlm,dum,r) - tsol(r))/(tliq(r) - tsol(r))
+    tdr = tcondubl(Tubl,dum,r)
+    if((tdr-tsol(r))*(tliq(r)-tdr).gt.0.d0) then 
+        fmeltubl = (tdr - tsol(r))/(tliq(r) - tsol(r))
+    else if (tdr.ge.tliq(r)) then
+        fmeltubl = 1.d0
+    else 
+        fmeltubl = 0.d0
+    end if
 !   --------------------------------------------------------------------
-    end function fmelt
+    end function fmeltubl
 !=======================================================================
-    function fmeltr2(Tcmb,Tmavg,dlm,dum,r)
-!   --------------------------------------------------------------------
-    implicit none
-!   --------------------------------------------------------------------
-    real (kind=dp), intent(in) :: Tcmb,Tmavg,dlm,dum,r
-    real (kind=dp) :: fmeltr2
-!   --------------------------------------------------------------------
-    fmeltr2 = fmelt(Tcmb,Tmavg,dlm,dum,r)*r**2
-!   --------------------------------------------------------------------
-    end function fmeltr2
-!=======================================================================
-    function stefan(tubl,dubl)
-!   --------------------------------------------------------------------
-!   esta función calcula el número de stefan
+    function fmeltm(Tubl,dum,r)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: tubl,dubl
+        real (kind=dp), intent(in) :: r,dum,Tubl
+        real (kind=dp) :: fmeltm,tdr
+!       ----------------------------------------------------------------
+        tdr = Tm(Tubl,dum,r)
+        if((tdr-tsol(r))*(tliq(r)-tdr).gt.0.d0) then 
+            fmeltm = (tdr - tsol(r))/(tliq(r) - tsol(r))
+        else if (tdr.ge.tliq(r)) then
+            fmeltm = 1.d0
+        else 
+            fmeltm = 0.d0
+        end if
+!       ----------------------------------------------------------------
+    end function fmeltm
+!=======================================================================
+    function fmeltmr2(Tubl,dum,r)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: Tubl,dum,r
+        real (kind=dp) :: fmeltmr2
+!       ----------------------------------------------------------------
+        fmeltmr2 = fmeltm(Tubl,dum,r)*r**2
+!   --------------------------------------------------------------------
+    end function fmeltmr2
+!=======================================================================
+    function fmeltublr2(Tubl,dum,r)
+!   --------------------------------------------------------------------
+    implicit none
+!   --------------------------------------------------------------------
+    real (kind=dp), intent(in) :: Tubl,dum,r
+    real (kind=dp) :: fmeltublr2
+!   --------------------------------------------------------------------
+    fmeltublr2 = fmeltubl(Tubl,dum,r)*r**2
+!   --------------------------------------------------------------------
+    end function fmeltublr2
+!=======================================================================
+    function avgfmelt(Tcmb,Tubl)
+!   --------------------------------------------------------------------
+!   Cálculo de la fracción de material fundido promediado en el manto
+!   --------------------------------------------------------------------        
+        implicit none
+
+        real(kind=dp), intent(in) :: Tcmb,Tubl
+        real(kind=dp) :: avgfmelt,int1,int2,rint, &
+                         Tlbl,DTubl,DTlbl,dubl,dlbl
+
+        call capas_limites(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+
+        rint = Rt-dubl
+    
+        call qromb2(fmeltmr2,Tubl,dubl,Rc,rint,int1)
+
+        call qromb2(fmeltublr2,Tubl,dubl,rint,Rt,int2)
+    
+        avgfmelt = 3.d0*(int1+int2)/denVm
+
+    end function avgfmelt
+!=======================================================================
+    function stefan(Tcmb,Tubl)
+!   --------------------------------------------------------------------
+!   Cálculo del número de stefan
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: Tubl,Tcmb
         real (kind=dp) :: stefan
+        !err,dphidT
+        real (kind=dp) :: Tlbl,DTubl,DTlbl,dubl,dlbl,r1,r2,rint,denVa, &
+                          int,avgTsol,avgTliq
+        real(kind=dp), parameter :: h = 10.d0
 !       ----------------------------------------------------------------
-!       calculo de los valores medios de las temperaturas de solidus y 
-!       liquidus
+!        dphidT = dfridr(avgfmelt,Tcmb,Tubl,h,err)
+!        stefan = (Lmelt/cm)*(3.d0/denVm)*dphidT
 !       ----------------------------------------------------------------
-!        r1 = rast
-!        r2 = rlit
-!        den = (r2**3 - r1**3)
-!        call qromb(tsolr2,r1,r2,int)
-!        tsolm = 3.d0*int/den
-!        call qromb(tliqr2,r1,r2,int)
-!        tliqm = 3.d0*int/den
+        call capas_limites(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
 !       ----------------------------------------------------------------
-        stefan = lmelt/(cm*(tliqm - tsolm))
+        r1 = Rast(Tubl,dubl)
+        rint = Rt - dubl
+        r2 = Rlit(Tubl,dubl)
+!       ----------------------------------------------------------------
+        denVa = r2**3 - r1**3
+!       ----------------------------------------------------------------
+        call qromb(tsolr2,r1,rint,int)
+        avgTsol = 3.d0*int/denVa
+!       ----------------------------------------------------------------
+        call qromb(tsolr2,rint,r2,int)
+        avgTsol = avgTsol + 3.d0*int/denVa
+!       ----------------------------------------------------------------
+        call qromb(tliqr2,r1,rint,int)
+        avgTliq = 3.d0*int/denVa
+!       ----------------------------------------------------------------
+        call qromb(tliqr2,rint,r2,int)
+        avgTliq = avgTliq + 3.d0*int/denVa
+!       ----------------------------------------------------------------
+        stefan = (Lmelt/cm)*(denVa/denVm)/(avgTliq - avgTsol)
 !   --------------------------------------------------------------------
     end function stefan
 !=======================================================================
-    function rast(tubl,dubl)
+    function dTmTsol(r,Tubl,dubl)
 !   --------------------------------------------------------------------
-        real (kind=dp), intent(in) :: tubl,dubl
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: r,Tubl,dubl
+        real (kind=dp) :: dTmTsol
+!       ----------------------------------------------------------------
+        dTmTsol = tm(Tubl,dubl,r)-tsol(r)
+!   --------------------------------------------------------------------
+    end function dTmTsol
+!=======================================================================
+    function Rast(Tubl,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: Tubl,dubl
         real (kind=dp) :: rast
-        real (kind=dp), parameter ::   dr = 1.d1
 !       ----------------------------------------------------------------
 !       determinacion de la distancia entre el centro de la tierra y el
 !       limite inferior de la astenosfera
 !       ----------------------------------------------------------------
-        rast = rt - dubl
-        do while ((tm(tubl,dubl,rast)-tsol(rast)).gt.0.d0)
-            rast = rast - dr
-        end do
+        Rast = rtbis(dTmTsol,Tubl,dubl,Rc,Rt-dubl,1.d-3)
 !   --------------------------------------------------------------------
     end function rast
 !=======================================================================
-    function Rlit(tubl,dubl)
-!   --------------------------------------------------------------------
-        real (kind=dp), intent(in) :: tubl,dubl
-        real (kind=dp) :: Rlit
-        real (kind=dp), parameter ::   dr = 1.d1
+    function dTcndTsol(r,Tubl,dubl)
+!   --------------------------------------------------------------------        
+        implicit none
+!       ----------------------------------------------------------------        
+        real(kind=dp), intent(in) :: r,Tubl,dubl
+        real(kind=dp) :: dTcndTsol
 !       ----------------------------------------------------------------
-!       determinación de la distancia radial entre el centro de la 
+        dTcndTsol = tcondubl(Tubl,dubl,r)-tsol(r)
+!   --------------------------------------------------------------------        
+    end function dTcndTsol
+!=======================================================================
+    function Rlit(Tubl,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: Tubl,dubl
+        real (kind=dp) :: Rlit
+!       ----------------------------------------------------------------
+!       Determinación de la distancia radial entre el centro de la 
 !       tierra yla base de la litósfera o límite superior de la astenósfera
 !       ----------------------------------------------------------------
-        rlit = rt - dubl
-        do while ((tcondubl(tubl,dubl,rlit)-tsol(rlit)).gt.0.d0)
-            rlit = rlit + dr
-        end do
+        Rlit = rtbis(dTcndTsol,Tubl,dubl,Rt-dubl,Rt,1.d-3)
 !   --------------------------------------------------------------------
     end function Rlit
 !=======================================================================
@@ -1267,30 +1414,75 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end
 !=======================================================================
-    function pio(tcmb)
-!   ---------------------------------------------------------------------------
+    function meltfdism(r,Tubl,dubl)
+!   --------------------------------------------------------------------
         implicit none
-!       -----------------------------------------------------------------------
-        real (kind=dp), intent(in) :: tcmb
-        real (kind=dp) :: c1,c2,c3,x1,x2,pio
-!       -----------------------------------------------------------------------
-        c1 = tcmb*ta2 - xi*tlc2
-        c2 = tcmb*ta1 - xi*tlc1
-        c3 = tcmb - xi
-        call resolvente(c1,c2,c3,x1,x2)
-!       -----------------------------------------------------------------------
-        if ((x1-pcmb)*(pec-x1).gt.0.d0) then
-            pio = x1
-            lRic = .true.
-        else if ((x2-pcmb)*(pec-x2).gt.0.d0) then
-            pio = x2
-            lRic = .true.
-        else 
-            pio = pec
-            lRic = .false.
-        end if
-!       -----------------------------------------------------------------------
-    end function pio
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: r,Tubl,dubl
+        real (kind=dp) :: meltfdism
+!       ----------------------------------------------------------------
+        meltfdism = fmeltm(Tubl,dubl,r) - phidis
+!   --------------------------------------------------------------------
+    end function meltfdism
+!=======================================================================
+    function Rphim(Tubl,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: Tubl,dubl
+        real (kind=dp) :: Rphim
+!       ----------------------------------------------------------------
+        Rphim = rtbis(meltfdism,Tubl,dubl,Rc,Rt-dubl,1.d-3)
+!   --------------------------------------------------------------------        
+    end function Rphim
+!=======================================================================
+    function meltfdisubl(r,Tubl,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: r,Tubl,dubl
+        real (kind=dp) :: meltfdisubl
+!       ----------------------------------------------------------------
+        meltfdisubl = fmeltubl(Tubl,dubl,r) - phidis
+!   --------------------------------------------------------------------
+    end function meltfdisubl
+!=======================================================================
+    function Rphiubl(Tubl,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real (kind=dp), intent(in) :: Tubl,dubl
+        real (kind=dp) :: Rphiubl
+!       ----------------------------------------------------------------
+        Rphiubl = rtbis(meltfdisubl,Tubl,dubl,Rt-dubl,Rt,1.d-3)
+!   --------------------------------------------------------------------        
+    end function Rphiubl
+!=======================================================================
+    function xi(x)
+
+        implicit none
+
+        real(kind=dp), intent(in) :: x
+        real(kind=dp) :: xi
+
+        xi = tlc0*(1.d0 - 2.d0*x)*(1.d0 + (ta1 + ta2*pcmb)*pcmb)
+        
+    end function xi
+!=======================================================================
+    function fPio(x,Tcmb,chi)
+        
+        implicit none
+        
+        real(kind=dp), intent(in) :: x,chi,Tcmb
+        real(kind=dp) :: fPio,cof0,cof1,cof2
+
+        cof0 = Tcmb - xi(chi)
+        cof1 = Tcmb*ta1 - xi(chi)*tlc1
+        cof2 = Tcmb*ta2 - xi(chi)*tlc2
+
+        fPio = cof0 + (cof1 + cof2*x)*x
+        
+    end function fPio
 !==============================================================================
     subroutine qromb(func,a,b,ss)
     real (kind=dp), intent(in) :: a,b
@@ -1315,29 +1507,52 @@ module thermev2_subs
     print *, 'too many steps in qromb'
     end subroutine qromb
 !=======================================================================
-      subroutine polint(xa,ya,n,x,y,dy)
+    subroutine qromb2(func2,par1,par2,a,b,ss)
+        real (kind=dp), intent(in) :: a,b,par1,par2
+        real (kind=dp), intent(out) :: ss
+        real (kind=dp), parameter :: eps=1.d-6
+        real (kind=dp) :: func2
+        integer, parameter :: jmax=20, jmaxp=jmax+1, k=5, km=k-1
+        integer :: j
+        external func2
+!       uses polint,trapzd
+        real*8 dss,h(jmaxp),s(jmaxp)
+        h(1)=1.
+        do j=1,jmax
+        call trapzd2(func2,par1,par2,a,b,s(j),j)
+        if (j.ge.k) then
+            call polint(h(j-km),s(j-km),k,0.d0,ss,dss)
+            if (abs(dss).le.eps*abs(ss)) return
+        endif
+        s(j+1)=s(j)
+        h(j+1)=0.25d0*h(j)
+        end do
+        print *, 'too many steps in qromb'
+    end subroutine qromb2
+!=======================================================================
+      subroutine polint(xp,yp,n,x,y,dy)
       integer :: n,k,m,ns
-      real (kind=dp), intent(in) :: x,xa(n),ya(n)
+      real (kind=dp), intent(in) :: x,xp(n),yp(n)
       real (kind=dp), intent(out) :: y,dy
-      integer, parameter :: nmax=10
-      real (kind=dp) :: dlen,dif,dift,ho,hp,w,c(nmax),d(nmax)
+      integer, parameter :: kmax=10
+      real (kind=dp) :: dlen,dif,dift,ho,hp,w,c(kmax),d(kmax)
       ns=1
-      dif=dabs(x-xa(1))
+      dif=dabs(x-xp(1))
       do k=1,n
-        dift=dabs(x-xa(k))
+        dift=dabs(x-xp(k))
         if (dift.lt.dif) then
           ns=k
           dif=dift
         endif
-        c(k)=ya(k)
-        d(k)=ya(k)
+        c(k)=yp(k)
+        d(k)=yp(k)
       end do
-      y=ya(ns)
+      y=yp(ns)
       ns=ns-1
       do m=1,n-1
         do k=1,n-m
-          ho=xa(k)-x
-          hp=xa(k+m)-x
+          ho=xp(k)-x
+          hp=xp(k+m)-x
           w=c(k+1)-d(k)
           dlen=ho-hp
           if(dlen.eq.0.d0) print *,'failure in polint'
@@ -1379,6 +1594,29 @@ module thermev2_subs
       return
       end subroutine trapzd
 !=======================================================================
+    subroutine trapzd2(func,par1,par2,a,b,s,n)
+        integer, intent(in) :: n
+        real (kind=dp), intent(in) :: a,b,par1,par2
+        real (kind=dp), intent(out) :: s
+        integer :: it,j
+        real (kind=dp) :: del,sum,tnm,x,func
+        if (n.eq.1) then
+            s=0.5d0*(b-a)*(func(par1,par2,a)+func(par1,par2,b))
+        else
+            it=2**(n-2)
+            tnm=it
+            del=(b-a)/tnm
+            x=a+0.5d0*del
+            sum=0.d0
+            do j=1,it
+            sum=sum+func(par1,par2,x)
+            x=x+del
+            end do
+            s=0.5d0*(s+(b-a)*sum/tnm)
+        end if
+        return
+    end subroutine trapzd2
+!=======================================================================
     function gammln(xx)
       implicit none
       real(kind=dp) :: gammln
@@ -1406,14 +1644,14 @@ module thermev2_subs
       return
     end function gammln
 !=======================================================================
-    subroutine odeint(ystart,nvar,x1,x2,eps,h1,hmin,nok,nbad,derivs,rkqs)
-    integer nbad,nok,nvar,kmaxx,maxstp,nmax
+    subroutine odeint(ystart,nvar,x1,x2,eps,h1,hmin,nok,nbad,derivs,intsch)
+    integer nbad,nok,nvar,kmaxx,maxstp,nmaxx
     real*8 eps,h1,hmin,x1,x2,ystart(nvar),tiny
-    external derivs,rkqs
-    parameter (maxstp=10000,nmax=50,kmaxx=200,tiny=1.e-30)
+    external :: derivs,intsch
+    parameter (maxstp=10000,nmaxx=50,kmaxx=200,tiny=1.e-30)
     integer k,kmax,kount,nstp
-    real*8 dxsav,h,hdid,hnext,x,xsav,dydx(nmax),xp(kmaxx),y(nmax), &
-           yp(nmax,kmaxx),yscal(nmax)
+    real*8 dxsav,h,hdid,hnext,x,xsav,dydx(nmaxx),xp(kmaxx),y(nmaxx), &
+           yp(nmaxx,kmaxx),yscal(nmaxx)
     common /path/ kmax,kount,dxsav,xp,yp
     x=x1
     h=sign(h1,x2-x1)
@@ -1442,7 +1680,7 @@ module thermev2_subs
         endif
       endif
       if((x+h-x2)*(x+h-x1).gt.0.) h=x2-x
-      call rkqs(y,dydx,nvar,x,h,eps,yscal,hdid,hnext,derivs)
+      call intsch(y,dydx,nvar,x,h,eps,yscal,hdid,hnext,derivs)
       if(hdid.eq.h)then
         nok=nok+1
       else
@@ -1469,18 +1707,18 @@ module thermev2_subs
     end
 !=======================================================================
     subroutine bsstep(y,dydx,nv,x,htry,eps,yscal,hdid,hnext,derivs)
-    integer nv,nmax,kmaxx,imax
+    integer nv,nmaxx,kmaxx,imax
     real*8 eps,hdid,hnext,htry,x,dydx(nv),y(nv),yscal(nv),safe1,safe2, &
            redmax,redmin,tiny,scalmx
-    parameter (nmax=50,kmaxx=8,imax=kmaxx+1,safe1=.25,safe2=.7, &
+    parameter (nmaxx=50,kmaxx=8,imax=kmaxx+1,safe1=.25,safe2=.7, &
                redmax=1.e-5,redmin=.7,tiny=1.e-30,scalmx=.1)
 !   uses derivs,mmid,pzextr
+    external :: derivs
     integer k,iq,j,kk,km,kmax,kopt,nseq(imax)
     real*8 eps1,epsold,errmax,fact,h,red,scale,work,wrkmin,xest,xnew, &
-           a(imax),alf(kmaxx,kmaxx),err(kmaxx),yerr(nmax),ysav(nmax),yseq(nmax)
+           a(imax),alf(kmaxx,kmaxx),err(kmaxx),yerr(nmaxx),ysav(nmaxx),yseq(nmaxx)
     logical first,reduct
     save a,alf,epsold,first,kmax,kopt,nseq,xnew
-    external :: derivs
     data first/.true./,epsold/-1./
     data nseq /2,4,6,8,10,12,14,16,18/
     if(eps.ne.epsold)then
@@ -1577,12 +1815,12 @@ module thermev2_subs
     end
 !=======================================================================
     subroutine mmid(y,dydx,nvar,xs,htot,nstep,yout,derivs)
-    integer nstep,nvar,nmax
+    integer nstep,nvar,nmaxx
     real*8 htot,xs,dydx(nvar),y(nvar),yout(nvar)
-    external derivs
-    parameter (nmax=50)
+    external :: derivs
+    parameter (nmaxx=50)
     integer k,n
-    real*8 h,h2,swap,x,ym(nmax),yn(nmax)
+    real*8 h,h2,swap,x,ym(nmaxx),yn(nmaxx)
     h=htot/nstep
     do k=1,nvar
       ym(k)=y(k)
@@ -1607,11 +1845,11 @@ module thermev2_subs
     end
 !=======================================================================
     subroutine pzextr(iest,xest,yest,yz,dy,nv)
-    integer iest,nv,imax,nmax
+    integer iest,nv,imax,nmaxx
     real*8 xest,dy(nv),yest(nv),yz(nv)
-    parameter (imax=13,nmax=50)
+    parameter (imax=13,nmaxx=50)
     integer j,k1
-    real*8 delta,f1,f2,q,d(nmax),qcol(nmax,imax),x(imax)
+    real*8 delta,f1,f2,q,d(nmaxx),qcol(nmaxx,imax),x(imax)
     save qcol,x
     x(iest)=xest
     do j=1,nv
@@ -1647,13 +1885,13 @@ module thermev2_subs
     end
 !=======================================================================
     subroutine rkqs(y,dydx,n,x,htry,eps,yscal,hdid,hnext,derivs)
-    integer n,nmax
+    integer n,nmaxx
     real*8 eps,hdid,hnext,htry,x,dydx(n),y(n),yscal(n)
-    external derivs
-    parameter (nmax=50)
+    procedure(dTdt) :: derivs
+    parameter (nmaxx=50)
 !   uses derivs,rkck
     integer k
-    real*8 errmax,h,xnew,yerr(nmax),ytemp(nmax),safety,pgrow,pshrnk,errcon
+    real*8 errmax,h,xnew,yerr(nmaxx),ytemp(nmaxx),safety,pgrow,pshrnk,errcon
     parameter (safety=0.9,pgrow=-.2,pshrnk=-.25,errcon=1.89e-4)
     h=htry
 1   call rkck(y,dydx,n,x,h,ytemp,yerr,derivs)
@@ -1686,14 +1924,14 @@ module thermev2_subs
     end
 !======================================================================
     subroutine rkck(y,dydx,n,x,h,yout,yerr,derivs)
-    integer n,nmax
+    integer n,nmaxx
     real*8 h,x,dydx(n),y(n),yerr(n),yout(n)
     external derivs
-    parameter (nmax=50)
+    parameter (nmaxx=50)
 !   uses derivs
     integer k
-    real*8 ak2(nmax),ak3(nmax),ak4(nmax),ak5(nmax),ak6(nmax), &
-    ytemp(nmax),a2,a3,a4,a5,a6,b21,b31,b32,b41,b42,b43,b51,b52,b53, &
+    real*8 ak2(nmaxx),ak3(nmaxx),ak4(nmaxx),ak5(nmaxx),ak6(nmaxx), &
+    ytemp(nmaxx),a2,a3,a4,a5,a6,b21,b31,b32,b41,b42,b43,b51,b52,b53, &
     b54,b61,b62,b63,b64,b65,c1,c3,c4,c6,dc1,dc3,dc4,dc5,dc6
     parameter (a2=.2,a3=.3,a4=.6,a5=1.,a6=.875,b21=.2,b31=3./40., &
     b32=9./40.,b41=.3,b42=-.9,b43=1.2,b51=-11./54.,b52=2.5, &
@@ -1756,7 +1994,7 @@ module thermev2_subs
         real (kind=8), intent(in) :: t,x
         real (kind=8) :: depsda
         real (kind=8) :: a,lod,n,thp,Cthp,frac1,frac2
-        real (kind=8), parameter :: Cthp0 = 0.3306947357075918999972d0*Me*rt**2
+        real (kind=8), parameter :: Cthp0 = 0.3306947357075918999972d0*Me*Rt**2
         real (kind=8), parameter :: kf2 = 0.93d0
 !       ----------------------------------------------------------------    
         call modelo_dinamico(t,a,n,lod,thp)
@@ -1859,6 +2097,73 @@ module thermev2_subs
         oblicuidad = y
 
     end function oblicuidad
+!=======================================================================
+    FUNCTION dfridr(fun,par,x,h,err)
+
+        real (kind=dp), intent(in) :: par,x,h
+        REAL (kind=dp) :: dfridr,err,fun
+        real (kind=dp), parameter :: CON=1.4d0
+        real (kind=dp), parameter :: CON2=CON*CON
+        real (kind=dp), parameter :: BIG=1.d30
+        real (kind=dp), parameter :: SAFE=2.d0
+        integer, parameter :: NTAB=10
+!       USES func
+        INTEGER :: k,j
+        REAL (kind=dp) :: errt,fac,hh,a(NTAB,NTAB)
+        external fun
+        if(h.eq.0.) print *, 'h must be nonzero in dfridr'
+        hh=h
+        a(1,1)=(fun(par,x+hh)-fun(par,x-hh))/(2.0*hh)
+        err=BIG
+        do k=2,NTAB
+            hh=hh/CON
+            a(1,k)=(fun(par,x+hh)-fun(par,x-hh))/(2.0*hh)
+            fac=CON2
+            do j=2,k
+                a(j,k)=(a(j-1,k)*fac-a(j-1,k-1))/(fac-1.)
+                fac=CON2*fac
+                errt=max(abs(a(j,k)-a(j-1,k)),abs(a(j,k)-a(j-1,k-1)))
+                if (errt.le.err) then
+                err=errt
+                dfridr=a(j,k)
+                endif
+            end do
+            if(abs(a(k,k)-a(k-1,k-1)).ge.SAFE*err)return
+        end do
+
+        return
+
+    END
+!=======================================================================
+    FUNCTION rtbis(func,par1,par2,x1,x2,xacc)
+
+        implicit none
+
+        INTEGER :: JMAX
+        real(kind=dp) :: x1,x2,xacc,par1,par2
+        REAL(kind=dp) :: rtbis,func
+        PARAMETER (JMAX=40)
+        INTEGER :: j
+        REAL(kind=dp) :: dx,f,fmid,xmid
+        fmid=func(x2,par1,par2)
+        f=func(x1,par1,par2)
+        if(f*fmid.ge.0.) print *, 'root must be bracketed in rtbis'
+        if(f.lt.0.)then
+            rtbis=x1
+            dx=x2-x1
+        else
+            rtbis=x2
+            dx=x1-x2
+        endif
+        do 11 j=1,JMAX
+            dx=dx*.5
+            xmid=rtbis+dx
+            fmid=func(xmid,par1,par2)
+            if(fmid.le.0.)rtbis=xmid
+            if(abs(dx).lt.xacc .or. fmid.eq.0.) return
+    11    continue
+        print *, 'too many bisections in rtbis'
+    END
 !=======================================================================
 
 end module thermev2_subs
