@@ -11,7 +11,7 @@ program thermev_db
     real (kind=dp) :: t,tprint,y(nvar),dydt(nvar),a,ric,&
                       ur,urtot,dlit,qcmb,qconv,qmelt,qradm, & 
                       qradc,tcmb,tubl,qtidal,tpot,Ra,den,int, &
-                      Tlbl,DTubl,DTlbl,dubl,dlbl
+                      Tlbl,DTubl,DTlbl,dubl,dlbl,chi
     real (kind=dp), parameter :: tol = 1.d-6
     real (kind=dp), parameter :: dt = 1.d-3
     real (kind=dp), parameter :: tera = 1.d-12
@@ -98,6 +98,9 @@ program thermev_db
       y(2) = 0.d0
       y(3) = tm0/epsm
     call dTdt(t,y,dydt)
+    Tcmb = y(1)
+    Ric = dsqrt(y(2))
+    Tubl = y(3)
     Ur = printout(1)
     Urtot = printout(2)
      Qcmb = printout(3)
@@ -108,8 +111,8 @@ program thermev_db
    Qtidal = printout(8)
        St = printout(9)
        Ra = printout(10)
-       Ric = dsqrt(y(2))
-       call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+      chi = printout(11)
+    call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
     print *,'dTcmb/dt = ',dydt(1)
     print *,'dRic2/dt = ',dydt(2)
     print *,'dTm/dt = ',dydt(3)
@@ -145,6 +148,7 @@ program thermev_db
 !       ----------------------------------------------------------------
         if (t.ge.tprint) then
             call imprimir_perfil(tprint,Tcmb,Tubl)
+            call imprimir_Tliqc(tprint,chi)
             tprint = tprint + dtprint
         end if
 !       ----------------------------------------------------------------
@@ -158,22 +162,23 @@ program thermev_db
 !       ----------------------------------------------------------------
         tpot = tubl*dexp(-gum*alfam*dubl/cm)
 !       ----------------------------------------------------------------
-           Ur = printout(1)
-        Urtot = printout(2)
-         Qcmb = printout(3)
-        Qconv = printout(4)
-        Qmelt = printout(5)
-        Qradm = printout(6)
-        Qradc = printout(7)
-       Qtidal = printout(8)
-           St = printout(9)
-           Ra = printout(10)
+            Ur = printout(1)
+         Urtot = printout(2)
+          Qcmb = printout(3)
+         Qconv = printout(4)
+         Qmelt = printout(5)
+         Qradm = printout(6)
+         Qradc = printout(7)
+        Qtidal = printout(8)
+            St = printout(9)
+            Ra = printout(10)
+           chi = printout(11)
 !       ----------------------------------------------------------------
 !       escritura de resultados en el archivo de salida
 !       ----------------------------------------------------------------
 !                   1   2   3    4   5    6
         write(11,*) t,Tcmb,Tubl,Tpot,ur,urtot, &
-!                    7     8     9     10  
+!                    7     8       9     10  
                     dlit,Ric*km,dubl*km,dlbl*km, &
         !                11       12         13         14
                     qcmb*tera,qconv*tera,qmelt*tera,qradm*tera, &
@@ -215,6 +220,7 @@ program thermev_db
 !   --------------------------------------------------------------------
     print *,'Imprimiendo perfil de temperatura final...'
     call imprimir_perfil(tprint,Tcmb,Tubl)
+    call imprimir_Tliqc(tprint,chi)
     print *,'... listo!'
 !   --------------------------------------------------------------------
     print *,' '
