@@ -182,8 +182,8 @@ program thermev_db
                     dlit,Ric*km,dubl*km,dlbl*km, &
         !                11       12         13         14
                     qcmb*tera,qconv*tera,qmelt*tera,qradm*tera, &
-        !               15          16        17      18      
-                    qradc*tera,qtidal*tera,visc(Tubl),Ra
+        !               15          16        17      18 19  
+                    qradc*tera,qtidal*tera,visc(Tubl),Ra,chi
 !       ----------------------------------------------------------------
         call odeint(y,nvar,t,t+dt,tol,dt,0.d0,nok,nbad,dTdt,bsstep)    
         Tcmb = y(1)
