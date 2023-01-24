@@ -161,7 +161,7 @@ module thermev2_subs
     real (kind=dp), allocatable :: asuma(:)
     real (kind=dp), dimension(1:60) :: xa,ya
     real (kind=dp) :: tsolm,tliqm,St
-    real(kind=dp), dimension(10) :: printout
+    real(kind=dp), dimension(11) :: printout
 !   --------------------------------------------------------------------
 !   bloque de procedimientos
 !   --------------------------------------------------------------------
@@ -249,15 +249,15 @@ module thermev2_subs
 !   --------------------------------------------------------------------
 !   calculo del número de Stefan
 !   --------------------------------------------------------------------
-    St = stefan(Tcmb,Tubl)
+    St = stefan(Tubl,dubl)
 !   --------------------------------------------------------------------
 !   calculo de las razones de urey
 !   --------------------------------------------------------------------
     ur = qradm/qconv
     urtot = qradm/(qconv+qmelt)
 !   --------------------------------------------------------------------
+    chi = x0*Rc**3/(Rc**3-Ric**3)
     if (lcore) then
-        chi = x0*Rc**3/(Rc**3-Ric**3)
         lRic = fPio(Pcmb,Tcmb,chi)*fPio(Pec,Tcmb,chi).lt.0.d0
         if(lRic) then 
             Pio = rtbis(fPio,Tcmb,chi,Pcmb,Pec,1.d-6)
@@ -309,6 +309,7 @@ module thermev2_subs
     printout(7) = Qradc
     printout(8) = Qtidal
     printout(9) = St
+    printout(10) = chi
 !   --------------------------------------------------------------------
     end subroutine dTdt
 !=======================================================================
@@ -334,7 +335,7 @@ module thermev2_subs
 !       ----------------------------------------------------------------
         vubl = visc(Tubl)
         Ra = gum*alfam*(dTubl + dTlbl)*(Rt - Rc)**3/(kapm*vubl)
-        printout(10) = Ra
+        printout(11) = Ra
         dubl = (Rt - Rc)*(Racr/Ra)**beta
 !   --------------------------------------------------------------------        
     end subroutine conveccion
@@ -604,7 +605,7 @@ module thermev2_subs
         write(chtide,'(i1)') tidefl
         write(chradc,'(i1)') radcfl
         write(chradm,'(i1)') radmfl
-        open(unit=11,file='../out/thermevdb_'//trim(reo)//'_demid_'// &
+        open(unit=11,file='../out/thermev2_'//trim(reo)//'_demid_'// &
             trim(chidfit)//'_tide_'//trim(chtide)//'_radc_'//trim(chradc)// &
             '_radm_'//trim(chradm)//'_'//trim(chanio)//'-'//trim(chmes)//'-' &
             //trim(chdia)//'_'//trim(chhora)//'_'//trim(chmins)//'_' &
@@ -644,16 +645,48 @@ module thermev2_subs
         r = 0.d0
         do while (r.le.Rt)
             tdr = Temprof(Tcmb,Tlbl,Tubl,dlm,dum,r)
-            write(12,*) r,tdr,pdr(r),tsol(r),tliq(r),tsolc(r),visc(tdr)
+            write(12,*) r,tdr,pdr(r),visc(tdr)
             r = r + dr
         end do
-    !   --------------------------------------------------------------------
+!       ----------------------------------------------------------------
         close(12)
-    !   --------------------------------------------------------------------
+!   --------------------------------------------------------------------
     end subroutine imprimir_perfil
 !=======================================================================
+    subroutine imprimir_Tliqc(tprint,chi)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------
+        real(kind=dp), intent(in) :: chi,tprint
+        character (len=4) :: chanio,chmes,chdia,chhora,chmins,chsegs
+        character (len=4) :: chtprint
+        real (kind=dp), parameter :: dr = 1.d2
+        real (kind=dp) :: r
+!       ----------------------------------------------------------------
+        call timestamp(chanio,chmes,chdia,chhora,chmins,chsegs)
+!       ----------------------------------------------------------------
+        if (tprint.eq.0.d0) then
+            write(chtprint,'(i1)') int(tprint)
+        else if(tprint.lt.1.d0) then
+            write(chtprint,'(i3)') int(tprint*1.d3)
+        else
+            write(chtprint,'(i4)') int(tprint*1.d3)
+        end if
+!       ----------------------------------------------------------------
+        open(unit=20,file='../out/Tliqc'//trim(chtprint)//'_'//trim(chanio)// &
+        '-'//trim(chmes)//'-'//trim(chdia)//'_'//trim(chhora)//'_'//trim(chmins)//'_' &
+        //trim(chsegs)//'.out',status='unknown')
+!       ----------------------------------------------------------------
+        r = 0.d0
+        do while (r.le.Rt)
+            if(r*(Rc-r).ge.0.d0) write(20,*) r,Tliqc(chi,r)
+            r = r + dr
+        end do
+!   --------------------------------------------------------------------        
+    end subroutine imprimir_Tliqc
+!=======================================================================
     subroutine reologia(l,w,id,eta,kr,ki)
-!   -------------------------------------------------------------------
+!   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
     real (kind=dp), intent(in) :: w,eta
@@ -1128,8 +1161,8 @@ module thermev2_subs
     real (kind=dp), parameter :: etaref = 1.d21     ! reference viscosity (stamenkovic et al, 2012)
     real (kind=dp), parameter ::   tref = 1600.d0   ! reference temperature
 !   --------------------------------------------------------------------
-    visc = visc0*dexp(act0/t)
-    !visc = etaref*dexp(eact*(1.d0/t - 1.d0/tref)/rgas)
+    !visc = visc0*dexp(act0/t)
+    visc = etaref*dexp(eact*(1.d0/t - 1.d0/tref)/rgas)
 !   --------------------------------------------------------------------
     end function visc
 !=======================================================================
@@ -1301,23 +1334,21 @@ module thermev2_subs
 
     end function avgfmelt
 !=======================================================================
-    function stefan(Tcmb,Tubl)
+    function stefan(Tubl,dubl)
 !   --------------------------------------------------------------------
 !   Cálculo del número de stefan
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: Tubl,Tcmb
+        real (kind=dp), intent(in) :: Tubl,dubl
         real (kind=dp) :: stefan
         !err,dphidT
-        real (kind=dp) :: Tlbl,DTubl,DTlbl,dubl,dlbl,r1,r2,rint,denVa, &
+        real (kind=dp) :: r1,r2,rint,denVa, &
                           int,avgTsol,avgTliq
         real(kind=dp), parameter :: h = 10.d0
 !       ----------------------------------------------------------------
 !        dphidT = dfridr(avgfmelt,Tcmb,Tubl,h,err)
 !        stefan = (Lmelt/cm)*(3.d0/denVm)*dphidT
-!       ----------------------------------------------------------------
-        call capas_limites(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
 !       ----------------------------------------------------------------
         r1 = Rast(Tubl,dubl)
         rint = Rt - dubl
@@ -1431,7 +1462,11 @@ module thermev2_subs
         real (kind=dp), intent(in) :: Tubl,dubl
         real (kind=dp) :: Rphim
 !       ----------------------------------------------------------------
-        Rphim = rtbis(meltfdism,Tubl,dubl,Rc,Rt-dubl,1.d-3)
+        if (fmeltm(Tubl,dubl,Rt-dubl).ge.phidis) then 
+            Rphim = rtbis(meltfdism,Tubl,dubl,Rc,Rt-dubl,1.d-3)
+        else 
+            Rphim = Rt - dubl
+        end if
 !   --------------------------------------------------------------------        
     end function Rphim
 !=======================================================================
