@@ -678,8 +678,8 @@ module thermev2_subs
         //trim(chsegs)//'.out',status='unknown')
 !       ----------------------------------------------------------------
         r = 0.d0
-        do while (r.le.Rt)
-            if(r*(Rc-r).ge.0.d0) write(20,*) r,Tliqc(chi,r)
+        do while (r.le.Rc)
+            write(20,*) r,Tliqc(chi,r)
             r = r + dr
         end do
 !   --------------------------------------------------------------------        
