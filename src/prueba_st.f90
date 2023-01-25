@@ -5,7 +5,7 @@ program prueba_st
     implicit none
 
     real(kind=dp) :: den,int,Tubl,avgTc,avgTm,Tcmb,Tlbl,DTubl,DTlbl, &
-                     dubl,dlbl,err,num,damfdT,r1,r2,Tcmb0
+                     dubl,dlbl,err,num,damfdT,r1,r2,Tcmb0,tsolm,tliqm,St
     real(kind=dp), parameter :: km = 1.d-3
     real(kind=dp), parameter :: tprint = 0.d0
     real(kind=dp), parameter :: h = 10.d0
@@ -32,7 +32,7 @@ program prueba_st
 
     Tsup = 300.d0
     avgTc = 6000.d0
-    avgTm = 2290.d0
+    avgTm = 2000.d0
 
     print 10,'Tc =',avgTc
     print 10,'Tm =',avgTm
@@ -50,6 +50,7 @@ program prueba_st
     print 10,'Tc0 =',epsc*Tcmb0
     print 10,'Tubl =',Tubl
     print 10,'Tlbl =',Tlbl
+    print 10,'Tsol =',tsol(Rt-dubl)
     print *,' '
     print 10,'DTubl =',DTubl
     print 10,'DTlbl =',DTlbl
@@ -60,7 +61,7 @@ program prueba_st
 
 !    call imprimir_perfil(tprint,Tcmb,Tubl)
     
-    if ((Tubl-tsol(Rt-dubl))*(tliq(Rt-dubl)-Tubl).gt.0.d0) then 
+!    if ((Tubl-tsol(Rt-dubl))*(tliq(Rt-dubl)-Tubl).gt.0.d0) then 
 
         r1 = Rast(Tubl,dubl)
         r2 = Rlit(Tubl,dubl)
@@ -70,28 +71,15 @@ program prueba_st
         print 10,'dlit =',(Rt - r2)*km
         print 10,'Rt - dubl =',(Rt - dubl)*km
         print *,' '
-        damfdT = dfridr(avgfmelt,Tcmb,Tubl,h,err)
-!        print *,'d(avgfmelt)/dTubl = ',damfdT
-!        print *,' '
+        !damfdT = dfridr(avgfmelt,Tcmb,Tubl,h,err)
 
         num = r2**3 - r1**3
 
-        print *,'avgfmelt =',avgfmelt(Tcmb,dubl)*(num/den)  
-
-        call qromb(tsolr2,r1,r2,int)
-        tsolm = 3.d0*int/den
-        call qromb(tliqr2,r1,r2,int)
-        tliqm = 3.d0*int/den
-
-        St = (Lmelt/cm)*(num/den)/(tliqm - tsolm)
-
-        print 10,'St =',St
-
-        St = stefan(Tcmb,Tubl)
+        St = stefan(Tubl,dubl)
 
         print *,'St = ',St
         print *,' '
 
-    end if
+!    end if
 
 end program prueba_st

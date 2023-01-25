@@ -4,7 +4,8 @@ program avg_fmelt
 
     implicit none
 
-    real(kind=dp) :: avgTc,avgTm,Tcmb,Tubl,Tlbl,DTlbl,DTubl,dubl,dlbl
+    real(kind=dp) :: avgTc,avgTm,Tcmb,Tubl,Tlbl,DTlbl,DTubl,dubl,dlbl, &
+                     St
     
     open(unit=20,file='../out/avgfmelt.out',status='unknown')
 

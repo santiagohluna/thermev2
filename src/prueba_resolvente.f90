@@ -17,7 +17,7 @@
         chi = x0*Rc**3/(Rc**3-Ric**3)
         lPio = fPio(Pcmb,Tcmb,chi)*fPio(Pec,Tcmb,chi).lt.0.d0
         if(lPio) then 
-            Pio = rtbis(fPio,Tcmb,chi,Pcmb,Pec,1.d-6)
+            Pio = rtbis(fPio,Tcmb,chi,Pcmb,Pec,1.d-3)
             ric = dsqrt(2.d0*(pec-Pio)*1.d9*rc/(rhoc*glm))
         else
             Pio = Pec
