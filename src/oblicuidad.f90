@@ -14,12 +14,12 @@ program prueba_oblicuidad
     real (kind=8), parameter :: GMl = 4902.800d9
     real (kind=8), parameter :: Ed = 0.003243d0
     real (kind=8), parameter :: dt2 = 0.5d0*dt
+    integer, parameter :: demid = 1
     
     open(unit=10,file='../out/oblicuidad.out')
 
 10  format(f4.2,1x,f7.4,1x,f7.4,1x,f15.6,1x,f10.8,1x,f10.8)
 
-    demid = 1
     ldem1 = demid.eq.1
 
     t = ti
