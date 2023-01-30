@@ -1405,8 +1405,7 @@ module thermev2_subs
         real (kind=dp), intent(in) :: Tubl,dubl
         real (kind=dp) :: stefan
         !err,dphidT
-        real (kind=dp) :: r1,r2,rint,denVa, &
-                          int,avgTsol,avgTliq
+        real (kind=dp) :: r1,r2,rint,denVa,int
 !       ----------------------------------------------------------------
 !        dphidT = dfridr(avgfmelt,Tcmb,Tubl,h,err)
 !        stefan = (Lmelt/cm)*(3.d0/denVm)*dphidT
@@ -1419,19 +1418,11 @@ module thermev2_subs
 !       ----------------------------------------------------------------
             denVa = r2**3 - r1**3
 !           ------------------------------------------------------------
-            call qromb(tsolr2,r1,rint,int)
-            avgTsol = 3.d0*int/denVa
+            call qromb(dfmeltmdTubl,r1,rint,int,dubl)
+            stefan = (Lmelt/cm)*(3.d0/denVm)*int
 !           ------------------------------------------------------------
-            call qromb(tsolr2,rint,r2,int)
-            avgTsol = avgTsol + 3.d0*int/denVa
-!           -----------------------------------------------------------
-            call qromb(tliqr2,r1,rint,int)
-            avgTliq = 3.d0*int/denVa
-!           ------------------------------------------------------------
-            call qromb(tliqr2,rint,r2,int)
-            avgTliq = avgTliq + 3.d0*int/denVa
-!           ------------------------------------------------------------
-            stefan = (Lmelt/cm)*(denVa/denVm)/(avgTliq - avgTsol)
+            call qromb(dfmeltmdTubl,rint,r2,int,dubl)
+            stefan = stefan + (Lmelt/cm)*(3.d0/denVm)*int
 !       ----------------------------------------------------------------
         else
 !       ----------------------------------------------------------------
@@ -1448,7 +1439,7 @@ module thermev2_subs
         real(kind=dp), intent(in) :: r,dubl
         real(kind=dp) :: dfmeltmdTubl
 !       ----------------------------------------------------------------
-        dfmeltmdTubl = (1.d0 + alfam*gum*(Rt-dubl-r)/cm)/(Tliq(r)-Tsol(r))
+        dfmeltmdTubl = (1.d0 + alfam*gum*(Rt-dubl-r)/cm)*r*r/(Tliq(r)-Tsol(r))
 !   --------------------------------------------------------------------
     end function dfmeltmdTubl
 !=======================================================================
@@ -1459,7 +1450,7 @@ module thermev2_subs
         real(kind=dp), intent(in) :: r,dubl
         real(kind=dp) :: dfmeltubldTubl
 !       ----------------------------------------------------------------
-        dfmeltubldTubl = ((Rt-r)/dubl)/(Tliq(r)-Tsol(r))
+        dfmeltubldTubl = ((Rt-r)/dubl)*r*r  /(Tliq(r)-Tsol(r))
 !   --------------------------------------------------------------------
     end function dfmeltubldTubl
 !=======================================================================
@@ -1697,7 +1688,7 @@ module thermev2_subs
       real(kind=dp),intent(in), optional :: par1,par2
       real (kind=dp), intent(out) :: s
       integer :: it,j
-      real (kind=dp) :: del,sum,tnm,x,func,fc
+      real (kind=dp) :: del,sum,tnm,x,func,fval
       if (n.eq.1) then
         if(present(par1)) then 
             if(present(par2)) then 
@@ -1717,14 +1708,14 @@ module thermev2_subs
         do j=1,it
             if(present(par1)) then 
                 if(present(par2)) then 
-                    fc = func(x,par1,par2)
+                    fval = func(x,par1,par2)
                 else 
-                    fc = func(x,par1)
+                    fval = func(x,par1)
                 end if
             else
-                fc = func(x)
+                fval = func(x)
             end if
-            sum=sum+fc
+            sum=sum + fval
             x=x+del
         end do
         s=0.5d0*(s+(b-a)*sum/tnm)
