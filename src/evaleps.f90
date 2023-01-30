@@ -22,8 +22,4 @@ program evaleps
         x = x + dx
     end do
 
-!100 format('El valor t =',1x,f4.2,1x,'Ga se encuentra entre los índices',1x,i2,1x,'y',1x,i2,'.')
-!    print *,' '
-!    print 100,x,j,j+1
-
 end program evaleps
