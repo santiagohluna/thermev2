@@ -1,12 +1,14 @@
 TEMPERATURA DE LA SUPERFICIE, 
-293.D0,6000.D0,3000.D0
+293.D0,5000.D0,2500.D0,100.d0,200.d0
+SELECTOR DEL MÉTODO DE INICIALIZACIÓN DE LAS TEMPERATURAS
+1
 EXCENTRICIDAD
 0.055D0
 FLAG CALOR POR MAREAS, FLAG CALOR RADIOGÉNICO EN NÚCLEO Y MANTO (0: OFF, 1: ON)
-0,1,1
+1,1,1
 IDENTIFICADOR DE MODELO TÉRMICO (1: DB14, 2: DB15)
 2
-Identificador del modelo de evolución térmica del núcleo (1: Steveson et al (1983), 2: Driscoll & Bercovici (2014))
+Identificador del modelo de evolución térmica del núcleo (1: Stevenson et al (1983), 2: Driscoll & Bercovici (2014))
 1
 NUMERO IDENTIFICADOR DE LA REOLOGÍA
 5
