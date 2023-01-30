@@ -1599,10 +1599,9 @@ module thermev2_subs
     real (kind=dp), intent(in) :: a,b
     real (kind=dp), intent(out) :: ss
     real (kind=dp), parameter :: eps=1.d-6
-    real (kind=dp) :: func
+    real(kind=dp), external :: func
     integer, parameter :: jmax=20, jmaxp=jmax+1, k=5, km=k-1
     integer :: j
-    external func
 !   uses polint,trapzd
     real*8 dss,h(jmaxp),s(jmaxp)
     h(1)=1.
@@ -1622,10 +1621,9 @@ module thermev2_subs
         real (kind=dp), intent(in) :: a,b,par1,par2
         real (kind=dp), intent(out) :: ss
         real (kind=dp), parameter :: eps=1.d-6
-        real (kind=dp) :: func2
+        real (kind=dp), external :: func2
         integer, parameter :: jmax=20, jmaxp=jmax+1, k=5, km=k-1
         integer :: j
-        external func2
 !       uses polint,trapzd
         real*8 dss,h(jmaxp),s(jmaxp)
         h(1)=1.
@@ -2224,7 +2222,8 @@ module thermev2_subs
     FUNCTION dfridr(fun,par,x,h,err)
 
         real (kind=dp), intent(in) :: par,x,h
-        REAL (kind=dp) :: dfridr,err,fun
+        REAL (kind=dp) :: dfridr,err
+        real(kind=dp), external :: fun
         real (kind=dp), parameter :: CON=1.4d0
         real (kind=dp), parameter :: CON2=CON*CON
         real (kind=dp), parameter :: BIG=1.d30
@@ -2233,7 +2232,6 @@ module thermev2_subs
 !       USES func
         INTEGER :: k,j
         REAL (kind=dp) :: errt,fac,hh,a(NTAB,NTAB)
-        external fun
         if(h.eq.0.) print *, 'h must be nonzero in dfridr'
         hh=h
         a(1,1)=(fun(par,x+hh)-fun(par,x-hh))/(2.0*hh)
