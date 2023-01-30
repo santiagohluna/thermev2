@@ -1316,7 +1316,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function tm
 !=======================================================================
-    function fmeltubl(Tubl,dum,r)
+    function fmeltubl(r,Tubl,dum)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
@@ -1334,7 +1334,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function fmeltubl
 !=======================================================================
-    function fmeltm(Tubl,dum,r)
+    function fmeltm(r,Tubl,dum)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
@@ -1352,25 +1352,25 @@ module thermev2_subs
 !       ----------------------------------------------------------------
     end function fmeltm
 !=======================================================================
-    function fmeltmr2(Tubl,dum,r)
+    function fmeltmr2(r,Tubl,dum)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
         real (kind=dp), intent(in) :: Tubl,dum,r
         real (kind=dp) :: fmeltmr2
 !       ----------------------------------------------------------------
-        fmeltmr2 = fmeltm(Tubl,dum,r)*r**2
+        fmeltmr2 = fmeltm(r,Tubl,dum)*r**2
 !   --------------------------------------------------------------------
     end function fmeltmr2
 !=======================================================================
-    function fmeltublr2(Tubl,dum,r)
+    function fmeltublr2(r,Tubl,dum)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
     real (kind=dp), intent(in) :: Tubl,dum,r
     real (kind=dp) :: fmeltublr2
 !   --------------------------------------------------------------------
-    fmeltublr2 = fmeltubl(Tubl,dum,r)*r**2
+    fmeltublr2 = fmeltubl(r,Tubl,dum)*r**2
 !   --------------------------------------------------------------------
     end function fmeltublr2
 !=======================================================================
@@ -1388,9 +1388,9 @@ module thermev2_subs
 
         rint = Rt-dubl
     
-        call qromb2(fmeltmr2,Tubl,dubl,Rc,rint,int1)
+        call qromb(fmeltmr2,Rc,rint,int1,Tubl,dubl)
 
-        call qromb2(fmeltublr2,Tubl,dubl,rint,Rt,int2)
+        call qromb(fmeltublr2,rint,Rt,int2,Tubl,dubl)
     
         avgfmelt = 3.d0*(int1+int2)/denVm
 
@@ -1440,6 +1440,30 @@ module thermev2_subs
         end if
 !   --------------------------------------------------------------------
     end function stefan
+!=======================================================================
+    function dfmeltmdTubl(r,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------        
+        real(kind=dp), intent(in) :: r,dubl
+        real(kind=dp) :: dfmeltmdTubl
+!       ----------------------------------------------------------------
+        dfmeltmdTubl = (1.d0 + alfam*gum*(Rt-dubl-r)/cm)/(Tliq(r)-Tsol(r))
+!   --------------------------------------------------------------------
+    end function dfmeltmdTubl
+!=======================================================================
+    function dfmeltubldTubl(r,dubl)
+!   --------------------------------------------------------------------
+        implicit none
+!       ----------------------------------------------------------------        
+        real(kind=dp), intent(in) :: r,dubl
+        real(kind=dp) :: dfmeltubldTubl
+!       ----------------------------------------------------------------
+        dfmeltubldTubl = ((Rt-r)/dubl)/(Tliq(r)-Tsol(r))
+!   --------------------------------------------------------------------
+    end function dfmeltubldTubl
+!=======================================================================
+!
 !=======================================================================
     function dTmTsol(r,Tubl,dubl)
 !   --------------------------------------------------------------------
@@ -1595,8 +1619,9 @@ module thermev2_subs
         
     end function fPio
 !==============================================================================
-    subroutine qromb(func,a,b,ss)
+    subroutine qromb(func,a,b,ss,par1,par2)
     real (kind=dp), intent(in) :: a,b
+    real(kind=dp),intent(in), optional :: par1,par2
     real (kind=dp), intent(out) :: ss
     real (kind=dp), parameter :: eps=1.d-6
     real(kind=dp), external :: func
@@ -1606,7 +1631,15 @@ module thermev2_subs
     real*8 dss,h(jmaxp),s(jmaxp)
     h(1)=1.
     do j=1,jmax
-      call trapzd(func,a,b,s(j),j)
+        if(present(par1)) then 
+            if(present(par2)) then 
+                call trapzd(func,a,b,s(j),j,par1,par2)
+            else
+                call trapzd(func,a,b,s(j),j,par1)
+            end if
+        else
+            call trapzd(func,a,b,s(j),j)
+        end if 
       if (j.ge.k) then
         call polint(h(j-km),s(j-km),k,0.d0,ss,dss)
         if (abs(dss).le.eps*abs(ss)) return
@@ -1616,28 +1649,6 @@ module thermev2_subs
     end do
     print *, 'too many steps in qromb'
     end subroutine qromb
-!=======================================================================
-    subroutine qromb2(func2,par1,par2,a,b,ss)
-        real (kind=dp), intent(in) :: a,b,par1,par2
-        real (kind=dp), intent(out) :: ss
-        real (kind=dp), parameter :: eps=1.d-6
-        real (kind=dp), external :: func2
-        integer, parameter :: jmax=20, jmaxp=jmax+1, k=5, km=k-1
-        integer :: j
-!       uses polint,trapzd
-        real*8 dss,h(jmaxp),s(jmaxp)
-        h(1)=1.
-        do j=1,jmax
-        call trapzd2(func2,par1,par2,a,b,s(j),j)
-        if (j.ge.k) then
-            call polint(h(j-km),s(j-km),k,0.d0,ss,dss)
-            if (abs(dss).le.eps*abs(ss)) return
-        endif
-        s(j+1)=s(j)
-        h(j+1)=0.25d0*h(j)
-        end do
-        print *, 'too many steps in qromb'
-    end subroutine qromb2
 !=======================================================================
       subroutine polint(xp,yp,n,x,y,dy)
       integer :: n,k,m,ns
@@ -1680,14 +1691,23 @@ module thermev2_subs
       return
       end subroutine polint
 !=======================================================================
-      subroutine trapzd(func,a,b,s,n)
+      subroutine trapzd(func,a,b,s,n,par1,par2)
       integer, intent(in) :: n
       real (kind=dp), intent(in) :: a,b
+      real(kind=dp),intent(in), optional :: par1,par2
       real (kind=dp), intent(out) :: s
       integer :: it,j
-      real (kind=dp) :: del,sum,tnm,x,func
+      real (kind=dp) :: del,sum,tnm,x,func,fc
       if (n.eq.1) then
-        s=0.5d0*(b-a)*(func(a)+func(b))
+        if(present(par1)) then 
+            if(present(par2)) then 
+                s=0.5d0*(b-a)*(func(a,par1,par2)+func(b,par1,par2))
+            else 
+                s=0.5d0*(b-a)*(func(a,par1)+func(b,par1))
+            end if
+        else
+            s=0.5d0*(b-a)*(func(a)+func(b))
+        end if
       else
         it=2**(n-2)
         tnm=it
@@ -1695,36 +1715,22 @@ module thermev2_subs
         x=a+0.5d0*del
         sum=0.d0
         do j=1,it
-          sum=sum+func(x)
-          x=x+del
+            if(present(par1)) then 
+                if(present(par2)) then 
+                    fc = func(x,par1,par2)
+                else 
+                    fc = func(x,par1)
+                end if
+            else
+                fc = func(x)
+            end if
+            sum=sum+fc
+            x=x+del
         end do
         s=0.5d0*(s+(b-a)*sum/tnm)
       end if
       return
       end subroutine trapzd
-!=======================================================================
-    subroutine trapzd2(func,par1,par2,a,b,s,n)
-        integer, intent(in) :: n
-        real (kind=dp), intent(in) :: a,b,par1,par2
-        real (kind=dp), intent(out) :: s
-        integer :: it,j
-        real (kind=dp) :: del,sum,tnm,x,func
-        if (n.eq.1) then
-            s=0.5d0*(b-a)*(func(par1,par2,a)+func(par1,par2,b))
-        else
-            it=2**(n-2)
-            tnm=it
-            del=(b-a)/tnm
-            x=a+0.5d0*del
-            sum=0.d0
-            do j=1,it
-            sum=sum+func(par1,par2,x)
-            x=x+del
-            end do
-            s=0.5d0*(s+(b-a)*sum/tnm)
-        end if
-        return
-    end subroutine trapzd2
 !=======================================================================
     function gammln(xx)
       implicit none
