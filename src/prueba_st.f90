@@ -56,8 +56,9 @@ program prueba_st
         print 10,'dlit =',(Rt - r2)*km
         print 10,'Rt - dubl =',(Rt - dubl)*km
         print *,' '
+        print 10,'avg(fmelt) =',avgfmelt(Tcmb,Tubl) ! Llama a qromb2
 
-        St = stefan(Tubl,dubl)
+        St = stefan(Tubl,dubl) ! llama a qromb
 
         print *,'St = ',St
         print *,' '
