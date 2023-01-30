@@ -185,8 +185,9 @@ module thermev2_subs
     real (kind=dp) :: dtubl,Tubl,ric,dricdt,dlbl,dubl,aic, &
                       dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
                       qradc,Tcmb,Tlbl,dvupdt,qtidal, &
-                      ur,urtot,radic,num,delt,a1,a2,int,etavg, &
+                      ur,urtot,radic,num,etavg, &
                       tmelt,zmelt,zum,dpiodtc,ftvf,Pio,St
+    !real(kind=dp) :: delt,a1,a2,int
 !    real (kind=dp) :: asumaq(4)
 !   --------------------------------------------------------------------
     Tcmb = y(1)
@@ -243,12 +244,12 @@ module thermev2_subs
 !   calculo de qtidal
 !   --------------------------------------------------------------------
     if (ltide) then
-        a1 = Tlbl
-        a2 = Tubl
-        delt = Tubl - Tlbl
-        call qromb(visc,a1,a2,int)
-        etavg = int/delt
-!        etavg = 0.5*(visc(Tubl) + visc(Tlbl))
+        ! a1 = Tlbl
+        ! a2 = Tubl
+        ! delt = Tubl - Tlbl
+        ! call qromb(visc,a1,a2,int)
+        ! etavg = int/delt
+        etavg = 0.5*(visc(Tubl) + visc(Tlbl))
         Qtidal = ftvf*pm(t0-t,etavg)
     else
         Qtidal = 0.d0
@@ -1212,19 +1213,19 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function Temprof
 !=======================================================================
-    function visc(T)
+    function visc(T,P)
 !   --------------------------------------------------------------------
     implicit none
 !   --------------------------------------------------------------------
     real (kind=dp), intent(in) :: T
-!    real (kind=dp), intent(in), optional :: P
+    real (kind=dp), intent(in), optional :: P
     real (kind=dp) :: visc
-!    real (kind=dp) :: Publ
 !   --------------------------------------------------------------------
-!    Publ = 0.d0
-!    if(present(P)) Publ = P
-    !visc = visc0*dexp((Eact+Publ*Vact)/(Rgas*T))
-    visc = etaref*dexp(Eact*(1.d0/T - 1.d0/Tref)/Rgas)
+    if(present(P)) then
+        visc = visc0*dexp((Eact+P*Vact)/(Rgas*T))
+    else
+        visc = etaref*dexp(Eact*(1.d0/T - 1.d0/Tref)/Rgas)
+    end if
 !   --------------------------------------------------------------------
     end function visc
 !=======================================================================
