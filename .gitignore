@@ -11,3 +11,7 @@
 *.ps
 *.pdf
 *.png
+*.bbl
+*.blg
+*.gz
+*.bst
