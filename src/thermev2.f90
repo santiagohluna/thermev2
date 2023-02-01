@@ -12,7 +12,7 @@ program thermev_db
                       ur,urtot,dlit,qcmb,qconv,qmelt,qradm, & 
                       qradc,tcmb,tubl,qtidal,tpot,Ra,St, &
                       Tlbl,DTubl,DTlbl,dubl,dlbl,dtprint
-    real(kind=dp) :: tc0,tm0,DTcmb,DTlbl0
+    real(kind=dp) :: tc0,tm0,DTcmb,DTlbl0,Tcmb0,Tubl0
     logical, dimension(2) :: linit
     real(kind=dp), parameter :: tol = 1.d-6
     real(kind=dp), parameter :: dt = 1.d-3
@@ -88,8 +88,9 @@ program thermev_db
          t = 0.d0
     tprint = 0.d0
     dtprint = dtprint/1000.d0
-      y(1) = tc0/epsc
-      y(2) = tm0/epsm
+    call inicializar_temperaturas(linit,tc0,tm0,DTcmb,DTlbl0,Tcmb0,Tubl0)
+      y(1) = Tcmb0
+      y(2) = Tubl0
     call dTdt(t,y,dydt)
     Tcmb = y(1)
     Tubl = y(2)
