@@ -145,8 +145,8 @@ module thermev2_subs
     real (kind=dp), parameter ::   Vact = 4.d-6     ! Activation volume
     real (kind=dp), parameter ::  visc0 = 6.127d10  ! Viscosity prefactor (Tosi et al. 2017)
     real (kind=dp), parameter ::   rgas = 8.31447d0 ! gas constant
-    real (kind=dp), parameter ::   eact = 3.35d5    ! viscosity activation energy
-    real (kind=dp), parameter :: etaref = 5.d20     ! reference viscosity (stamenkovic et al, 2012)
+    real (kind=dp), parameter ::   eact = 3.d5      ! viscosity activation energy
+    real (kind=dp), parameter :: etaref = 1.d21     ! reference viscosity (stamenkovic et al, 2012)
     real (kind=dp), parameter ::   tref = 1600.d0   ! reference temperature
 !   --------------------------------------------------------------------
 !   Switch globales
@@ -326,9 +326,8 @@ module thermev2_subs
 !       ----------------------------------------------------------------
         real(kind=dp), intent(in) :: Tcmb, Tubl, Tlbl
         real(kind=dp), intent(out) :: DTubl, DTlbl, dubl, dlbl
-        real(kind=dp) :: vlbl, vubl, Ra, Publ
+        real(kind=dp) :: vlbl, vubl, Ra, Publ, Plbl, avgPlbl
 !        real(kind=dp) :: Racrcmb
-        real (kind=dp), parameter :: fpd = 1.d0
         real (kind=dp), parameter :: Racrcmb = 2000.d0      ! critical rayleigh number at the cmb
 !       ----------------------------------------------------------------
 !       Cálculo de los saltos de temperatura
@@ -346,7 +345,9 @@ module thermev2_subs
 !       Cálculo del espesor de la capa límite inferior
 !       ----------------------------------------------------------------
 !        Racrcmb = 0.28d0*Ra**0.21d0
-        vlbl = fpd*visc(0.5d0*(Tlbl + Tcmb))
+        Plbl = pdr(Rc+dlbl)
+        avgPlbl = 0.5d0*(pcmb+pdr(Rc+dlbl))*1.d9
+        vlbl = visc(0.5d0*(Tlbl + Tcmb))
         dlbl = ((Racrcmb*kapm*vlbl)/(rhom*glm*alfam*DTlbl))**(1.d0/3.d0)
 !       ----------------------------------------------------------------
         printout(11) = Ra
