@@ -236,14 +236,14 @@ module thermev2_subs
         Qradc = 0.d0
     end if
 !   --------------------------------------------------------------------
-!   Cálculo de la fraccion de volumen del manto activo para la 
-!   interaccion de mareas
-!   --------------------------------------------------------------------
-    ftvf = (Rphim(Tubl,dubl)/Rt)**3-(Rc/Rt)**3
-!   --------------------------------------------------------------------
 !   calculo de qtidal
 !   --------------------------------------------------------------------
     if (ltide) then
+!       ----------------------------------------------------------------
+!       Cálculo de la fraccion de volumen del manto activo para la 
+!       interaccion de mareas
+!       ----------------------------------------------------------------
+        ftvf = (Rphi(Tubl,dubl)/Rt)**3-(Rc/Rt)**3
         ! a1 = Tlbl
         ! a2 = Tubl
         ! delt = Tubl - Tlbl
@@ -329,7 +329,7 @@ module thermev2_subs
         real(kind=dp) :: vlbl, vubl, Ra, Publ
 !        real(kind=dp) :: Racrcmb
         real (kind=dp), parameter :: fpd = 1.d0
-        real (kind=dp), parameter :: Racrcmb = 500.d0      ! critical rayleigh number at the cmb
+        real (kind=dp), parameter :: Racrcmb = 2000.d0      ! critical rayleigh number at the cmb
 !       ----------------------------------------------------------------
 !       Cálculo de los saltos de temperatura
 !       ----------------------------------------------------------------
@@ -1451,11 +1451,9 @@ module thermev2_subs
         real(kind=dp), intent(in) :: r,dubl
         real(kind=dp) :: dfmeltubldTubl
 !       ----------------------------------------------------------------
-        dfmeltubldTubl = ((Rt-r)/dubl)*r*r  /(Tliq(r)-Tsol(r))
+        dfmeltubldTubl = ((Rt-r)/dubl)*r*r/(Tliq(r)-Tsol(r))
 !   --------------------------------------------------------------------
     end function dfmeltubldTubl
-!=======================================================================
-!
 !=======================================================================
     function dTmTsol(r,Tubl,dubl)
 !   --------------------------------------------------------------------
@@ -1548,42 +1546,21 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     end function meltfdism
 !=======================================================================
-    function Rphim(Tubl,dubl)
+    function Rphi(Tubl,dubl)
 !   --------------------------------------------------------------------
         implicit none
 !       ----------------------------------------------------------------
         real (kind=dp), intent(in) :: Tubl,dubl
-        real (kind=dp) :: Rphim
+        real (kind=dp) :: Rphi,Rini
 !       ----------------------------------------------------------------
-        if (fmeltm(Tubl,dubl,Rt-dubl).ge.phidis) then 
-            Rphim = rtbis(meltfdism,Tubl,dubl,Rc,Rt-dubl,1.d-3)
+        Rini = Rast(Tubl,dubl)
+        if (meltfdism(Rini,Tubl,dubl)*meltfdism(Rt-dubl,Tubl,dubl).lt.0d0) then 
+            Rphi = rtbis(meltfdism,Tubl,dubl,Rini,Rt-dubl,1.d-3)
         else 
-            Rphim = Rt - dubl
+            Rphi = Rlit(Tubl,dubl)
         end if
 !   --------------------------------------------------------------------        
-    end function Rphim
-!=======================================================================
-    function meltfdisubl(r,Tubl,dubl)
-!   --------------------------------------------------------------------
-        implicit none
-!       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: r,Tubl,dubl
-        real (kind=dp) :: meltfdisubl
-!       ----------------------------------------------------------------
-        meltfdisubl = fmeltubl(Tubl,dubl,r) - phidis
-!   --------------------------------------------------------------------
-    end function meltfdisubl
-!=======================================================================
-    function Rphiubl(Tubl,dubl)
-!   --------------------------------------------------------------------
-        implicit none
-!       ----------------------------------------------------------------
-        real (kind=dp), intent(in) :: Tubl,dubl
-        real (kind=dp) :: Rphiubl
-!       ----------------------------------------------------------------
-        Rphiubl = rtbis(meltfdisubl,Tubl,dubl,Rt-dubl,Rt,1.d-3)
-!   --------------------------------------------------------------------        
-    end function Rphiubl
+    end function Rphi
 !=======================================================================
     function xi(x)
 
@@ -2268,8 +2245,7 @@ module thermev2_subs
         f=func(x1,par1,par2)
         if(f*fmid.ge.0.) then 
             print *, 'root must be bracketed in rtbis'
-            print *, 'Waiting for Enter.'
-            read(stdin,*)
+            call abort()
         end if
         if(f.lt.0.)then
             rtbis=x1
