@@ -6,7 +6,7 @@
         implicit none
 
         integer :: demid,tidefl,radcfl,radmfl
-        real(kind=dp) :: tc0,tm0,DTcmb,DTlbl0,dtprint,Tcmb0,Tubl0
+        real(kind=dp) :: tc0,tm0,DTcmb,DTlbl0,dtprint,Tcmb0,Tubl0,tprint
         logical, dimension(2) :: linit
 
         print *,'Leyendo archivo de entrada...'
@@ -21,9 +21,17 @@
         print *,'... listo!'
 
         print *,' '
+    
+10      format(a11,1x,f7.2)
 
-        print *,'T_cmb (0) = ',Tcmb0
-        print *,'T_ubl (0) = ',Tubl0
+        print 10,'T_cmb (0) = ',Tcmb0
+        print 10,'T_ubl (0) = ',Tubl0
+
+        tprint = 0.d0
+
+        print *,'Imprimiendo perfil de temperatura inicial...'
+        call imprimir_perfil(tprint,Tcmb0,Tubl0)
+        print *,'... listo!'
         
     end program prueba_init
 !==============================================================================
