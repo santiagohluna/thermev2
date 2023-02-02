@@ -548,7 +548,7 @@ module thermev2_subs
         integer, parameter :: kmax = 10
         real(kind=dp), intent(in) :: tc0,tm0,DTcmb,DTlbl0
         real(kind=dp), intent(out) :: Tcmb0,Tubl0
-        real(kind=dp) :: Tubl,Tlbl,Tcmb,DTubl,DTlbl,dubl,dlbl
+        real(kind=dp) :: Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl
 
         if(linit(1)) then 
             Tcmb0 = Tc0/epsc
@@ -564,8 +564,9 @@ module thermev2_subs
             do
 !           -------------------------------------------------------------  
                 Tubl0 = Tubl
+                print *,Tubl
 !               --------------------------------------------------------
-                call conveccion(Tcmb,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
+                call conveccion(Tcmb0,Tubl,Tlbl,DTubl,DTlbl,dubl,dlbl)
 !               --------------------------------------------------------  
                 Tubl = Tlbl/(1.d0 + alfam*gum*(Rt-dubl-Rc-dlbl)/cm)
 !               --------------------------------------------------------  
