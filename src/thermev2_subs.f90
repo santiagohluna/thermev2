@@ -676,6 +676,28 @@ module thermev2_subs
             '_radm_'//trim(chradm)//'_'//trim(chanio)//'-'//trim(chmes)//'-' &
             //trim(chdia)//'_'//trim(chhora)//'_'//trim(chmins)//'_' &
             //trim(chsegs)//'.out',status='unknown')
+!                 1     2     3     4     5     6     7     8     9 
+100     format(a1,a5,1x,a7,1x,a7,1x,a7,1x,a4,1x,a4,1x,a6,1x,a7,1x,a6,1x, &
+!              10    11    12    13    14    15    16    17    18    19
+               a6,1x,a7,1x,a7,1x,a7,1x,a7,1x,a7,1x,a7,1x,a8,1x,a8,1x,a5)
+!                            1        2         3         4       5      6
+        write(11,100) '#','  t  ',' T_cmb ',' T_ubl ',' T_pot ',' Ur ','Ur_t', &
+!                       7         8          9      10        11
+                      ' d_l  ',' R_ic  ','d_ubl ','d_lbl ',' Q_cmb ', &
+!                        12        13        14        15        16
+                      'Q_conv ','Q_melt ','Q_radm ','Q_radc ','Q_tide ', &
+!                         17         18       19
+                      '  visc  ','   Ra   ',' St  '
+!                              1             2             3             4 
+        write(11,100) '#',repeat('=',5),repeat('=',7),repeat('=',7),repeat('=',7) &
+!                              5             6             7             8
+                         ,repeat('=',4),repeat('=',4),repeat('=',6),repeat('=',7) &
+!                              9            10            11            12 
+                         ,repeat('=',6),repeat('=',6),repeat('=',7),repeat('=',7) &
+!                              13            14            15            16 
+                         ,repeat('=',7),repeat('=',7),repeat('=',7),repeat('=',7) &
+!                              17            18            19
+                         ,repeat('=',8),repeat('=',8),repeat('=',5)
 !   --------------------------------------------------------------------
     end subroutine crear_archivo_salida
 !=======================================================================
