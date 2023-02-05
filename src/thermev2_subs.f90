@@ -120,7 +120,7 @@ module thermev2_subs
     real (kind=dp), parameter, dimension(4) :: hi = (/ 9.46d-5, 5.69d-4, 2.64d-5, 2.92d-5 /)
     real (kind=dp), parameter, dimension(4) :: tau = (/ 4.47d9*aa/ga, 7.04d8*aa/ga, 1.40d10*aa/ga, 1.25d9*aa/ga /)
     real (kind=dp), parameter, dimension(4) :: lam = (/ dlog(2.d0)/tau(1), dlog(2.d0)/tau(2), & 
-                                                        log(2.d0)/tau(3), dlog(2.d0)/tau(4) /)
+                                                        dlog(2.d0)/tau(3), dlog(2.d0)/tau(4) /)
     real (kind=dp), parameter, dimension(4) :: c0 = (/ 31.d-9, 31.d-9, 124.d-9, 31.d-5 /)
     real (kind=dp), parameter, dimension(4) :: fc = (/ 0.9928d0, 0.0071d0, 1.d0, 1.19d-4 /)
 !   --------------------------------------------------------------------
@@ -143,8 +143,8 @@ module thermev2_subs
 !   Parámetros de la viscosidad
 !   --------------------------------------------------------------------
     real (kind=dp), parameter ::   Vact = 4.d-6     ! Activation volume
-    real (kind=dp), parameter ::  visc0 = 6.127d10  ! Viscosity prefactor (Tosi et al. 2017)
-!    real (kind=dp), parameter ::  visc0 = 2.5d11    ! Reference viscosity
+!    real (kind=dp), parameter ::  visc0 = 6.127d10  ! Viscosity prefactor (Tosi et al. 2017)
+    real (kind=dp), parameter ::  visc0 = 2.5d11    ! Reference viscosity
     real (kind=dp), parameter ::   rgas = 8.31447d0 ! gas constant
     real (kind=dp), parameter ::   eact = 3.d5      ! viscosity activation energy
     real (kind=dp), parameter :: etaref = 1.d21     ! reference viscosity (stamenkovic et al, 2012)
@@ -1232,7 +1232,7 @@ module thermev2_subs
         Temprof = tcondubl(Tubl,dum,r)
     else
         print *,'Error in Temprof: r is out of domain.'
-        call abort
+        call abort()
     end if
 !   --------------------------------------------------------------------
     end function Temprof
@@ -1248,8 +1248,8 @@ module thermev2_subs
     if(present(P)) then
         visc = visc0*dexp((Eact+P*Vact)/(Rgas*T))
     else
-        visc = etaref*dexp(Eact*(1.d0/T - 1.d0/Tref)/Rgas)
-!       VISC = VISC0*DEXP(EACT/(RGAS*T))        
+       visc = etaref*dexp(Eact*(1.d0/T - 1.d0/Tref)/Rgas)
+!       visc = rhom*visc0*dexp(Eact/(Rgas*T))
     end if
 !   --------------------------------------------------------------------
     end function visc
