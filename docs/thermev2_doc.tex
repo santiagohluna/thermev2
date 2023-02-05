@@ -234,7 +234,11 @@ In the following subsections, the expressions of the heat fluxes, heat sources, 
 
 \subsection{Expression of the heat fluxes}
 
-On geological timescales, the dominant heat transport mechanism is convection. 
+On geological timescales, the dominant heat transport mechanism is convection. The vigor of convection can be measured by the Rayleigh number (Ra). In the case of a fluid limited by two horizontal surfaces and heated from below, analog to Earth's conditions, the Rayleigh number is given by:
+\begin{equation}
+      \label{ec:Rayleigh_num_def}
+      \text{Ra} = \frac{\rho \, \alpha \, g \, \Delta T \, L^3}{\kappa \, \eta},
+\end{equation} where $\rho$, $\alpha$, $\kappa$ and $\eta$ are the fluid's density, volumetric expansion coefficient, thermal diffusivity, and dynamical viscosity, respectively, while $\Delta T$ is the temperature jump across the layer of thickness $L$. If Rayleigh number is above some threshold, called the critical Rayleigh number ($\text{Ra}_\text{cr}$), then heat is transported by convection and if it is blow that threshold, then heat is transferred by conduction.
 
 \section{Model implementation\label{sec:model}}
 
