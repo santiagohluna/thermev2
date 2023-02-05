@@ -144,6 +144,7 @@ module thermev2_subs
 !   --------------------------------------------------------------------
     real (kind=dp), parameter ::   Vact = 4.d-6     ! Activation volume
     real (kind=dp), parameter ::  visc0 = 6.127d10  ! Viscosity prefactor (Tosi et al. 2017)
+!    real (kind=dp), parameter ::  visc0 = 2.5d11    ! Reference viscosity
     real (kind=dp), parameter ::   rgas = 8.31447d0 ! gas constant
     real (kind=dp), parameter ::   eact = 3.d5      ! viscosity activation energy
     real (kind=dp), parameter :: etaref = 1.d21     ! reference viscosity (stamenkovic et al, 2012)
@@ -1248,6 +1249,7 @@ module thermev2_subs
         visc = visc0*dexp((Eact+P*Vact)/(Rgas*T))
     else
         visc = etaref*dexp(Eact*(1.d0/T - 1.d0/Tref)/Rgas)
+!       VISC = VISC0*DEXP(EACT/(RGAS*T))        
     end if
 !   --------------------------------------------------------------------
     end function visc
