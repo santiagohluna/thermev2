@@ -207,7 +207,7 @@ Let us consider now the second term on the left hand side of Eq.~\eqref{ec:Qcont
       \label{ec:oint_mantle_outer}
       \oiint_{S_m^\text{outer}} \vec{q}_m^\text{out} \cdot \text{d} \vec{S} = \oiint_{S_m^\text{outer}} q_m^\text{out} (t) \, \text{d}S = q_m^\text{out} (t) \, A_\oplus,
 \end{equation} where $A_\oplus$ is the surface area of the Earth. As for the first integral on the right hand side of Eq.~\eqref{ec:oint_mantle}, we have to take into account, on one hand, that the dot product is negative because $\hat{\vec{r}}$ and $\vec{n}$ have opposite directions and, on the other hand, that the inner surface area of the mantle is equal to the core's surface area, i.e. $S_{m}^\text{inner} = S_c$. Then:
-\begin{equation}
+\begin{equation}zx<A
       \label{ec_oint_mantle_inner}
       \oiint_{S_m^\text{inner}} \vec{q}_m^\text{in} \cdot \text{d} \vec{S} = \oiint_{S_m^\text{inner}} q_m^\text{in} (t) \, \text{d}S = q_m^\text{in} (t) \, A_c.
 \end{equation} Moreover, for continuity reasons, and because Earth's core and mantle are in contact with each other, we have that $q_m^\text{in} (t) = q_c^\text{out} (t) = q_\textsc{cmb} (t)$.
@@ -234,11 +234,74 @@ In the following subsections, the expressions of the heat fluxes, heat sources, 
 
 \subsection{Expression of the heat fluxes}
 
-On geological timescales, the dominant heat transport mechanism is convection. The vigor of convection can be measured by the Rayleigh number (Ra). In the case of a fluid limited by two horizontal surfaces and heated from below, analog to Earth's conditions, the Rayleigh number is given by:
+On geological timescales, the dominant heat transport mechanism is convection. For the sake of simplicity, we assume a whole mantle convection \citep{stevensonetal1983}. However, models considering two layers convection within mantle has been developed \citep[and references therein]{schubertetal2001}. The vigor of convection can be measured by the Rayleigh number (Ra). In the case of a fluid limited by two horizontal surfaces and heated from below, analog to Earth's conditions, the Rayleigh number is given by:
 \begin{equation}
       \label{ec:Rayleigh_num_def}
-      \text{Ra} = \frac{\rho \, \alpha \, g \, \Delta T \, L^3}{\kappa \, \eta},
-\end{equation} where $\rho$, $\alpha$, $\kappa$ and $\eta$ are the fluid's density, volumetric expansion coefficient, thermal diffusivity, and dynamical viscosity, respectively, while $\Delta T$ is the temperature jump across the layer of thickness $L$. If Rayleigh number is above some threshold, called the critical Rayleigh number ($\text{Ra}_\text{cr}$), then heat is transported by convection and if it is blow that threshold, then heat is transferred by conduction.
+      \text{Ra} = \frac{\rho \, \alpha \, g \, \Delta T \, L^3}{\kappa \, \eta (T)},
+\end{equation} where $\rho$, $\alpha$, $\kappa$ and $\eta$ are the fluid's density, volumetric expansion coefficient, thermal diffusivity, and dynamical viscosity, respectively, while $\Delta T$ is the temperature jump across the layer of thickness $L$. In Eq.~\eqref{ec:Rayleigh_num_def} we have included the strong dependence of the viscosity on the temperature, which is evaluated at a characteristic temperature of the layer. If Rayleigh number is above some threshold, called the critical Rayleigh number ($\text{Ra}_\text{cr}$), then heat is transported by convection and if it is below that threshold, then heat is transferred by conduction.
+
+\begin{figure}
+      \centering
+        \begin{tikzpicture}[scale=1]
+             \draw[thick,-latex] (0,0) -- (0,7) node[left]{\footnotesize $r$};
+            %%%
+             \draw[thick] (0,1) node[anchor=east]{\footnotesize $R_\text{c}$} -- (8,1) node[anchor=west]{\footnotesize CMB};
+             \draw[dashed] (0,1.5) -- (8,1.5);
+             \draw[dashed] (0,6) -- (8,6);
+             \draw[thick] (0,6.5) node[anchor=east]{\footnotesize $R_\oplus$} -- (8,6.5);
+            %%%
+             \draw[thick] (0.5,6.5) node[anchor=south]{\footnotesize $T_{\text{s}}$} -- (3,6) -- (4.5,1.5) -- (6.5,1);
+            %%%
+            \node at (1.5,3.75) {\footnotesize Mantle};
+            \node at (1.5,0.5) {\footnotesize Core};
+            %%%
+             \draw[dashed] (3,6.5) node[anchor=south]{\footnotesize $T_\textsc{ubl}$} -- (3,6);
+             \draw[dashed] (4.5,6.5) node[anchor=south]{\footnotesize $T_\textsc{lbl}$} -- (4.5,1.5);
+             \draw[dashed] (6.5,6.5) node[anchor=south]{\footnotesize $T_\textsc{cmb}$} -- (6.5,1);
+            %%%
+            \draw[thick] (0.5,5.9) -- (0.5,5.3);
+            \draw[thick,latex-latex] (0.5,5.5) -- node[fill=white]{\footnotesize  $\Delta T_\textsc{ubl}$} (3,5.5);
+            \draw[thick] (3,5.9) -- (3,5.3);
+            \draw[thick] (4.5,0.9) -- (4.5,0.3);
+            \draw[thick,latex-latex] (4.5,0.5) -- node[fill=white]{\footnotesize  $\Delta T_\textsc{lbl}$} (6.5,0.5);
+            \draw[thick] (6.5,0.9) -- (6.5,0.3);
+            %%%
+            \draw[thick,latex-latex] (7,1) -- node[anchor=west]{\footnotesize $\delta_\textsc{lbl}$} (7,1.5);
+            \draw[thick,latex-latex] (7,6) -- node[anchor=west]{\footnotesize $\delta_\textsc{ubl}$} (7,6.5);
+            %%%
+        \end{tikzpicture}
+        \caption{Schematics of the temperature profile inside Earth's mantle.}
+        \label{fig:Tdr_manto}
+\end{figure}
+
+If convection is sufficiently vigorous, the temperature profile across the layer where convection occurs (in our case, the mantle) is characterized by two thermal boundary layers, each of them lying on one of the limiting surface, in which heat is transported by conduction and an intermediate region where the fluid, or specifically mantle materials, is assumed to be well mixed and then an adiabatic temperature profile is assumed for this region. In Figure~\ref{fig:Tdr_manto} an schematics of the temperature profile across mantle is presented. Thus, the Rayleigh number for a whole mantle convection mode is given by \citep{stevensonetal1983,schubertetal2001}:
+\begin{equation}
+      \label{ec:Ra_mantle}
+      \text{Ra} = \frac{\rho \, \alpha \, g \, \left(\Delta T_\textsc{ubl} + \Delta T_\textsc{lbl}\right) \, \left(R_\oplus - R_\text{c}\right)^3}{\kappa \, \eta(T_\textsc{ubl})}.
+\end{equation} As can be noted, $R_\oplus - R_\text{c}$ is the mantle thickness, $\Delta T_\textsc{ubl} + \Delta T_\textsc{lbl}$ is the total temperature jump across the mantle and the viscosity is evaluated at the temperature at the base of the upper thermal boundary layer, $T_\textsc{ubl}$ \citep{stevensonetal1983}.
+
+As we have pointed out before, heat is transported by conduction across each thermal boundary layer, thus the corresponding heat flux ($q$) for each boundary layer is given by:
+\begin{equation}
+      \label{ec:heat_flux_gen}
+      q = k_\text{m} \frac{\Delta T}{\delta},
+\end{equation} where $k_\text{m}$ is the thermal conductivity, which is considered constant for the whole mantle, $\Delta T$ is the temperature jump across the corresponding boundary layer of thickness $\delta$. The thickness of the upper thermal boundary layer is obtained by virtue of the Nu-Ra relationship \citep{schubertetal2001}:
+\begin{equation}
+      \label{ec:delta_ubl}
+      \delta_\textsc{ubl} = \left(R_\oplus - R_\text{c}\right) \left(\frac{\text{Ra}_\text{cr}}{\text{Ra}}\right)^\beta,
+\end{equation} where $\beta$ is a real exponent. The thickness of the lower thermal boundary layer ($\delta_\textsc{lbl}$) is expected to be thinner than $\delta_\textsc{ubl}$ because of the aforementioned strong dependence of the viscosity on the temperature. For this reason $\delta_\textsc{lbl}$ is computed locally \citep{stevensonetal1983}:
+\begin{equation}
+      \label{ec:delta_lbl}
+      \delta_\textsc{lbl} = \left[\frac{ \text{Ra}_\text{cr}^\text{(cmb)} \kappa \, \eta_\textsc{lbl} }{g \, \alpha_\text{m} \, \Delta T_\textsc{lbl}}\right]^{1/3},
+\end{equation} where $\text{Ra}_\text{cr}^\text{(cmb)}$ is the local critical Rayleigh number at the CMB and the viscosity is evaluated at the mean temperature within the lower thermal boundary layer:
+\begin{equation}
+      \label{ec:visc_lbl}
+      \eta_\textsc{lbl} = \eta \left(\frac{T_\textsc{lbl} + T_\textsc{cmb}}{2}\right).
+\end{equation} In consequence, we have:
+\begin{align}
+      \label{ec:Q_cmb_Q_conv}
+      \dot{Q}_\text{conv} &= A_\oplus \, k_\text{m} \frac{\Delta T_\textsc{ubl}}{\delta_\textsc{ubl}} = A_\oplus \, k_\text{m} \frac{\left(T_\textsc{ubl} - T_\text{s}\right)}{\delta_\textsc{ubl}} \\
+      \dot{Q}_\textsc{cmb} &= A_\text{c} \, k_\text{m} \frac{\Delta T_\textsc{lbl}}{\delta_\textsc{lbl}} = A_\text{c} \, k_\text{m} \frac{\left(T_\textsc{cmb} - T_\textsc{lbl}\right)}{\delta_\textsc{lbl}} \\
+\end{align}
 
 \section{Model implementation\label{sec:model}}
 
