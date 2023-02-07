@@ -207,7 +207,7 @@ Let us consider now the second term on the left hand side of Eq.~\eqref{ec:Qcont
       \label{ec:oint_mantle_outer}
       \oiint_{S_m^\text{outer}} \vec{q}_m^\text{out} \cdot \text{d} \vec{S} = \oiint_{S_m^\text{outer}} q_m^\text{out} (t) \, \text{d}S = q_m^\text{out} (t) \, A_\oplus,
 \end{equation} where $A_\oplus$ is the surface area of the Earth. As for the first integral on the right hand side of Eq.~\eqref{ec:oint_mantle}, we have to take into account, on one hand, that the dot product is negative because $\hat{\vec{r}}$ and $\vec{n}$ have opposite directions and, on the other hand, that the inner surface area of the mantle is equal to the core's surface area, i.e. $S_{m}^\text{inner} = S_c$. Then:
-\begin{equation}zx<A
+\begin{equation}
       \label{ec_oint_mantle_inner}
       \oiint_{S_m^\text{inner}} \vec{q}_m^\text{in} \cdot \text{d} \vec{S} = \oiint_{S_m^\text{inner}} q_m^\text{in} (t) \, \text{d}S = q_m^\text{in} (t) \, A_c.
 \end{equation} Moreover, for continuity reasons, and because Earth's core and mantle are in contact with each other, we have that $q_m^\text{in} (t) = q_c^\text{out} (t) = q_\textsc{cmb} (t)$.
@@ -232,7 +232,7 @@ The second term on the left hand side of both Eq.~\eqref{ec:dTmdt_core_gral} and
 
 In the following subsections, the expressions of the heat fluxes, heat sources, and time rates of melt mass in the mantle and of the inner core mass will be given.
 
-\subsection{Expression of the heat fluxes}
+\subsection{Temperature profile of the Earth's interior}
 
 On geological timescales, the dominant heat transport mechanism is convection. For the sake of simplicity, we assume a whole mantle convection \citep{stevensonetal1983}. However, models considering two layers convection within mantle has been developed \citep[and references therein]{schubertetal2001}. The vigor of convection can be measured by the Rayleigh number (Ra). In the case of a fluid limited by two horizontal surfaces and heated from below, analog to Earth's conditions, the Rayleigh number is given by:
 \begin{equation}
@@ -241,44 +241,164 @@ On geological timescales, the dominant heat transport mechanism is convection. F
 \end{equation} where $\rho$, $\alpha$, $\kappa$ and $\eta$ are the fluid's density, volumetric expansion coefficient, thermal diffusivity, and dynamical viscosity, respectively, while $\Delta T$ is the temperature jump across the layer of thickness $L$. In Eq.~\eqref{ec:Rayleigh_num_def} we have included the strong dependence of the viscosity on the temperature, which is evaluated at a characteristic temperature of the layer. If Rayleigh number is above some threshold, called the critical Rayleigh number ($\text{Ra}_\text{cr}$), then heat is transported by convection and if it is below that threshold, then heat is transferred by conduction.
 
 \begin{figure}
-      \centering
-        \begin{tikzpicture}[scale=1]
-             \draw[thick,-latex] (0,0) -- (0,7) node[left]{\footnotesize $r$};
+    \centering
+    \begin{tikzpicture}[scale=1]
+        \draw[thick,-latex] (0,0) -- (0,7) node[left]{\footnotesize $r$};
+        %%%
+        \draw[thick] (0,1) node[anchor=east]{\footnotesize $R_\text{c}$} -- (8,1) node[anchor=west]{\footnotesize CMB};
+        \draw[dashed] (0,1.5) -- (8,1.5);
+        \draw[dashed] (0,6) -- (8,6);
+        \draw[thick] (0,6.5) node[anchor=east]{\footnotesize $R_\oplus$} -- (8,6.5);
             %%%
-             \draw[thick] (0,1) node[anchor=east]{\footnotesize $R_\text{c}$} -- (8,1) node[anchor=west]{\footnotesize CMB};
-             \draw[dashed] (0,1.5) -- (8,1.5);
-             \draw[dashed] (0,6) -- (8,6);
-             \draw[thick] (0,6.5) node[anchor=east]{\footnotesize $R_\oplus$} -- (8,6.5);
-            %%%
-             \draw[thick] (0.5,6.5) node[anchor=south]{\footnotesize $T_{\text{s}}$} -- (3,6) -- (4.5,1.5) -- (6.5,1);
-            %%%
-            \node at (1.5,3.75) {\footnotesize Mantle};
-            \node at (1.5,0.5) {\footnotesize Core};
-            %%%
-             \draw[dashed] (3,6.5) node[anchor=south]{\footnotesize $T_\textsc{ubl}$} -- (3,6);
-             \draw[dashed] (4.5,6.5) node[anchor=south]{\footnotesize $T_\textsc{lbl}$} -- (4.5,1.5);
-             \draw[dashed] (6.5,6.5) node[anchor=south]{\footnotesize $T_\textsc{cmb}$} -- (6.5,1);
-            %%%
-            \draw[thick] (0.5,5.9) -- (0.5,5.3);
-            \draw[thick,latex-latex] (0.5,5.5) -- node[fill=white]{\footnotesize  $\Delta T_\textsc{ubl}$} (3,5.5);
-            \draw[thick] (3,5.9) -- (3,5.3);
-            \draw[thick] (4.5,0.9) -- (4.5,0.3);
-            \draw[thick,latex-latex] (4.5,0.5) -- node[fill=white]{\footnotesize  $\Delta T_\textsc{lbl}$} (6.5,0.5);
-            \draw[thick] (6.5,0.9) -- (6.5,0.3);
-            %%%
-            \draw[thick,latex-latex] (7,1) -- node[anchor=west]{\footnotesize $\delta_\textsc{lbl}$} (7,1.5);
-            \draw[thick,latex-latex] (7,6) -- node[anchor=west]{\footnotesize $\delta_\textsc{ubl}$} (7,6.5);
-            %%%
-        \end{tikzpicture}
-        \caption{Schematics of the temperature profile inside Earth's mantle.}
-        \label{fig:Tdr_manto}
+        \draw[thick] (0.5,6.5) node[anchor=south]{\footnotesize $T_{\text{s}}$} -- (3,6) -- (4.5,1.5) -- (6.5,1);
+        %%%
+        \node at (1.5,3.75) {\footnotesize Mantle};
+        \node at (1.5,0.5) {\footnotesize Core};
+        %%%
+        \draw[dashed] (3,6.5) node[anchor=south]{\footnotesize $T_\textsc{ubl}$} -- (3,6);
+        \draw[dashed] (4.5,6.5) node[anchor=south]{\footnotesize $T_\textsc{lbl}$} -- (4.5,1.5);
+        \draw[dashed] (6.5,6.5) node[anchor=south]{\footnotesize $T_\textsc{cmb}$} -- (6.5,1);
+        %%%
+        \draw (0.5,5.9) -- (0.5,5.3);
+        \draw[thick,latex-latex] (0.5,5.5) -- node[fill=white]{\footnotesize  $\Delta T_\textsc{ubl}$} (3,5.5);
+        \draw (3,5.9) -- (3,5.3);
+        \draw (4.5,0.9) -- (4.5,0.3);
+        \draw[thick,latex-latex] (4.5,0.5) -- node[fill=white]{\footnotesize  $\Delta T_\textsc{lbl}$} (6.5,0.5);
+        \draw (6.5,0.9) -- (6.5,0.3);
+        %%%
+        \draw[thick,latex-latex] (7,1) -- node[anchor=west]{\footnotesize $\delta_\textsc{lbl}$} (7,1.5);
+        \draw[thick,latex-latex] (7,6) -- node[anchor=west]{\footnotesize $\delta_\textsc{ubl}$} (7,6.5);
+        %%%
+    \end{tikzpicture}
+    \caption{Schematics of the temperature profile inside Earth's mantle.}
+    \label{fig:Tdr_manto}
 \end{figure}
 
 If convection is sufficiently vigorous, the temperature profile across the layer where convection occurs (in our case, the mantle) is characterized by two thermal boundary layers, each of them lying on one of the limiting surface, in which heat is transported by conduction and an intermediate region where the fluid, or specifically mantle materials, is assumed to be well mixed and then an adiabatic temperature profile is assumed for this region. In Figure~\ref{fig:Tdr_manto} an schematics of the temperature profile across mantle is presented. Thus, the Rayleigh number for a whole mantle convection mode is given by \citep{stevensonetal1983,schubertetal2001}:
 \begin{equation}
       \label{ec:Ra_mantle}
-      \text{Ra} = \frac{\rho \, \alpha \, g \, \left(\Delta T_\textsc{ubl} + \Delta T_\textsc{lbl}\right) \, \left(R_\oplus - R_\text{c}\right)^3}{\kappa \, \eta(T_\textsc{ubl})}.
-\end{equation} As can be noted, $R_\oplus - R_\text{c}$ is the mantle thickness, $\Delta T_\textsc{ubl} + \Delta T_\textsc{lbl}$ is the total temperature jump across the mantle and the viscosity is evaluated at the temperature at the base of the upper thermal boundary layer, $T_\textsc{ubl}$ \citep{stevensonetal1983}.
+      \text{Ra} = \frac{\rho_\text{m} \, \alpha_\text{m} \, g \, \left(\Delta T_\textsc{ubl} + \Delta T_\textsc{lbl}\right) \, \left(R_\oplus - R_\text{c}\right)^3}{\kappa_\text{m} \, \eta(T_\textsc{ubl})}.
+\end{equation} As can be noted, $R_\oplus - R_\text{c}$ is the mantle thickness, $\Delta T_\textsc{ubl} + \Delta T_\textsc{lbl}$ is the total temperature jump across the mantle and the viscosity is evaluated at the temperature at the base of the upper thermal boundary layer, $T_\textsc{ubl}$ \citep{stevensonetal1983}. In Equation~\eqref{ec:Ra_mantle} $g$ is the surface gravity while $\rho_\text{m}$, $\alpha_\text{m}$, and $\kappa_\text{m}$ are the density, thermal expansivity, and thermal diffusivity of the mantle assumed to be constant throughout this layer.
+
+\begin{figure}[t]
+      \centering
+      \begin{tikzpicture}
+       \draw[dashed,white] (0,-3) -- (0,3.5);
+       \filldraw[black!20!white] (0,0) circle [radius=3cm];
+       \filldraw[white] (0,0) circle [radius=2cm];
+       \draw[->] (0,0) -- node[midway,above]{$R_\text{in}$}(0:2cm);
+       \draw[->] (0,0) -- node[midway,below]{$R_\text{out}$}(-30:3cm);
+       \draw[<->] (0:2cm) -- node[midway,above]{$\delta$} (0:3cm);
+       \node[anchor=north east] at (45:2cm) {$T_\text{in}$};
+       \node[anchor=south west] at (45:3cm) {$T_\text{out}$};
+      \end{tikzpicture}
+      \caption{\label{fig:Tdr_esfera_hueca}Schematic representation of a hollow sphere with the representative parameters used to derive the thermal flux from the internal surface to the external surface through the volume enclosed by both surfaces.}
+\end{figure}
+
+Let us consider the temperature profile inside the thermal boundary layers. To this end, we will derive the temperature distribution across a hollow sphere assuming that heat flows radially outwards. As it is shown in Figure~\ref{fig:Tdr_esfera_hueca}, $R_\text{in}$ and $R_\text{out}$ are the radii of the inner and outer spherical surfaces, respectively. The former is assumed to be at the temperature $T_\text{in}$, while the latter is at the temperature $T_\text{out}$, with $T_\text{in} > T_\text{out}$. The thickness of the hollow sphere is $\delta = R_\text{out} - R_\text{in}$. First, we will make use of the continuity equation in its differential form:
+\begin{equation}
+      \label{ec:continuity_eq_diff}
+      \pdiff{u}{t} + \nabla \cdot \vec{q} = 0.
+\end{equation} As can be noted, we neglect heat sources within the considered layer. The next step is to consider the steady state heat flow. In that case, we have that:
+\begin{equation}
+      \label{ec:cont_eq_energy_steady}
+      \nabla \cdot \vec{q} = 0.
+\end{equation} At this point it arises the question about the validity of this approach since we are considering time evolution of the internal temperatures of the Earth. However, as is pointed out by \citet{stamenkovicetal2012}, the aforementioned approximation can be justified by the fact that relaxation time of the lithosphere is typically on the order of 100 Ma. In contrast, the relaxation time of the mantle is of the order of few Ga, in other words, the latter is much grater that the former. 
+
+Since we assume that heat flows radially outwards, then the heat flux vector is given by:
+\begin{equation}
+      \vec{q} = q_r \hat{\vec{r}},
+\end{equation} where $\hat{\vec{r}}$ is the corresponding unit vector that is perpendicular to the spherical surfaces at each point and its sense is outwards the aforementioned surface. Taking this assumption into account, Equation~\eqref{ec:cont_eq_energy_steady} can be rewritten as:
+\begin{equation}\label{ec:dqrdr}
+      \frac{1}{r^2} \frac{\text{d}}{\text{d} r} \left[r^2 \, q_r (r) \right] = 0.
+\end{equation} On the other hand, as we have assumed that heat is transported by conduction across the layer, the relationship between the heat flux and temperature is given by the Fourier law:
+\begin{equation}
+      \label{ec:fourier_law_gen}
+      \vec{q} = - \, k \, \nabla T.
+\end{equation} If we assume that temperature depends only on the radial distance:
+\begin{equation}
+      \label{ec:fourier_law_r}
+      q_r = - \, k \, \frac{\text{d} T}{\text{d} r}.
+\end{equation} Then, by inserting Equation~\eqref{ec:fourier_law_r} into Equation~\eqref{ec:dqrdr} and simplifying we obtain:
+\begin{equation}
+      \label{ec:d2Trdr2}
+      \fdiff{}{r} \left[r^2 \, \fdiff{T (r)}{r} \right] = 0.
+\end{equation} The solution of Equation~\eqref{ec:d2Trdr2} considering the boundary conditions $T(R_\text{in}) = T_\text{in}$ and $T (R_\text{out}) = T_\text{out}$ is \citep{carslaw_jaeger_1959}:
+\begin{equation}
+      \label{ec:Tdr_hollow}
+      T_\text{cond} (r) = \frac{R_\text{out} \, T_\text{out} \left(r - R_\text{in}\right) + R_\text{in} T_\text{in} \left(R_\text{out} - r\right)}{\left(R_\text{out} - R_\text{in}\right) r}.
+\end{equation} In the latter equation, we added the subscript ``cond'' to stress the fact that this expression is valid for conductive heat flow.
+
+Now we move our attention to the adiabatic temperature distribution. In general terms, such temperature profile satisfies:
+\begin{equation}
+      \label{ec:adiabatic_TdP}
+      \fdiff{T}{P} = \frac{\alpha \, T}{\rho \, c},
+\end{equation} were $P$ is the pressure. In principle, Equation~\eqref{ec:adiabatic_TdP} cannot be solved directly because physical properties, such as $\alpha$, $\rho$, and $c$, of both the core and mantle varies with depth \citep[see e.g.][]{valenciaetal2006}. In the case of the core we consider the expression given by \citet{stevensonetal1983}:
+\begin{equation}
+    \label{ec:Tc_r_adia}
+    T_\text{c} (r) = T_\textsc{cmb} \left[\frac{1 + T_{a,1} \, P (r) + T_{a,2} \, P^2 (r)}{1 + T_{a,1} \, P_\textsc{cmb} + T_{a,2} \, P_\textsc{cmb}^2}\right],
+\end{equation} where $P_\textsc{cmb}$ is the pressure at the CMB, i.e. $P_\textsc{cmb} = P \left(R_\text{c}\right)$. The expression of the pressure as a function of the radial distance $r$ is obtained by fitting the PREM data \citep{PREM1981} to a quadratic polynomial:
+\begin{equation}
+    \label{ec:Pdr}
+    P(r) = \begin{cases}
+        367.767 - 0.0144178 \, r - 1.52163 \E{-5} \, r^2, & \text{ if } 0 \leq r \leq R_\text{c} \\
+        397.012 - 0.0901277 \, r + 4.35256 \E{-6} \, r^2, & \text{ if } R_\text{c} \leq r \leq R_\oplus
+    \end{cases}
+\end{equation} where $P$ is given in GPa and $r$ in km.
+
+Equation~\eqref{ec:adiabatic_TdP} can be transformed into a differential equation in which the independent variable is the radial distance by assuming hydrostatic equilibrium:
+\begin{equation}
+      \label{ec:hidrostatic_eq}
+      \fdiff{P}{r} = - \, \rho \, g.
+\end{equation} Then, we arrive to:
+\begin{equation}
+      \label{ec:adiabatic_Tdr}
+      \fdiff{T}{r} = \frac{\alpha \, T}{\rho \, c} \fdiff{P}{r} = - \frac{\alpha \, g \, T}{c}.
+\end{equation} If we assume that the physical properties $\alpha$, $g$, and $c$ are constant, then the Equation~\eqref{ec:adiabatic_Tdr} can be solved straightforwardly:
+\begin{equation}
+    \label{ec:Tdr_adiabatic_gen}
+    T (r) = A \, \exp \left(-\frac{\alpha \, g \, r}{c}\right),
+\end{equation} where $A$ is a constant to be determined by the initial conditions. For example, by setting the general condition that the temperature is $T_0$ at the radial distance $R_0$, then:
+\begin{equation}
+    \label{ec:Tdr_IC}
+    T (R_0) = T_0 = A \, \exp \left(-\frac{\alpha \, g \, R_0}{c}\right),
+\end{equation} and consequently:
+\begin{equation}
+    \label{ec:Tdr_adiabatic_0}
+    T (r) = T_0 \, \exp \left[\frac{\alpha \, g}{c} \left(R_0 - r\right)\right],
+\end{equation} where $T_0$ can be thought as a reference temperature. When the expression given by Equation~\eqref{ec:Tdr_adiabatic_0} is evaluated at some particular value of $r$, $T$ is known as the \emph{potential temperature} \citep{mckenzie_bickle_1988}, $T_\text{pot}$. Thus, the potential temperature is the temperature a mass element would have if it were taken from that particular radius to the reference one.
+
+Is of particular interest in the study of the mantle's thermal evolution to take as reference the temperature at the base of the upper thermal boundary layer. Thus:
+\begin{equation}
+    \label{ec:Tdr_adiabatic_ubl}
+    T (r) = T_\textsc{ubl} \, \exp \left[\frac{\alpha \, g}{c} \left(R_\oplus - \delta_\textsc{ubl} - r\right)\right].
+\end{equation} The simplest way to compute the potential temperature is at the Earth's surface ($r = R_\oplus$), where it could be easily measured. In consequence:
+\begin{equation}
+    \label{ec:Tpot}
+    T_\text{pot} = T_\textsc{ubl} \, \exp \left(- \frac{\alpha \, g \, \delta_\textsc{ubl}}{c}\right).
+\end{equation}
+
+Concerning the temperature profile within mantle, but outside the thermal boundary layers, it is well approximated by a linear expression because mantle the adiabatic scale length is much larger than mantle thickness \citep{driscollybarnes2015}. Thus, by expanding Equation~\eqref{ec:Tdr_adiabatic_ubl} in power series and retaining up to the linear term, we arrive to:
+\begin{equation}
+    \label{ec:Tdr_adiabatic_linear}
+    T_\text{m} (r) \approx T_\textsc{ubl} + \frac{\alpha_\text{m} \, g_\text{m} \, T_\textsc{ubl}}{c_\text{m}} \left(R_\oplus - \delta_\textsc{ubl} - r\right).
+\end{equation}
+
+Finally, the expression of the temperature profile inside the Earth is given by:
+\begin{equation}
+    \label{ec:Tdr_earth}
+    T (r) = \begin{cases}
+        T_\textsc{cmb} \left[\dfrac{1 + T_{a,1} \, P (r) + T_{a,2} \, P^2 (r)}{1 + T_{a,1} \, P_\textsc{cmb} + T_{a,2} \, P_\textsc{cmb}^2}\right] & \text{ if } 0 \leq r \leq R_\text{c} \\
+         & \\
+        \dfrac{\left(R_\text{c} + \delta_\textsc{lbl}\right) \, T_\textsc{lbl} \left(r - R_\text{c}\right) + R_\text{c} T_\textsc{cmb} \left(R_\text{c} + \delta_\textsc{lbl} - r\right)}{\delta_\textsc{lbl} \, r} & \text{ if } R_\text{c} \leq r \leq R_\text{c} + \delta_\textsc{lbl} \\
+        & \\
+        T_\textsc{ubl} + \dfrac{\alpha_\text{m} \, g_\text{m} \, T_\textsc{ubl}}{c_\text{m}} \left(R_\oplus - \delta_\textsc{ubl} - r\right) & \text{ if } R_\text{c} + \delta_\textsc{lbl} \leq r \leq R_\oplus - \delta_\textsc{ubl} \\
+        & \\
+        \dfrac{R_\oplus \, T_\text{s} \left(r - R_\oplus + \delta_\textsc{ubl}\right) + \left(R_\oplus - \delta_\textsc{ubl}\right) T_\textsc{ubl} \left(R_\oplus - r\right)}{\delta_\textsc{ubl} \, r} & \text{ if } R_\oplus - \delta_\textsc{ubl} \leq r \leq R_\oplus.
+    \end{cases}
+\end{equation}
+
+\subsection{Expression of the heat fluxes}
 
 As we have pointed out before, heat is transported by conduction across each thermal boundary layer, thus the corresponding heat flux ($q$) for each boundary layer is given by:
 \begin{equation}
@@ -302,6 +422,18 @@ As we have pointed out before, heat is transported by conduction across each the
       \dot{Q}_\text{conv} &= A_\oplus \, k_\text{m} \frac{\Delta T_\textsc{ubl}}{\delta_\textsc{ubl}} = A_\oplus \, k_\text{m} \frac{\left(T_\textsc{ubl} - T_\text{s}\right)}{\delta_\textsc{ubl}} \\
       \dot{Q}_\textsc{cmb} &= A_\text{c} \, k_\text{m} \frac{\Delta T_\textsc{lbl}}{\delta_\textsc{lbl}} = A_\text{c} \, k_\text{m} \frac{\left(T_\textsc{cmb} - T_\textsc{lbl}\right)}{\delta_\textsc{lbl}} \\
 \end{align}
+
+\subsection{Inner core growth}
+
+\subsection{Partial melt within the mantle}
+
+\subsection{Heat sources}
+
+\subsubsection{Decay of radioactive isotopes}
+
+\subsubsection{Tidal heating}
+
+\subsubsection{Rheological models}
 
 \section{Model implementation\label{sec:model}}
 
