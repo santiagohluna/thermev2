@@ -1192,9 +1192,10 @@ module thermev2_subs
         implicit none
 !       ----------------------------------------------------------------
         real (kind=dp), intent(in) ::Tubl,dum,r
-        real (kind=dp) :: tcondubl
+        real (kind=dp) :: tcondubl,Rin
 !       ----------------------------------------------------------------
-        tcondubl = Tsup + (Tubl-Tsup)*(Rt-r)/dum
+        Rin = Rt - dum
+        tcondubl = (Rt*Tsup*(r-Rin) + Rin*Tubl*(Rt-r))/(dum*r)
 !   --------------------------------------------------------------------
     end function tcondubl
 !=======================================================================
@@ -1203,9 +1204,10 @@ module thermev2_subs
         implicit none
 !       ----------------------------------------------------------------
         real (kind=dp), intent(in) :: Tcmb,Tlbl,dlm,r
-        real (kind=dp) :: tcondlbl
+        real (kind=dp) :: tcondlbl,Rout
 !       ----------------------------------------------------------------
-        tcondlbl = Tcmb + (Tcmb-Tlbl)*(Rc-r)/dlm
+        Rout = Rc + dlm
+        tcondlbl = (Rout*Tlbl*(r-Rc) + Rc*Tcmb*(Rout-r))/(dlm*r)
 !   --------------------------------------------------------------------
     end function tcondlbl
 !=======================================================================
