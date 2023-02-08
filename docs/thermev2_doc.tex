@@ -13,6 +13,7 @@
 \usepackage{tikz}
 \usepackage{tikz-3dplot}
 \usetikzlibrary{babel}
+\usetikzlibrary{calc,patterns,decorations.pathmorphing,decorations.markings}
 \usepackage[font=small,labelfont={small,bf},margin=0.5cm,justification=justified]{caption}
 \usepackage[font=small,labelfont={small,bf}]{subcaption}
 \usepackage{epstopdf}
@@ -329,7 +330,7 @@ Since we assume that heat flows radially outwards, then the heat flux vector is 
       T_\text{cond} (r) = \frac{R_\text{out} \, T_\text{out} \left(r - R_\text{in}\right) + R_\text{in} T_\text{in} \left(R_\text{out} - r\right)}{\left(R_\text{out} - R_\text{in}\right) r}.
 \end{equation} In the latter equation, we added the subscript ``cond'' to stress the fact that this expression is valid for conductive heat flow.
 
-Now we move our attention to the adiabatic temperature distribution. In general terms, such temperature profile satisfies:
+Now we move our attention to the adiabatic temperature distribution. In general terms, such temperature profile satisfies \citep{turcotte2014}:
 \begin{equation}
       \label{ec:adiabatic_TdP}
       \fdiff{T}{P} = \frac{\alpha \, T}{\rho \, c},
@@ -337,7 +338,7 @@ Now we move our attention to the adiabatic temperature distribution. In general 
 \begin{equation}
     \label{ec:Tc_r_adia}
     T_\text{c} (r) = T_\textsc{cmb} \left[\frac{1 + T_{a,1} \, P (r) + T_{a,2} \, P^2 (r)}{1 + T_{a,1} \, P_\textsc{cmb} + T_{a,2} \, P_\textsc{cmb}^2}\right],
-\end{equation} where $P_\textsc{cmb}$ is the pressure at the CMB, i.e. $P_\textsc{cmb} = P \left(R_\text{c}\right)$. The expression of the pressure as a function of the radial distance $r$ is obtained by fitting the PREM data \citep{PREM1981} to a quadratic polynomial:
+\end{equation} where $P_\textsc{cmb}$ is the pressure at the CMB, i.e. $P_\textsc{cmb} = P \left(R_\text{c}\right)$, while $T_{a,1}$ and $T_{a,2}$ are constants. The expression of the pressure as a function of the radial distance $r$ is obtained by fitting the PREM data \citep{PREM1981} to a quadratic polynomial:
 \begin{equation}
     \label{ec:Pdr}
     P(r) = \begin{cases}
@@ -402,38 +403,305 @@ Finally, the expression of the temperature profile inside the Earth is given by:
 
 As we have pointed out before, heat is transported by conduction across each thermal boundary layer, thus the corresponding heat flux ($q$) for each boundary layer is given by:
 \begin{equation}
-      \label{ec:heat_flux_gen}
-      q = k_\text{m} \frac{\Delta T}{\delta},
+    \label{ec:heat_flux_gen}
+    q = k_\text{m} \frac{\Delta T}{\delta},
 \end{equation} where $k_\text{m}$ is the thermal conductivity, which is considered constant for the whole mantle, $\Delta T$ is the temperature jump across the corresponding boundary layer of thickness $\delta$. The thickness of the upper thermal boundary layer is obtained by virtue of the Nu-Ra relationship \citep{schubertetal2001}:
 \begin{equation}
-      \label{ec:delta_ubl}
-      \delta_\textsc{ubl} = \left(R_\oplus - R_\text{c}\right) \left(\frac{\text{Ra}_\text{cr}}{\text{Ra}}\right)^\beta,
+    \label{ec:delta_ubl}
+    \delta_\textsc{ubl} = \left(R_\oplus - R_\text{c}\right) \left(\frac{\text{Ra}_\text{cr}}{\text{Ra}}\right)^\beta,
 \end{equation} where $\beta$ is a real exponent. The thickness of the lower thermal boundary layer ($\delta_\textsc{lbl}$) is expected to be thinner than $\delta_\textsc{ubl}$ because of the aforementioned strong dependence of the viscosity on the temperature. For this reason $\delta_\textsc{lbl}$ is computed locally \citep{stevensonetal1983}:
 \begin{equation}
-      \label{ec:delta_lbl}
-      \delta_\textsc{lbl} = \left[\frac{ \text{Ra}_\text{cr}^\text{(cmb)} \kappa \, \eta_\textsc{lbl} }{g \, \alpha_\text{m} \, \Delta T_\textsc{lbl}}\right]^{1/3},
+    \label{ec:delta_lbl}
+    \delta_\textsc{lbl} = \left[\frac{ \text{Ra}_\text{cr}^\text{(cmb)} \kappa \, \eta_\textsc{lbl} }{g \, \alpha_\text{m} \, \Delta T_\textsc{lbl}}\right]^{1/3},
 \end{equation} where $\text{Ra}_\text{cr}^\text{(cmb)}$ is the local critical Rayleigh number at the CMB and the viscosity is evaluated at the mean temperature within the lower thermal boundary layer:
 \begin{equation}
-      \label{ec:visc_lbl}
-      \eta_\textsc{lbl} = \eta \left(\frac{T_\textsc{lbl} + T_\textsc{cmb}}{2}\right).
+    \label{ec:visc_lbl}
+    \eta_\textsc{lbl} = \eta \left(\frac{T_\textsc{lbl} + T_\textsc{cmb}}{2}\right).
 \end{equation} In consequence, we have:
 \begin{align}
-      \label{ec:Q_cmb_Q_conv}
-      \dot{Q}_\text{conv} &= A_\oplus \, k_\text{m} \frac{\Delta T_\textsc{ubl}}{\delta_\textsc{ubl}} = A_\oplus \, k_\text{m} \frac{\left(T_\textsc{ubl} - T_\text{s}\right)}{\delta_\textsc{ubl}} \\
-      \dot{Q}_\textsc{cmb} &= A_\text{c} \, k_\text{m} \frac{\Delta T_\textsc{lbl}}{\delta_\textsc{lbl}} = A_\text{c} \, k_\text{m} \frac{\left(T_\textsc{cmb} - T_\textsc{lbl}\right)}{\delta_\textsc{lbl}} \\
+    \label{ec:Q_cmb_Q_conv}
+    \dot{Q}_\text{conv} &= A_\oplus \, k_\text{m} \frac{\Delta T_\textsc{ubl}}{\delta_\textsc{ubl}} = A_\oplus \, k_\text{m} \frac{\left(T_\textsc{ubl} - T_\text{s}\right)}{\delta_\textsc{ubl}} \\
+    \dot{Q}_\textsc{cmb} &= A_\text{c} \, k_\text{m} \frac{\Delta T_\textsc{lbl}}{\delta_\textsc{lbl}} = A_\text{c} \, k_\text{m} \frac{\left(T_\textsc{cmb} - T_\textsc{lbl}\right)}{\delta_\textsc{lbl}} \\
 \end{align}
 
 \subsection{Inner core growth}
+
+As we have pointed out before, the inner core grows by precipitation of heavy elements as the core cools down. This phenomenon gives raise to the second term on the left hand side of Equation~\eqref{ec:dTmdt_core_gral}. In order to compute the time derivative of the inner core mass, we can express it as:
+\begin{equation}
+    \label{ec:Mic}
+    M_\text{ic} = \frac{4}{3} \pi \, \rho_\text{c} \, R_\text{ic}^3,
+\end{equation} where $\rho_\text{c}$ is the mean density of the core, considered constant, and $R_\text{ic}$ is the inner core radius, which is given by \citep{stevensonetal1983}:
+\begin{equation}
+    \label{ec:Ric}
+    R_\text{ic} = \sqrt{\frac{2 \left(P_{\text{c},\oplus} - P_\text{io}\right) R_\text{c}}{\rho_\text{c} \, g}},
+\end{equation} where $P_{\text{c},\oplus}$ and $P_\text{io}$ are the pressures at the Earth's centre and at the inner-outer core boundary, respectively. $P_\text{io}$ is determined by the intersection between the adiabatic temperature profile within the core and the corresponding liquidus temperature profile:
+\begin{equation}
+    \label{ec:T_liq_c}
+    T_\text{liq,c} (r) = T_{\text{liq,c},0} \left(1 - 2 \, \chi \right) \left[1 + T_{\text{liq,c},1} \, P (r) + T_{\text{liq,c},2} \, P^2 (r)\right],
+\end{equation} where $\chi$ is the fraction of light elements dissolved in the core, which tend to lower the liquidus temperature, while $T_{\text{liq,c},1}$ and $T_{\text{liq,c},2}$ are constants. By virtue of the conservation of mass of these light elements, we obtain:
+\begin{equation}
+    \label{ec:chi_chi0}
+    \chi = \frac{\chi_0 \, R_\text{c}^3}{R_\text{c}^3 - R_\text{ic}^3},
+\end{equation} where $\chi_0$ is the initial concentration of the light elements. Then, taking into account that $P \left(R_\text{io}\right) = P_\text{io}$, it is satisfied that $T_\text{c} \left(R_\text{io}\right) = T_\text{liq,c} \left(R_\text{io}\right)$, that is:
+\begin{equation}
+    \label{ec:Pio}
+    T_\textsc{cmb} \left[\frac{1 + T_{a,1} \, P_\text{io} + T_{a,2} \, P_\text{io}^2}{1 + T_{a,1} \, P_\textsc{cmb} + T_{a,2} \, P_\textsc{cmb}^2}\right] = T_{\text{liq,c},0} \left(1 - 2 \, \chi \right) \left[1 + T_{\text{liq,c},1} \, P_\text{io} + T_{\text{liq,c},2} \, P_\text{io}^2 \right],
+\end{equation} from which the value of $P_\text{io}$ can be found. By defining the constant
+\begin{equation}
+    \label{ec:def_xi}
+    \xi = T_{\text{liq,c},0} \left(1 - 2 \, \chi\right) \left(1 + T_{a,1} \, P_\textsc{cmb} + T_{a,2} \, P_\textsc{cmb}^2\right)
+\end{equation} one can rewrite Eq.~\eqref{ec:Pio} as a quadratic equation:
+\begin{equation}
+    \label{ec:Pio_cuad}
+    \left(T_\textsc{cmb} (t) - \xi\right) + \left(T_\textsc{cmb} (t) \, T_{a,1} - \xi \, T_{\text{liq,c},1}\right) P_\text{io} + \left(T_\textsc{cmb} (t) \, T_{a,2} - \xi \, T_{\text{liq,c},2}\right) P_\text{io}^2 = 0.
+\end{equation} This equation defines $P_\text{io}$ as an implicit function of time, which must be taken into account when calculating the derivative of $m_\text{ic}$ with respect to time, since the inner core radius varies in time because it depends on $P_\text{io}$.
+
+Taking into account the equations~\eqref{ec:Mic} and \eqref{ec:Ric} we arrive to:
+\begin{equation}
+    \label{ec:dmicdt}
+    \pdiff{M_\text{ic}}{t} = - 8 \, \pi \frac{\left(P_{\text{c},\oplus} - P_\text{io}\right) R_\text{c}^2}{\rho_\text{c} \, g^2 \, R_\text{ic}} \fdiff{P_\text{io}}{t}.
+\end{equation} Finally, the time derivative of $P_\text{io}$ can be expressed as:
+\begin{equation}
+    \label{ec:dPiodt}
+    \fdiff{P_\text{io}}{t} = \fdiff{P_\text{io}}{T_\textsc{cmb}} \fdiff{T_\textsc{cmb}}{t},
+\end{equation} where:
+\begin{equation}
+    \label{ec:dPiodTcmb}
+    \fdiff{P_\text{io}}{T_\textsc{cmb}} = \frac{\left(1 + T_{a,1} \, P_\text{io} + T_{a,2} \, P_\text{io}^2\right)}{\left[\xi \left(T_{\text{liq,c},1} + 2 \, T_{\text{liq,c},2} \, P_\text{io}\right) - T_\textsc{cmb} \left(T_{a,1} + 2 \, T_{a,2} \, P_\text{io}\right)\right]}
+\end{equation}
 
 \subsection{Partial melt within the mantle}
 
 \subsection{Heat sources}
 
+In agreement with what we have pointed out in Sections~\ref{sec:intro} and \ref{sec:theory}, two sources of heat are considered in our model, namely the heat generated by the decay of radioactive elements and that of tidal origin, which is associated with the non-elastic behavior of mantle materials undergoing tidal loading. In our model, the deformation of the Earth due to the gravitational attraction from the Moon is allowed for.
+
 \subsubsection{Decay of radioactive isotopes}
+
+The modeling of this kind of sources is given by \citet{driscollybercovici2014} for the core and by \citet{turcotte2014} for the mantle. The former has the following simple exponential form:
+\begin{equation}
+    \label{ec:Qradc}
+    \dot{Q}_\text{rad,c} = \dot{Q}_{\text{rad,c},0} \exp \left(- \frac{t}{\tau_\text{rad,c}}\right),
+\end{equation} where $\dot{Q}_{\text{rad,c},0}$ is the rate of radiogenic heat production at $t=0$ and $\tau_\text{rad,c}$ is the radioactive decay time scale.
+
+The radiogenic heat production rate in the mantle takes into account the decay of the most thermally relevant isotopes Uranium (235 and 238), Thorium and Potassium, and is given by:
+\begin{equation}
+    \label{ec:Qradm}
+    \dot{Q}_\text{rad,m} = M_\text{m} \, H(t),
+\end{equation} where $H(t)$ is the radiogenic heat production rate per unit mass and is expressed as:
+\begin{multline}
+    \label{ec:Hdt_tot}
+    H (t) = 0.9928 \, C_0^{\text{U}} H_0 \left(^{238}\mbox{U}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}} \left(^{238}\mbox{U}\right)} (t - t_0) \right] + 0.0071 \, C_0^{\text{U}} H_0 \left(^{235}\mbox{U}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}}\left(^{235}\mbox{U}\right)} (t - t_0) \right] \\ + C_0^{\text{Th}} H_0 \left(^{232}\mbox{Th}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}} \left(^{232}\mbox{Th}\right)} (t - t_0) \right] + 1.19 \times 10^{-4} C_0^{\text{K}} H_0 \left(^{40}\mbox{K}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}} \left(^{40}\mbox{K}\right)} (t - t_0) \right].
+\end{multline} where $C_0$ and $H_0$ are the concentration and heat production rate per unit mass of each isotope at instant $t_0$, while $\tau_\frac{1}{2}$ is the corresponding half-life.
 
 \subsubsection{Tidal heating}
 
+Concerning the tidal heating source, the corresponding heat production rate is given by:
+\begin{equation}
+    \label{ec:Qtidal}
+    \dot{Q}_\text{tidal} = f_\text{tvf} \, \valmed{P}_\oplus^\text{tide}
+\end{equation} where $\left\langle P \right\rangle_\mathrm{m}^\mathrm{tide}$ is the mean tidal heating rate in the Earth's mantle. The formula that we will use to compute the aforementioned quantity was developed by \citet{efromak2014}. However, that formula gives the mean tidal heating rate over the whole volume of the considered body, the Earth in our case. However, for terrestrial planets most tidal dissipation occurs within the mantle \citep{henningyhurford2014}. In order to overcome this caveat, we follow the work by \citep{renaudhenning2018} by defining the tidal volume factor, $f_\text{tvf}$, as:
+\begin{equation}
+    \label{ec:ftvf}
+    f_\text{tvf} = \frac{R_\phi^3 - R_\text{c}^3}{R_\oplus^3},
+\end{equation} where $R_phi$ is the distance from the center of the Earth where the melt fraction ($phi$) is equal to the disaggregation point $phi_textsc{d}$, which is a critical value of the melt fraction above which mantle material cannot behave as a solid any more. $\left\langle P \right\rangle_\oplus^\mathrm{tide}$ is given by:
+\begin{multline}\label{ec:potdis_mareas}
+      \left\langle P \right\rangle_\oplus^\mathrm{tide} = \frac{G \, M_{\leftmoon}^2}{a} \sum_{l=2}^\infty \left(\frac{R_\oplus}{a}\right)^{2l+1} \sum_{m=0}^l \frac{(l-m)!}{(l+m)!} \left(2-\delta_{0m}\right) \\ \times \sum_{p=0}^l F_{lmp}^2 (i) \sum_{q=-\infty}^{\infty} G_{lpq}^2 (e) \, \omega_{lmpq} \, K_{\mathrm{I}} \left(l,\omega_{lmpq}\right),
+\end{multline} where $G$ is the gravitation constant, $M_{\leftmoon}$ is the mass of the Moon, $R_\oplus$ is the mean Earth radius, $a$ is the major semiaxis, $\delta_{0m}$ is the Kronecker delta distribution, $F_{lmp} (i)$ and $G_{lpq} (e)$ are the inclination \citep{goodwagner2008} and eccentricity \citep{giacaglia1976b} functions, respectively.
+
+The factor $K_\mathrm{I} \left(l,\omega_{lmpq}\right)$ describes the rheological response of Earth, i.e. the modification of its gravitational field due to the deformation caused by the gravitational attraction forces exerted by the Moon, and is given by:
+\begin{equation}\label{ec:imklJ} 
+      K_\mathrm{I} (l,\omega_{lmpq}) = - \frac{3}{2} \frac{1}{l-1} \frac{B_l \, \Im \left[\bar{J} (\chi) \right] \sgn \left(\omega_{lmpq} \right)}{\left(\Re \left[ \bar{J} (\chi) \right] + B_l \right)^2 + \left(\Im \left[ \bar{J} (\chi) \right]\right)^2}, 
+\end{equation} where $\Re \left(\bar{z}\right)$ and $\Im \left(\bar{z}\right)$ are the real and imaginary parts of the complex number $\bar{z}$, respectively, and $\chi_{lmpq}$ are the physical tidal frequencies which are defined through:
+\begin{equation}
+      \label{ec:def_chi_lmpq}
+      \chi_{lmpq} = \left\vert \omega_{lmpq} \right\vert,
+\end{equation} where the tidal modes $\omega_{lmpq}$ are given by:
+\begin{equation}\label{ec:def_wlmpq}
+      \omega_{lmpq} = (l-2p) \, \dot{\omega} + (l-2p+q) \, \dot{\mathcal{M}} + m \left(\dot{\ascnode} - \dot{\theta}\right),
+\end{equation} where $\dot{\mathcal{M}}$, $\dot{\omega}$ and $\dot{\ascnode}$ are the time rates of the mean anomaly $\mathcal{M}$, the argument of perigee $\omega$ and the longitude of ascending node $\ascnode$ \citep{efroimsky2012,efroimsky2015}. The latter two angles, as well as the inclination of the Moon's orbital plane $i$, are defined with respect to the Earth's equatorial plane. In many applications $\dot{\omega} \approx 0$ and $\dot{\ascnode} \approx 0$ while $\dot{\mathcal{M}} \approx n$. Consequently the approximation 
+\begin{equation}
+      \label{ec:wlmpq_aprox}
+      \omega_{lmpq} \approx (l-2p+q) \, n - m \, \dot{\theta},
+\end{equation} is generally valid and frequently used in the specialized literature. In Equation~\eqref{ec:wlmpq_aprox}, $n$ is the mean orbital frequency which for the unperturbed two-body problem is defined by the mathematical expression of Kepler's third law:
+\begin{equation}
+      \label{ec:defn}
+      G \left(M_{\oplus} + M_{\leftmoon}\right) = n^2 a^3,
+\end{equation} where $M_\oplus$ is the mass of the Earth. In addition, $B_l$ is given by:
+\begin{equation}
+      \label{ec:defBl}
+      B_l = \frac{R_\oplus \left(2 l^2 + 4 l + 3\right)}{l \, G \, M_\oplus \, \rho_\oplus},
+\end{equation} where $\rho_\oplus$ is the mean density of the Earth. Lastly, $\bar{J} (\chi)$ is the complex creep-response or complex compliance function \citep{efroimsky2012,efroimsky2015}, which is defined through:
+\begin{equation}\label{ec:defJcomplex} 
+      \bar{J} (\chi) = \int_0^\infty \dot{J} (t-t') \exp{\left[- \mathrm{i} \chi (t-t')\right]} \, 
+      \mathrm{d}t',
+\end{equation} where the over-dot means differentiation with respect to $t'$ and $\mathrm{i} = \sqrt{-1}$ is the imaginary unit. The particular form of the kernel $J(t-t')$ depends on the particular rheological model considered. However, it is generally given by:
+\begin{equation}\label{ec:kernJgral} 
+      J (t-t') = J(0) \, \Theta (t-t') + \mbox{viscous and hereditary terms},
+\end{equation} where $J(0)$ is the instantaneous value of the compliance which, in its turn, is the reciprocal value of the instantaneous rigidity $\mu (0)$, and $\Theta (t-t')$ is the Heaviside step function \citep{efroimsky2012}.
+
 \subsubsection{Rheological models}
+
+The first term on the right hand side of Equation~\eqref{ec:kernJgral} describes the instantaneous elastic response in deformation of the body under stress. However, the general rheological response of a real solid body is a mixture of elastic and anelastic behavior. The latter includes viscous and hereditary behaviors.
+
+The complex compliance is obtained from the \emph{constitutive equation}, which relates stress and strain. In a linear medium, assumed to be homogeneous, incompressible and isotropic, the relationship between the components of the stress tensor and the strain tensor is, in general terms, given by:
+\begin{equation}\label{ec:ecconstfrec} 
+      2 \, \bar{u}_{\gamma \nu} (\chi) = \bar{J} (\chi) \, \bar{\sigma}_{\gamma \nu} (\chi),
+\end{equation} where $\bar{u}_{\gamma \nu} (\chi)$ and $\bar{\sigma}_{\gamma \nu} (\chi)$ are the complex counterparts of the strain and stress tensors, respectively \citep{efroimsky2012}.
+
+\begin{figure}[t]
+ \centering      
+ \begin{tikzpicture}
+      \tikzstyle{spring}=[thick,decorate,decoration={zigzag,pre length=0.3cm,post length=0.3cm,segment length=6}]
+      \tikzstyle{damper}=[thick,decoration={markings,  
+      mark connection node=dmp,
+      mark=at position 0.5 with 
+      {
+      \node (dmp) [thick,inner sep=0pt,transform shape,rotate=-90,minimum width=15pt,minimum height=3pt,draw=none] {};
+      \draw [thick] ($(dmp.north east)+(2pt,0)$) -- (dmp.south east) -- (dmp.south west) -- ($(dmp.north west)+(2pt,0)$);
+      \draw [thick] ($(dmp.north)+(0,-5pt)$) -- ($(dmp.north)+(0,5pt)$);
+      }
+      }, decorate]
+      \tikzstyle{ground}=[fill,pattern=north east lines,draw=none,minimum width=0.75cm,minimum height=0.3cm]
+      %%% Maxwell
+      \node (ground1) at (0,7) [ground,anchor=north,rotate=-90] {};
+      \draw (ground1.north west) -- (ground1.north east);
+      \draw[damper] (0,7) -- node[midway,above,yshift=+0.3cm]{$\eta$} (1.5,7);
+      \draw[spring] (1.5,7) -- node[midway,above,yshift=+0.1cm]{$J$} (3,7) node[anchor=west,xshift=0.1cm]{Maxwell};
+      %%%% Kelvin-Voigt
+      \node (ground1) at (0,5) [ground,anchor=north,rotate=-90] {};
+      \draw (ground1.north west) -- (ground1.north east);
+      \draw[thick] (0,5) -- (0.5,5);
+      \draw[thick] (0.5,5.5) -- (0.5,4.5);
+      \draw[damper] (0.5,5.5) -- node[midway,above,yshift=+0.3cm]{$\eta$} (2,5.5);
+      \draw[spring] (0.5,4.5) -- node[midway,below,yshift=-0.1cm]{$J_\mathrm{R}$} (2,4.5);
+      \draw[thick] (2,5.5) -- (2,4.5);
+      \draw[thick] (2,5) -- (3,5) node[anchor=west,xshift=0.1cm]{Kelvin-Voigt};
+      %%%% Burgers
+      \node (ground1) at (0,2.5) [ground,anchor=north,rotate=-90] {};
+      \draw (ground1.north west) -- (ground1.north east);
+      \draw[thick] (0,2.5) -- (0.5,2.5);
+      \draw[thick] (0.5,3) -- (0.5,2);
+      \draw[damper] (0.5,3) -- node[midway,above,yshift=+0.3cm]{$\eta_{\ast}$} (2,3);
+      \draw[spring] (0.5,2) -- node[midway,below,yshift=-0.1cm]{$J_\mathrm{R}$} (2,2);
+      \draw[thick] (2,3) -- (2,2);
+      \draw[damper] (2,2.5) -- node[midway,above,yshift=+0.3cm]{$\eta$} (3,2.5);
+      \draw[spring] (3,2.5) -- node[midway,above,yshift=+0.1cm]{$J$} (4.5,2.5) node[anchor=west,xshift=0.1cm]{Burgers};
+      %%%% Maxwell-Andrade
+      \node (ground1) at (0,0) [ground,anchor=north,rotate=-90] {};
+      \draw (ground1.north west) -- (ground1.north east);
+      \draw[thick] (0,0) -- (0.5,0);
+      \draw[thick] (0.5,0.5) -- (0.5,-0.5);
+      \draw[damper] (0.5,0.5) -- node[midway,above,yshift=+0.3cm]{$\delta \eta$} (2,0.5);
+      \draw[thick,->] (0.85,0.1) -- (1.65,0.9);
+      \draw[spring] (0.5,-0.5) -- node[midway,below,yshift=-0.1cm]{$\delta J$} (2,-0.5);
+      \draw[thick,->] (0.85,-0.9) -- (1.65,-0.1);
+      \draw[thick] (2,0.5) -- (2,-0.5);
+      \draw[damper] (2,0) -- node[midway,above,yshift=+0.3cm]{$\eta$} (3,0);
+      \draw[spring] (3,0) -- node[midway,above,yshift=+0.1cm]{$J$} (4.5,0) node[anchor=west,xshift=0.1cm]{Maxwell-Andrade};
+ \end{tikzpicture}
+ \caption{Esquemas de resortes y amortiguadores de cuatro modelos reológicos.}
+ \label{fig:modelos_reo}
+\end{figure}
+
+In our work, we will consider three rheological models to describe tidal dissipation within Earth's mantle, namely the Maxwell, the Burgers and Maxwell-Andrade models. In Figure~\ref{fig:modelos_reo} we present a schematic representation of each model using springs and dashpots.
+
+The Maxwell, Kelvin-Voigt and Burgers rheological models are typical examples of models used to describe different types of viscoelastic behavior of a solid body. The first one is represented as a dashpot and a spring connected in series. The second one is represented as a dashpot and a spring connected in parallel. These two models differ in at least two aspects. On one hand, after being deformed a body whose rheological behavior is characterized by the Maxwell model can not recover is shape. On the contrary, a body whose rheological behavior is described by the Kelvin-Voigt model, do recover its shape. On the other hand, in a Maxwell configuration, the applied stress acting on the spring and on the dashpot are equal, while the total deformation is the sum of the deformations of each of the aforementioned components.
+
+The Burgers model can be thought as a Kelvin-Voigt element connected in series with a Maxwell element. It worth to note that the viscosity of the dashpot in the Kelvin-Voigt element has a different meaning from that of the viscosity of the dashpot in the Maxwell element \citep{renaudhenning2018}.
+
+The last rheological model to be considered is that of Maxwell-Andrade. It is schematically similar to the Burgers model, but has the fundamental difference that the viscosity of the dashpot and the compliance (or rigidity) of the spring in the Kelvin-Voigt element are not fixed but are variable in order to allow for the hereditary reaction behavior \citep{efroimsky2012,renaudhenning2018}. As a consequence of this, the Burgers element does not exactly recover its original form, i.e. there is a certain ``hysteresis''. The origin of the latter is due to dislocations and vacancy flow within the material that responds according to this rheology.
+
+Concerning the expression of the complex creep function, $\bar{J} (\chi)$, which is given in general terms by Equation~\eqref{ec:defJcomplex}, in the following we will present its specific from for each rheology in a suitable form for its translation into a computer code.
+
+For the Maxwell model, the expression of $J (t-t')$, which was given in its general form in Equation~\eqref{ec:kernJgral}, is \citep{efroimsky2012}:
+\begin{equation}
+      \label{ec:kernJ_Max}
+      J (t-t') = \left[J + (t-t') \frac{1}{\eta}\right] \Theta (t-t').
+\end{equation} Inserting Equation~\eqref{ec:kernJ_Max} in Equation~\eqref{ec:defJcomplex}, and performing the required mathematical operations, we obtain:
+\begin{equation}
+      \label{ec:Jcomplex_Max}
+      \bar{J} \left(\chi\right) = J - \frac{\mathrm{i}}{\chi \, \eta}.
+\end{equation} The real and imaginary parts of the right hand side of Equation~\eqref{ec:Jcomplex_Max} are evidently:
+\begin{subequations}\label{ec:ReImJ_maxewll}
+\begin{align}
+      \Re \left[\bar{J} (\chi)\right] &= J \label{ec:ReJ_maxewll} \\
+      \Im \left[\bar{J} (\chi)\right] &= - \frac{1}{\chi \, \eta}. \label{ec:ImJ_maxwell}
+\end{align}
+\end{subequations} The next step would be to insert Equations~\eqref{ec:ReImJ_maxewll} into Equations~\eqref{ec:imklJ}. However, the presence of the tidal frequency in the denominator on the right hand side of Equation~\eqref{ec:ImJ_maxwell} can cause numerical instabilities, given the possibility that $\chi$ can become zero when the considered rotating body crosses or gets captured in a spin-orbit resonance \citep{efroimsky2012}. In order to avoid this numerical difficulty, we can define the dimensionless complex compliance $\mathcal{J} (\chi)$ as:
+\begin{equation}
+      \label{ec:def_Jcomp_adim}
+      \mathcal{J} (\chi) = \eta \, \chi \, \bar{J} (\chi).
+\end{equation} By multiplying and dividing the right hand sides of Equations~\eqref{ec:imklJ} by $\eta^2 \chi^2$, we can express the tidal quality functions in terms of the dimensionless complex compliance:
+\begin{equation}\label{ec:imklJadim}
+      K_\mathrm{I} (l,\omega_{lmpq}) = - \frac{3}{2} \frac{1}{l-1} \frac{B_l \, \eta \, \chi \, \Im \left[\mathcal{J} (\chi) \right] \sgn \left(\omega_{lmpq} \right)}{\left(\Re \left[ \mathcal{J} (\chi) \right] + B_l \, \eta \, \chi\right)^2 + \left(\Im \left[ \mathcal{J} (\chi) \right]\right)^2}.
+\end{equation} Using Equation~\eqref{ec:Jcomplex_Max} and Equation~\eqref{ec:def_Jcomp_adim}, the dimensionless creep response function for the Maxwell rheology is:
+\begin{equation}
+      \label{ec:J_adim_Max}
+      \mathcal{J} (\chi) = J \, \eta \, \chi - \mathrm{i},
+\end{equation} whose real and imaginary parts are:
+\begin{subequations}\label{ec:reimJadimMax}
+      \begin{align}
+            \Re \left[\mathcal{J} (\chi)\right] &= J \, \eta \, \chi \label{ec:ReJadim_maxwell} \\
+            \Im \left[\mathcal{J} (\chi)\right] &= - 1. \label{ec:ImJadim_maxwell}
+      \end{align}
+\end{subequations} Inserting Equations~\eqref{ec:reimJadimMax} into Equations~\eqref{ec:imklJadim} we obtain:
+\begin{equation}\label{ec:imklJadim_Max}
+      K_\mathrm{I} (l,\omega_{lmpq}) = \frac{3}{2} \frac{1}{l-1} \frac{B_l \, \eta \, \chi \sgn \left(\omega_{lmpq} \right)}{\left(J + B_l \right)^2 \eta^2 \, \chi^2 + 1}.
+\end{equation} The rheology of a body described by the Maxwell model behaves as a elastic solid at high frequencies ($\chi \, \eta \, J \gg 1$). On the contrary, at low frequencies, it behaves as a viscous solid body ($\chi \, \eta \, J \ll 1$). Consequently, this kind of behavior has the particular feature of underestimate tidal dissipation at high frequencies. In order to overcome this inconvenience, more realistic rheologies can be considered such as the Burgers and Maxwell-Andrade models.
+
+The complex compliance function corresponding to the Burgers model is given by \citep{renaudhenning2018}:
+\begin{equation}
+      \label{ec:J_Burgers}
+      \bar{J} \left(\chi\right) = J - \frac{\mathrm{i}}{\eta \, \chi} + J_\mathrm{R} \left(\frac{1 - \mathrm{i} \, J_\mathrm{R} \, \eta_\ast \, \chi}{1 + \left(J_\mathrm{R} \, \eta_\ast \, \chi \right)^2}\right).
+\end{equation} For the sake of reducing the number of free parameters, we follow the work by \citet{renaudhenning2018}, who expressed the relaxed compliance, $J_\mathrm{R}$, and the Kelvin-Voigt viscosity, $\eta_\ast$, in terms of the unrelaxed compliance, $J$, and the Maxwell viscosity, $\eta$, as follows:
+\begin{subequations}
+      \label{ec:rel_J_eta_RU}
+      \begin{equation}
+            \label{ec:rel_J_RU}
+            J_\mathrm{R}  = \zeta_\mathrm{J} \, J,
+      \end{equation} y
+      \begin{equation}
+            \label{ec:rel_eta_KVM}
+            \eta_\ast = \zeta_\mathrm{\eta} \, \eta.
+      \end{equation}
+\end{subequations} For the Earth's mantle, the parameters $\zeta_\mathrm{J}$ and $\zeta_\mathrm{\eta}$ are taken equal to $0.2$ and $0.02$, respectively \citep{renaudhenning2018}.
+
+The corresponding expression of the dimensionless complex compliance is:
+\begin{equation}
+      \label{ec:J_comp_adim_Bur}
+      \mathcal{J} (\chi) = J \, \eta \, \chi - \mathrm{i}  + \zeta_\mathrm{J} \, J \, \eta \, \chi \left(\frac{1 - \mathrm{i} \, \zeta_\mathrm{J} \, \zeta_\mathrm{\eta} \, J \, \eta \, \chi}{1 + \left(\zeta_\mathrm{J} \, \zeta_\mathrm{\eta} \, J \, \eta \, \chi \right)^2}\right),
+\end{equation} while its real and imaginary parts are:
+\begin{subequations}\label{ec:reimJadimBur}
+      \begin{align}
+            \Re \left[\mathcal{J} (\chi)\right] &= J \, \eta \, \chi \left(1 + \frac{\zeta_\mathrm{J}}{1 + \left(\zeta_\mathrm{J} \, \zeta_\mathrm{\eta} \, J \, \eta \, \chi \right)^2}\right) \label{ec:ReJadim_Bur} \\
+            \Im \left[\mathcal{J} (\chi)\right] &= - \left(1 + \frac{\zeta_\mathrm{\eta} \left(\zeta_\mathrm{J} \, J \, \eta \, \chi\right)^2}{1 + \left(\zeta_\mathrm{J} \, \zeta_\mathrm{\eta} \, J \, \eta \, \chi \right)^2}\right). \label{ec:ImJadim_Bur}
+      \end{align}
+\end{subequations} These expressions combined with Equations~\eqref{ec:imklJadim} deliver the values of $K_{\mathrm{I}} \left(l,\omega_{lmpq}\right)$.
+
+Similarly, the complex creep response function corresponding to the Maxwell-Andrade model is given by:
+\begin{equation}
+      \label{ec:J_andrade}
+      \bar{J} (\chi) = J - \frac{\mathrm{i}}{\eta \, \chi} + \frac{J^{1-\alpha}}{\left(\mathrm{i} \, \zeta_\mathrm{A} \, \eta \, \chi \right)} \Gamma \left(1 + \alpha\right),
+\end{equation} where $\alpha$ is known as Andrade's parameter and $\zeta_\mathrm{A}$ is identified with the ratio between the characteristic times of the Maxwell-Andrade rheology ($\tau_\mathrm{A}$) and that of the viscoelastic response ($\tau_\mathrm{M}$). In general, due to the current lack of knowledge about this particular aspect, it is common to set $\zeta_\mathrm{A} = 1$, which implies $\tau_\mathrm{A} = \tau_\mathrm{M}$. This last equality is approximately true for relatively low stresses, such as the ones we have in this kind of study \citep{castillo-rogez2011}. On the other hand, \citet{karato1990} point out that the anelastic dissipation mechanism is effective in the Earth's mantle up to the limit frequency $\chi_0 \simeq 1 \mbox{ year}^{-1}$. At lower frequencies, this mechanism is less efficient resulting in viscoelastic behavior. That is, at low frequencies the mantle behaves like a Maxwell solid. Consequently, for frequencies higher than $\chi_0$, the anelasticity is the dominant dissipation mechanism and, therefore, in such a frequency regime the aforementioned equality is satisfied \citep{efroimsky2012}.
+
+Concerning the Andrade parameter, $\alpha$, it should be noted that the values it assumes (which is specific to each material) are always in the interval $[0.14, 0.4]$ for all minerals, including ice, which constitutes a surprising fact \citep{efroimsky2012}. The lower values of the interval correspond to materials at high temperatures or semi-molten and the higher values correspond to colder rocks and ices.
+
+The dimensionless complex compliance function for Maxwell-Andrade rheology is given by:
+\begin{equation}
+      \label{ec:J_comp_adim_And}
+      \mathcal{J} \left(\chi\right) = J \, \eta \, \chi - \mathrm{i} + \frac{J \, \eta \, \chi}{\left(\zeta_\mathrm{A} \, J \, \eta \, \chi\right)^\alpha} \exp \left( - \mathrm{i} \frac{\pi}{2}\alpha\right) \Gamma \left(1 + \alpha \right).
+\end{equation} Then, the real and imaginary parts of $\mathcal{J} \left(\chi\right)$ for the same rheology are given by:
+\begin{subequations}\label{ec:reimJadimAnd}
+      \begin{equation}
+            \label{ec:ReJadim_And}
+            \Re \left[\mathcal{J} (\chi)\right] = J \, \eta \, \chi + \frac{J \, \eta \, \chi}{\left(\zeta_\mathrm{A} \, J \, \eta \, \chi\right)^\alpha} \Gamma \left(1 + \alpha\right) \cos \left(\frac{\pi}{2}\alpha\right), 
+      \end{equation}
+      \begin{equation}
+            \label{ec:ImJadim_And}
+            \Im \left[\mathcal{J} (\chi)\right] = - 1 - \frac{J \, \eta \, \chi}{\left(\zeta_\mathrm{A} \, J \, \eta \, \chi\right)^\alpha} \Gamma \left(1 + \alpha\right) \sin \left(\frac{\pi}{2}\alpha\right).
+      \end{equation} 
+\end{subequations} In the case that the response of certain material that makes up a celestial body is modeled with this rheology, the expressions given in Equation~\eqref{ec:reimJadimAnd} have to be combined with Equations~\eqref{ec:imklJadim} in order to evaluate the tidal quality function $K_{\mathrm{I}} \left(l,\omega_{lmpq}\right)$.
 
 \section{Model implementation\label{sec:model}}
 
