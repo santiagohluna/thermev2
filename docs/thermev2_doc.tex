@@ -399,6 +399,24 @@ Finally, the expression of the temperature profile inside the Earth is given by:
     \end{cases}
 \end{equation}
 
+\subsection{Mantle viscosity\label{ss:matle_visc}}
+
+The dynamic viscosity, $\eta$, of the mantle depends, in general terms, on the temperature ($T$) and pressure ($P$) \citep{valenciaetal2006,henningetal2009,stamenkovicetal2012}. The functional form of this dependence is usually expressed in the form of Arrhenius' law:
+\begin{equation}
+      \label{ec:visc_arrhen}
+      \eta (T,P) = b \exp \left(\frac{E^\ast + P \, V_\mathrm{eff}^\ast}{R_\mathrm{gas} T}\right),
+\end{equation} where $b$ is a constant, $E^\ast$ and $V_\mathrm{eff}^\ast$ are the energy and effective volume of activation, respectively, and $R_\mathrm{gas}$ is the Universal constant of ideal gases.
+
+As can be seen in Equation~\eqref{ec:visc_arrhen}, the activation energy describes the coupling between viscosity and temperature, while the effective activation volume describes the coupling between pressure and viscosity. For reasons of simplicity, only the dependence of viscosity on temperature will be considered. In this sense, we set $V_\mathrm{eff}^\ast = 0$ and, consequently, Equation~\eqref{ec:visc_arrhen} is written as:
+\begin{equation}
+      \label{ec:visc_arrhen_T}
+      \eta (T) = b \exp \left(\frac{E^\ast}{R_\mathrm{gas} T}\right).
+\end{equation} Following \citet{stamenkovicetal2012}, the latter equation can be rewritten in a more convenient way by considering a viscosity reference value corresponding to a temperature reference value, i.e. $\eta_\mathrm{ref} = \eta (T_\mathrm{ref})$. In this way the constant $b$ can be eliminated and Eq~\eqref{ec:visc_arrhen_T} becomes:
+\begin{equation}
+      \label{ec:visc_T_Tref}
+      \eta (T) = \eta_\mathrm{ref} \exp \left[\frac{E^\ast}{R_\mathrm{gas}} \left(\frac{1}{T} - \frac{1}{T_\mathrm{ref}}\right)\right].
+\end{equation}
+
 \subsection{Expression of the heat fluxes}
 
 As we have pointed out before, heat is transported by conduction across each thermal boundary layer, thus the corresponding heat flux ($q$) for each boundary layer is given by:
@@ -471,6 +489,8 @@ Taking into account the equations~\eqref{ec:Mic} and \eqref{ec:Ric} we arrive to
 \end{equation}
 
 \subsection{Partial melt within the mantle}
+
+\subsection{Final expression of the fundamental equations}
 
 \subsection{Heat sources}
 
