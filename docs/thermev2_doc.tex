@@ -518,7 +518,7 @@ In order to estimate the mass of melted materials within mantle, we can make use
 \end{equation} where $V_\text{m}$ is the mantle volume and  $\phi (r)$ is given by:
 \begin{equation}
     \label{ec:melt_frac}
-    \phi (r) = \frac{T(r) - T_\text{sol} (r)}{T_\text{liq} (r) - T_\text{sol} (r)}.
+    \phi (r) = \frac{T_\text{m} (r) - T_\text{sol} (r)}{T_\text{liq} (r) - T_\text{sol} (r)}.
 \end{equation} Here, $T_\text{sol} (r)$ and $T_\text{liq} (r)$ are the mantle solidus and liquidus temperature profiles, respectively. In our model we consider the corresponding expressions given by \citet{monteuxetal2016}:
 \begin{align}
     T_\text{sol} (r) = 
@@ -533,11 +533,31 @@ In order to estimate the mass of melted materials within mantle, we can make use
     1982.1 \left( \frac{P(r)}{6.594} + 1\right)^{\frac{1}{5.374}} & \text{ si } P \leq 20 \, \text{GPa} \\
     2006.8 \left( \frac{P(r)}{34.65} + 1\right)^{\frac{1}{1.844}} & \text{ si } P \geq 20 \, \text{GPa},
     \end{cases}
-\end{align} where $r$ is expressed in kilometers and the pressure in GPa, in consistece with the expression of $P(r)$, given by Equation~\eqref{ec:Pdr}.
+\end{align} where $r$ is expressed in kilometers and the pressure in GPa, in consistence with the expression of $P(r)$, given by Equation~\eqref{ec:Pdr}. In Equation~\eqref{ec:melt_frac}, $T_\text{m} (r)$ is the mantle temperature profile, which is given by the third and fourth expressions of Equation~\eqref{ec:Tdr_earth}.
 
-
+Thus, the time derivative of $M_\text{melt}$ is:
+\begin{equation}
+      \label{ec:dMmeltdt_dphidt}
+      \fdiff{M_\text{melt}}{t} = M_\text{m} \fdiff{\valmed{\phi}_\text{m}}{t}.
+\end{equation} However, since $T_\text{m} (r)$ is characterized by the temperature at the base of the upper thermal boundary layer, mantle average melt fraction will vary on time as a consequence of the time evolution $T_\textsc{ubl}$. Then:
+\begin{equation}
+      \label{ec:dMmeltdt}
+      \fdiff{M_\text{melt}}{t} = M_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}} \fdiff{T_\textsc{ubl}}{t}.
+\end{equation} Later, we will discuss some difficulties regarding the computation of the derivative of $\valmed{\phi}_\text{m}$ with respect to $T_\textsc{ubl}$.
 
 \subsection{Final expression of the fundamental equations}
+
+Now we can reshape Equations~\eqref{ec:dTmdt_core_gral} and \eqref{ec:dTmdt_mantle_gral} to give them a more convenient form by considering Equations~\eqref{ec:dMicdt} and \eqref{ec:dMmeltdt}. Upon insertion of the latter equations into the former ones, we obtain:
+\begin{align}
+      M_c \, c_c \, \fdiff{\valmed{T}_c}{t} - \left(L_c + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \fdiff{T_\textsc{cmb}}{t} + \dot{Q}_\textsc{cmb} (t) &= \dot{Q}_\text{rad,c} (t) \label{ec:dTcdt_gral} \\
+      M_m \, c_m \, \fdiff{\valmed{T}_m}{t} + L_m \, M_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}} \fdiff{T_\textsc{ubl}}{t} - \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{conv} (t) &= \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t), \label{ec:dTmdt_gral}
+\end{align} As can be noted, in each equation appear the mean temperature of the core and the mantle and the temperatures at the CMB and the base of the upper thermal boundary layer, respectively. In order to overcome this inconvenience, the mean temperature of both the core and the mantle can be related to the characteristic temperature of the temperature profile in each region. The mean temperature at each of the considered regions, i.e. the core and mantle, are the corresponding volume averaged temperature profile \citep{stevensonetal1983,stamenkovicetal2012}:
+\begin{align}
+      \valmed{T}_c &= \frac{1}{V_\text{c}} \iiint\limits_{V_\text{c}} T(r) \, \text{d} V = \frac{3}{R_\text{c}^3 - R_\text{ic}^3} \int_{R_\text{ic}}^{R_\text{c}} T(r) \, r^2 \, \text{d} r, \\
+      \valmed{T}_m &= \frac{1}{V_\text{m}} \iiint\limits_{V_\text{m}} T(r) \, \text{d} V = \frac{3}{R_\oplus^3 - R_\text{c}^3} \int_{R_\text{c}}^{R_\oplus} T(r) \, r^2 \, \text{d} r.
+\end{align}
+
+\subsection{Stefan number}
 
 \subsection{Heat sources}
 
@@ -571,10 +591,10 @@ Concerning the tidal heating source, the corresponding heat production rate is g
 \begin{equation}
     \label{ec:ftvf}
     f_\text{tvf} = \frac{R_\phi^3 - R_\text{c}^3}{R_\oplus^3},
-\end{equation} where $R_\phi$ is the distance from the center of the Earth where the melt fraction ($\phi$) is equal to the disaggregation point $\phi_\textsc{d}$, which is a critical value of the melt fraction above which mantle material cannot behave as a solid any more. $\left\langle P \right\rangle_\oplus^\text{tide}$ is given by:
-\begin{multline}\label{ec:potdis_mareas}
-      \left\langle P \right\rangle_\oplus^\text{tide} = \frac{G \, M_{\leftmoon}^2}{a} \sum_{l=2}^\infty \left(\frac{R_\oplus}{a}\right)^{2l+1} \sum_{m=0}^l \frac{(l-m)!}{(l+m)!} \left(2-\delta_{0m}\right) \\ \times \sum_{p=0}^l F_{lmp}^2 (i) \sum_{q=-\infty}^{\infty} G_{lpq}^2 (e) \, \omega_{lmpq} \, K_{\text{I}} \left(l,\omega_{lmpq}\right),
-\end{multline} where $G$ is the gravitation constant, $M_{\leftmoon}$ is the mass of the Moon, $R_\oplus$ is the mean Earth radius, $a$ is the major semiaxis, $\delta_{0m}$ is the Kronecker delta distribution, $F_{lmp} (i)$ and $G_{lpq} (e)$ are the inclination \citep{goodwagner2008} and eccentricity \citep{giacaglia1976b} functions, respectively.
+\end{equation} where $R_\phi$ is the distance from the center of the Earth where the melt fraction ($\phi$) is equal to the disaggregation point $\phi_\textsc{d}$, which is a critical value of the melt fraction above which mantle material can no longer behave as a solid. Thus, $f_\text{tvf}$ represents the Earth's tidally active fraction. On the other hand, $\left\langle P \right\rangle_\oplus^\text{tide}$ is given by:
+\begin{equation}\label{ec:potdis_mareas}
+      \left\langle P \right\rangle_\oplus^\text{tide} = \frac{G \, M_{\leftmoon}^2}{a} \sum_{l=2}^\infty \left(\frac{R_\oplus}{a}\right)^{2l+1} \sum_{m=0}^l \frac{(l-m)!}{(l+m)!} \left(2-\delta_{0m}\right) \sum_{p=0}^l F_{lmp}^2 (i) \sum_{q=-\infty}^{\infty} G_{lpq}^2 (e) \, \omega_{lmpq} \, K_{\text{I}} \left(l,\omega_{lmpq}\right),
+\end{equation} where $G$ is the gravitation constant, $M_{\leftmoon}$ is the mass of the Moon, $R_\oplus$ is the mean Earth radius, $a$ is the major semiaxis, $\delta_{0m}$ is the Kronecker delta distribution, $F_{lmp} (i)$ and $G_{lpq} (e)$ are the inclination \citep{goodwagner2008} and eccentricity \citep{giacaglia1976b} functions, respectively.
 
 The factor $K_\text{I} \left(l,\omega_{lmpq}\right)$ describes the rheological response of Earth, i.e. the modification of its gravitational field due to the deformation caused by the gravitational attraction forces exerted by the Moon, and is given by:
 \begin{equation}\label{ec:imklJ} 
