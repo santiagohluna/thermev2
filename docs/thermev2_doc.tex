@@ -134,7 +134,7 @@ The earth is considered to be divided into two parts: the core and the mantle (s
       \draw[dashed,white] (0,-3) -- (0,3.5);
       \filldraw[black!20!white] (0,0) circle [radius=2cm];
       \draw[->] (0,0) -- node[midway,right]{$R_{\text{c}}$}(60:2cm);
-      \draw[->] (90:1.5cm) -- (90:2.5cm) node[left]{$\mathbf{q}^{\text{out}}_c$};
+      \draw[->] (90:1.5cm) -- (90:2.5cm) node[left]{$\mathbf{q}^{\text{out}}_\text{c}$};
       \draw[very thick,->] (75:2cm) -- (75:2.5cm) node[right]{$\mathbf{n}$};
       \end{tikzpicture}
       \caption{Heat flow through core's surface.}
@@ -149,8 +149,8 @@ The earth is considered to be divided into two parts: the core and the mantle (s
        \filldraw[white] (0,0) circle [radius=1.5cm];
        \draw[->] (0,0) -- node[midway,above]{$R_{\text{c}}$}(0:1.5cm);
        \draw[->] (0,0) --  node[near end,above]{$R_{\oplus}$}(-30:3cm);
-       \draw[->] (90:1cm) -- (90:2cm) node[left]{$\mathbf{q}^{\text{in}}_m$};
-       \draw[->] (90:2.5cm) -- (90:3.5cm) node[left]{$\mathbf{q}^{\text{out}}_m$};
+       \draw[->] (90:1cm) -- (90:2cm) node[left]{$\mathbf{q}^{\text{in}}_\text{m}$};
+       \draw[->] (90:2.5cm) -- (90:3.5cm) node[left]{$\mathbf{q}^{\text{out}}_\text{m}$};
        \draw[very thick,->] (135:3cm) -- (135:3.5cm) node[above]{$\mathbf{n}$};
        \draw[very thick,<-] (135:1cm)node[below]{$\mathbf{n}$} -- (135:1.5cm);
       \end{tikzpicture}
@@ -192,26 +192,26 @@ Now, let us rewrite Eq.~\eqref{ec:Ucontinuity} in a more convenient form. To thi
       \fdiff{Q}{t} = M \, c \, \fdiff{T}{t} + L \, \fdiff{M_\text{melt}}{t}.
 \end{equation} As we will be explained later, temperature varies within both mantle and core and we will assume that their internal temperatures are function of time and depth (or distance from Earth center, $r$). Since Eq.~\eqref{ec:dQdtgral} is valid for the core and mantle each of them considered as a whole, then the symbol $T$ actually stands for the mean temperature of each layer.
 
-Let us consider now the second term on the left hand side of Eq.~\eqref{ec:Qcontinuity}. In order to compute the surface integral, the core and the mantle need to be considered separately. First of all, in both cases the heat is assumed to flow radially from the Earth's center to its surface. Thus, the heat flux can be expressed as $\vec{q} (t) = q (t) \, \hat{\vec{r}}$, where $\hat{\vec{r}}$ is a unit vector pointing outwards the Earth in radial direction. In addition, the surface element $\text{d} \vec{S}$ can be rewritten as $\text{d} \vec{S} = \vec{n} \, \text{d}S$, where $\vec{n}$ is an unit vector normal to each limiting surface. So, in general, we have that $\vec{q} (t) \cdot \text{d} \, \vec{S} = q (t) \, \text{d}S \left(\hat{\vec{r}} \cdot \vec{n}\right) = \pm q (t) \, \text{d}S$, depending on whether unit vectors $\vec{n}$ and $\hat{\vec{r}}$ have the same or opposite direction. For the core we have that $\vec{q}_c^\text{out} (t) \cdot \text{d} \, \vec{S} = q_c^\text{out} (t) \, \text{d}S$, because unit vectors $\vec{n}$ and $\hat{\vec{r}}$ have the same direction, as can be noted from Fig.~\ref{fig:flujo_nucleo}. In consequence:
+Let us consider now the second term on the left hand side of Eq.~\eqref{ec:Qcontinuity}. In order to compute the surface integral, the core and the mantle need to be considered separately. First of all, in both cases the heat is assumed to flow radially from the Earth's center to its surface. Thus, the heat flux can be expressed as $\vec{q} (t) = q (t) \, \hat{\vec{r}}$, where $\hat{\vec{r}}$ is a unit vector pointing outwards the Earth in radial direction. In addition, the surface element $\text{d} \vec{S}$ can be rewritten as $\text{d} \vec{S} = \vec{n} \, \text{d}S$, where $\vec{n}$ is an unit vector normal to each limiting surface. So, in general, we have that $\vec{q} (t) \cdot \text{d} \, \vec{S} = q (t) \, \text{d}S \left(\hat{\vec{r}} \cdot \vec{n}\right) = \pm q (t) \, \text{d}S$, depending on whether unit vectors $\vec{n}$ and $\hat{\vec{r}}$ have the same or opposite direction. For the core we have that $\vec{q}_\text{c}^\text{out} (t) \cdot \text{d} \, \vec{S} = q_\text{c}^\text{out} (t) \, \text{d}S$, because unit vectors $\vec{n}$ and $\hat{\vec{r}}$ have the same direction, as can be noted from Fig.~\ref{fig:flujo_nucleo}. In consequence:
 \begin{equation}
       \label{ec:oint_core}
-      \oiint_{S_c} \vec{q}_c^\text{out} \cdot \text{d} \vec{S} = \oiint_{S_c} q_c^\text{out} (t) \, \text{d}S = q_c^\text{out} (t) \oiint_{S_c} \text{d}S = q_c^\text{out} (t) \, A_c
-\end{equation} where $S_c$ indicates that the integration is performed over the core's surface and $A_c$ is the surface area of the core. In the case of the mantle, the surface integral must be divided into two parts, one Corresponding to the inner limiting surface and the other to the outer limiting surface:
+      \oiint_{S_\text{c}} \vec{q}_\text{c}^\text{out} \cdot \text{d} \vec{S} = \oiint_{S_\text{c}} q_\text{c}^\text{out} (t) \, \text{d}S = q_\text{c}^\text{out} (t) \oiint_{S_\text{c}} \text{d}S = q_\text{c}^\text{out} (t) \, A_\text{c}
+\end{equation} where $S_\text{c}$ indicates that the integration is performed over the core's surface and $A_\text{c}$ is the surface area of the core. In the case of the mantle, the surface integral must be divided into two parts, one Corresponding to the inner limiting surface and the other to the outer limiting surface:
 \begin{equation}
       \label{ec:oint_mantle}
       \begin{split}
-            \oiint_{S_m} \vec{q}_m^\text{out} \cdot \text{d} \vec{S} &= \oiint_{S_m^\text{inner}} \vec{q}_m^\text{in} \cdot \text{d} \vec{S} + \oiint_{S_m^\text{outer}} \vec{q}_m^\text{out} \cdot \text{d} \vec{S} \\
-            &= \oiint_{S_{m}^\text{inner}} q_m^\text{in} (t) \, \text{d}S
+            \oiint_{S_\text{m}} \vec{q}_\text{m}^\text{out} \cdot \text{d} \vec{S} &= \oiint_{S_\text{m}^\text{inner}} \vec{q}_\text{m}^\text{in} \cdot \text{d} \vec{S} + \oiint_{S_\text{m}^\text{outer}} \vec{q}_\text{m}^\text{out} \cdot \text{d} \vec{S} \\
+            &= \oiint_{S_{m}^\text{inner}} q_\text{m}^\text{in} (t) \, \text{d}S
       \end{split}
 \end{equation} The computation of the second integral on the right hand side of Eq.~\eqref{ec:oint_mantle} is totally analogous to the case of the core. Thus:
 \begin{equation}
       \label{ec:oint_mantle_outer}
-      \oiint_{S_m^\text{outer}} \vec{q}_m^\text{out} \cdot \text{d} \vec{S} = \oiint_{S_m^\text{outer}} q_m^\text{out} (t) \, \text{d}S = q_m^\text{out} (t) \, A_\oplus,
-\end{equation} where $A_\oplus$ is the surface area of the Earth. As for the first integral on the right hand side of Eq.~\eqref{ec:oint_mantle}, we have to take into account, on one hand, that the dot product is negative because $\hat{\vec{r}}$ and $\vec{n}$ have opposite directions and, on the other hand, that the inner surface area of the mantle is equal to the core's surface area, i.e. $S_{m}^\text{inner} = S_c$. Then:
+      \oiint_{S_\text{m}^\text{outer}} \vec{q}_\text{m}^\text{out} \cdot \text{d} \vec{S} = \oiint_{S_\text{m}^\text{outer}} q_\text{m}^\text{out} (t) \, \text{d}S = q_\text{m}^\text{out} (t) \, A_\oplus,
+\end{equation} where $A_\oplus$ is the surface area of the Earth. As for the first integral on the right hand side of Eq.~\eqref{ec:oint_mantle}, we have to take into account, on one hand, that the dot product is negative because $\hat{\vec{r}}$ and $\vec{n}$ have opposite directions and, on the other hand, that the inner surface area of the mantle is equal to the core's surface area, i.e. $S_{m}^\text{inner} = S_\text{c}$. Then:
 \begin{equation}
       \label{ec_oint_mantle_inner}
-      \oiint_{S_m^\text{inner}} \vec{q}_m^\text{in} \cdot \text{d} \vec{S} = \oiint_{S_m^\text{inner}} q_m^\text{in} (t) \, \text{d}S = q_m^\text{in} (t) \, A_c.
-\end{equation} Moreover, for continuity reasons, and because Earth's core and mantle are in contact with each other, we have that $q_m^\text{in} (t) = q_c^\text{out} (t) = q_\textsc{cmb} (t)$.
+      \oiint_{S_\text{m}^\text{inner}} \vec{q}_\text{m}^\text{in} \cdot \text{d} \vec{S} = \oiint_{S_\text{m}^\text{inner}} q_\text{m}^\text{in} (t) \, \text{d}S = q_\text{m}^\text{in} (t) \, A_\text{c}.
+\end{equation} Moreover, for continuity reasons, and because Earth's core and mantle are in contact with each other, we have that $q_\text{m}^\text{in} (t) = q_\text{c}^\text{out} (t) = q_\textsc{cmb} (t)$.
 
 Lastly, as we pointed out before, we assume that radioactive decay is a heat source for both the core and the mantle, while tidal heating is present only in the latter. Thus, for the core we have that
 \begin{equation}
@@ -225,9 +225,9 @@ Lastly, as we pointed out before, we assume that radioactive decay is a heat sou
 
 Then, putting everything together we arrive to the equation governing the thermal evolution of both the core and the mantle:
 \begin{align}
-      M_c \, c_c \, \fdiff{\valmed{T}_c}{t} + \left(L_c + E_G\right) \, \fdiff{M_\text{ic}}{t} + \dot{Q}_\textsc{cmb} (t) &= \dot{Q}_\text{rad,c} (t) \label{ec:dTmdt_core_gral} \\
-      M_m \, c_m \, \fdiff{\valmed{T}_m}{t} + L_m \, \fdiff{M_\text{melt}}{t} - \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{conv} (t) &= \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t), \label{ec:dTmdt_mantle_gral}
-\end{align} where the subscripts $c$ and $m$ refers to quantities related to the core and mantle, respectively, $\valmed{T}_i$ (with $i=c,m$) denotes the average temperature of each layer, $\dot{Q}_\textsc{cmb} (t) = q_\textsc{cmb} (t) \, A_c$ and $\dot{Q}_\text{conv} = q_m^\text{out} \, A_\oplus$.
+      M_\text{c} \, c_\text{c} \, \fdiff{\valmed{T}_\text{c}}{t} + \left(L_\text{c} + E_G\right) \, \fdiff{M_\text{ic}}{t} + \dot{Q}_\textsc{cmb} (t) &= \dot{Q}_\text{rad,c} (t) \label{ec:dTmdt_core_gral} \\
+      M_\text{m} \, c_\text{m} \, \fdiff{\valmed{T}_\text{m}}{t} + L_\text{m} \, \fdiff{M_\text{melt}}{t} - \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{conv} (t) &= \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t), \label{ec:dTmdt_mantle_gral}
+\end{align} where the subscripts $c$ and $m$ refers to quantities related to the core and mantle, respectively, $\valmed{T}_i$ (with $i=c,m$) denotes the average temperature of each layer, $\dot{Q}_\textsc{cmb} (t) = q_\textsc{cmb} (t) \, A_\text{c}$ and $\dot{Q}_\text{conv} = q_\text{m}^\text{out} \, A_\oplus$.
 
 The second term on the left hand side of both Eq.~\eqref{ec:dTmdt_core_gral} and Eq.~\eqref{ec:dTmdt_mantle_gral} are slightly different from that of Eq.~\eqref{ec:dQdtgral} because melting or solidification process in the core and the mantle are different from each other. While the mass of molten material in the mantle, denoted by $M_\text{melt}$, is concentrated in a zone called asthenosphere, which is near the Earth's surface, we assume that the core is completely molten at the beginning of the Earth's history and that solidified core materials precipitate to Earth's center as it cools down forming a solid inner core. Thus, the mass of solidified material within the core is equal to the inner core mass ($M_\text{ic}$). In addition we take into account the gravitational energy release upon solidification of core materials through the parameter $E_G$, which is assumed constant.
 
@@ -523,17 +523,57 @@ In order to estimate the mass of melted materials within mantle, we can make use
 \begin{align}
     T_\text{sol} (r) = 
     \begin{cases}
-    1661.2 \left( \frac{P(r)}{1.336} + 1\right)^{\frac{1}{7.437}} & \text{ si } P \leq 20 \, \text{GPa} \\
-    2081.8 \left( \frac{P(r)}{101.69} + 1\right)^{\frac{1}{1.226}} & \text{ si } P \geq 20 \, \text{GPa} 
+    1661.2 \left( \dfrac{P(r)}{1.336} + 1\right)^{\frac{1}{7.437}} & \text{ si } P \leq 20 \, \text{GPa} \\
+    2081.8 \left( \dfrac{P(r)}{101.69} + 1\right)^{\frac{1}{1.226}} & \text{ si } P \geq 20 \, \text{GPa} 
     \end{cases}
 \end{align}
 \begin{align}
     T_\text{liq} (r) =
     \begin{cases}
-    1982.1 \left( \frac{P(r)}{6.594} + 1\right)^{\frac{1}{5.374}} & \text{ si } P \leq 20 \, \text{GPa} \\
-    2006.8 \left( \frac{P(r)}{34.65} + 1\right)^{\frac{1}{1.844}} & \text{ si } P \geq 20 \, \text{GPa},
+    1982.1 \left( \dfrac{P(r)}{6.594} + 1\right)^{\frac{1}{5.374}} & \text{ si } P \leq 20 \, \text{GPa} \\
+    2006.8 \left( \dfrac{P(r)}{34.65} + 1\right)^{\frac{1}{1.844}} & \text{ si } P \geq 20 \, \text{GPa},
     \end{cases}
-\end{align} where $r$ is expressed in kilometers and the pressure in GPa, in consistence with the expression of $P(r)$, given by Equation~\eqref{ec:Pdr}. In Equation~\eqref{ec:melt_frac}, $T_\text{m} (r)$ is the mantle temperature profile, which is given by the third and fourth expressions of Equation~\eqref{ec:Tdr_earth}.
+\end{align} where $r$ is expressed in kilometers and the pressure in GPa, in consistence with the expression of $P(r)$, given by Equation~\eqref{ec:Pdr}. In Equation~\eqref{ec:melt_frac}, $T_\text{m} (r)$ is the mantle temperature profile, which is given by the third and fourth expressions of Equation~\eqref{ec:Tdr_earth}. it should be noted that $\phi (r)$ can neither be negative nor exceed unity, because $\phi(r) = 1$ indicates that mantle material is completely molten at that particular value of $r$. Thus,
+\begin{equation}
+      \label{ec:def_fmelt}
+      \phi (r) = \begin{cases}
+            0 & \text{ if } T_\text{m} (r) \leq T_\text{sol} (r), \\
+            \dfrac{T_\text{m} (r) - T_\text{sol} (r)}{T_\text{liq} (r) - T_\text{sol} (r)} & \text{ if } T_\text{sol} (r) \leq T_\text{m} (r) < T_\text{liq} (r), \\
+            1 & \text{ if } T_\text{m} (r) \geq T_\text{liq} (r). 
+      \end{cases}
+\end{equation} It worth to note that the values of $r$ for which the temperature profile, given by $T_\text{m} (r)$, intersects the solidus profile, $T_\text{sol} (r)$, gives raise to a melt zone called the \emph{asthenosphere}. In Figure~\ref{fig:asthenosphere} we present a schematic representation of how the melt zone arises from aforementioned intersection. Whenever the temperature at base of the upper thermal boundary layer becomes larger that the solidus temperature at $r = R_\oplus - \delta_\textsc{ubl}$, $T_\text{m}(r)$ intersects $T_\text{sol} (r)$ in two points, one for $R_\textsc{a}$ and $R_\ell$. In other words, $R_\textsc{a}$ and $R_\ell$ are two values of $r$ that satisfy:
+\begin{align}
+      \label{ec:Rast_Rlit}
+      T_\text{m} (R_\textsc{a}) &= T_\text{sol} (R_\textsc{a}) \\
+      T_\text{m} (R_\ell) &= T_\text{sol} (R_\ell),
+\end{align} and define the limits of the asthenosphere.
+
+\begin{figure}
+      \centering
+      \begin{tikzpicture}[scale=1]
+            \draw[pattern=north east lines, pattern color=orange] (2,{23/5}) -- (5.5,2) -- (5,4) -- cycle;
+            \draw[thick,-latex] (-0.5,0) -- (7,0) node[anchor=north]{\scriptsize $r$};
+            \draw[thick,-latex] (0,-0.5) -- (0,6) node[anchor=east]{\scriptsize $T$};
+            %%%
+            \draw[thick,red] (0,5) -- node[near end, above]{$T_\text{m} (r)$} (5,4) -- (6,0);
+            \node[anchor=north] at (6,0) {\scriptsize $R_\oplus$};
+            %%%
+            \draw[thick,blue] plot[domain=1.5:6](\x,{-26*(\x-5.5)/35+2});
+            \node[anchor=south east] at (1.5,4.97) {\textcolor{blue}{$T_\text{sol} (r)$}};
+            %%%
+            \draw[dashed] (2,0) node[anchor=north]{\scriptsize $R_\textsc{a}$} -- (2,{23/5});
+            \draw[dashed] (5.5,0) node[anchor=north]{\scriptsize $R_\ell$} -- (5.5,2);
+            %%%
+            \draw[latex-latex] (5,4.2) -- node[anchor=south]{\scriptsize $\delta_\textsc{ubl}$} (6,4.2);
+            \draw (5,4.1) -- (5,4.3);
+            \draw (6,4.1) -- (6,4.3);
+            \draw[thick] (6,0) -- (6,5);
+            %%%
+            \draw[dashed] (0,4) node[anchor=east]{\scriptsize $T_\textsc{ubl}$} -- (5,4);
+      \end{tikzpicture}
+      \caption{Schematics of the intersection between mantle temperature profile (red solid line) and solidus temperature profile (blue solid line) of mantle materials.}
+      \label{fig:asthenosphere}
+  \end{figure}
 
 Thus, the time derivative of $M_\text{melt}$ is:
 \begin{equation}
@@ -549,15 +589,83 @@ Thus, the time derivative of $M_\text{melt}$ is:
 
 Now we can reshape Equations~\eqref{ec:dTmdt_core_gral} and \eqref{ec:dTmdt_mantle_gral} to give them a more convenient form by considering Equations~\eqref{ec:dMicdt} and \eqref{ec:dMmeltdt}. Upon insertion of the latter equations into the former ones, we obtain:
 \begin{align}
-      M_c \, c_c \, \fdiff{\valmed{T}_c}{t} - \left(L_c + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \fdiff{T_\textsc{cmb}}{t} + \dot{Q}_\textsc{cmb} (t) &= \dot{Q}_\text{rad,c} (t) \label{ec:dTcdt_gral} \\
-      M_m \, c_m \, \fdiff{\valmed{T}_m}{t} + L_m \, M_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}} \fdiff{T_\textsc{ubl}}{t} - \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{conv} (t) &= \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t), \label{ec:dTmdt_gral}
+      M_\text{c} \, c_\text{c} \, \fdiff{\valmed{T}_\text{c}}{t} - \left(L_\text{c} + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \fdiff{T_\textsc{cmb}}{t} + \dot{Q}_\textsc{cmb} (t) &= \dot{Q}_\text{rad,c} (t) \label{ec:dTcdt_gral} \\
+      M_\text{m} \, c_\text{m} \, \fdiff{\valmed{T}_\text{m}}{t} + L_\text{m} \, M_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}} \fdiff{T_\textsc{ubl}}{t} - \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{conv} (t) &= \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t), \label{ec:dTmdt_gral}
 \end{align} As can be noted, in each equation appear the mean temperature of the core and the mantle and the temperatures at the CMB and the base of the upper thermal boundary layer, respectively. In order to overcome this inconvenience, the mean temperature of both the core and the mantle can be related to the characteristic temperature of the temperature profile in each region. The mean temperature at each of the considered regions, i.e. the core and mantle, are the corresponding volume averaged temperature profile \citep{stevensonetal1983,stamenkovicetal2012}:
 \begin{align}
-      \valmed{T}_c &= \frac{1}{V_\text{c}} \iiint\limits_{V_\text{c}} T(r) \, \text{d} V = \frac{3}{R_\text{c}^3 - R_\text{ic}^3} \int_{R_\text{ic}}^{R_\text{c}} T(r) \, r^2 \, \text{d} r, \\
-      \valmed{T}_m &= \frac{1}{V_\text{m}} \iiint\limits_{V_\text{m}} T(r) \, \text{d} V = \frac{3}{R_\oplus^3 - R_\text{c}^3} \int_{R_\text{c}}^{R_\oplus} T(r) \, r^2 \, \text{d} r.
-\end{align}
+      \valmed{T}_\text{c} &= \frac{1}{V_\text{c}} \iiint\limits_{V_\text{c}} T(r) \, \text{d} V = \frac{3}{R_\text{c}^3 - R_\text{ic}^3} \int_{R_\text{ic}}^{R_\text{c}} T(r) \, r^2 \, \text{d} r, \\
+      \valmed{T}_\text{m} &= \frac{1}{V_\text{m}} \iiint\limits_{V_\text{m}} T(r) \, \text{d} V = \frac{3}{R_\oplus^3 - R_\text{c}^3} \int_{R_\text{c}}^{R_\oplus} T(r) \, r^2 \, \text{d} r.
+\end{align} By virtue of the first expression on the right hand side of Equation~\eqref{ec:Tdr_earth}, the average core temperature is related to the temperature at the CMB by:
+\begin{equation}
+      \label{ec:eta_c}
+      \valmed{T}_\text{c} = \eta_\text{c} \, T_\textsc{cmb},
+\end{equation} where $\eta_\text{c}$ is a constant. Similarly, the average mantle temperature is related to the temperature at the upper thermal boundary layer by:
+\begin{equation}
+      \label{ec:eta_m}
+      \valmed{T}_\text{m} = \eta_\text{m} \, T_\textsc{ubl},
+\end{equation} where $\eta_\text{m}$ is another constant. Thus, by replacing Equations~\eqref{ec:eta_c} and \eqref{ec:eta_m} into Equations~\eqref{ec:dTcdt_gral} and \eqref{ec:dTmdt_gral}, respectively, we finally obtain the differential equations describing the thermal evolution of the Earth's interior:
+\begin{align}
+      \left[M_\text{c} \, c_\text{c} \, \eta_\text{c} - \left(L_\text{c} + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \right] \fdiff{T_\textsc{cmb}}{t} &= \dot{Q}_\text{rad,c} (t) - \dot{Q}_\textsc{cmb} (t), \label{ec:dTcdt} \\
+      M_\text{m} \left[c_\text{m} \, \eta_\text{m} + L_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}}\right] \fdiff{T_\textsc{ubl}}{t} &= \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t). \label{ec:dTmdt}
+\end{align} These are the main equations of our model. They clearly show that the characteristic temperature of both the core and the mantle, which characterize their thermal state, evolve in time as consequence of the balance between heat sources and sinks.
 
 \subsection{Stefan number}
+
+Several works on the thermal evolution of the Earth \citep[e.g.][]{tosietal2017} and of other rocky planets, such as Mars \citep[e.g.][]{breueryspohn2003,breueryspohn2006} and putative rocky exoplanets \citep[e.g.][]{shojiykurita2014,renaudhenning2018,walterova_behounkova_2020,Rovira-Navarro_2021}, that include the effect of partial melt within mantle, make use of a dimensionless quantity called the \emph{Stefan number} (St).
+
+The definition of the Stefan number can be obtained by rewriting Equation~\eqref{ec:dTmdt} as:
+\begin{equation}
+      M_\text{m} \, c_\text{m} \left(\eta_\text{m} + \text{St}\right) \fdiff{T_\textsc{ubl}}{t} = \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t),
+\end{equation} where \citep{walterova_behounkova_2020}:
+\begin{equation}
+      \label{ec:def_St_phim}
+      \text{St} = \frac{L_\text{m}}{c_\text{m}} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}}.
+\end{equation} It has to be pointed out that for Mars-sized planets, $\eta_\text{c}$ and $\eta_\text{m}$ are close to unity. However, we should expect that these parameters become larger than 1 for bigger planets. For example, for the Earth $\eta_\text{c} \approx 1.2$ and $\eta_\text{m} \approx 1.3$ \citep{stevensonetal1983}.
+
+It becomes necessary to stop for a while at this point and discuss some issues regarding the computation of the derivative of the average melt fraction in the mantle with respect to the temperature at the base of the upper thermal boundary layer, appearing in Equations~\eqref{ec:dTmdt} and \eqref{ec:def_St_phim}.
+
+The volume-averaged melt fraction in the mantle is computed by Equation~\eqref{ec:fmeltm}. Since the local melt fraction, at a radius $r$, depends only on the radial distance from Earth's center, then the volume integral of Equation~\eqref{ec:fmeltm} can be rewritten as:
+\begin{equation}
+      \label{ec:fmeltm_radial}
+      \valmed{\phi}_\text{m} = \frac{3}{R_\oplus^3 - R_\text{c}^3} \int_{R_\text{c}}^{R_\oplus} \phi (r) \, r^2 \, \text{d}r.
+\end{equation} However, taking into account the definition of $\phi (r)$, given by Equation~\eqref{ec:def_fmelt}, we have that:
+\begin{equation}
+      \label{ec:vol_ints_limits}
+      \int_{R_\text{c}}^{R_\oplus} \phi (r) \, r^2 \, \text{d}r = \int_{R_\textsc{a}}^{R_\ell} \phi (r) \, r^2 \, \text{d}r.
+\end{equation} Thus, the Stefan number can be expressed as:
+\begin{equation}
+      \label{ec:stefan_integral}
+      \text{St} = \frac{L_\text{m}}{c_\text{m}} \frac{3}{R_\oplus^3 - R_\text{c}^3} \fdiff{}{T_\textsc{ubl}} \left(\int_{R_\textsc{a}}^{R_\ell} \phi (r) \, r^2 \, \text{d}r\right).
+\end{equation} Had we kept the integral limits between the outer core radius and Earth's radius, then the integral and differentiation signs could be exchanged. But, since the inner and outer limiting surfaces of the asthenosphere depend on $T_\textsc{ubl}$, the integration must be performed before differentiation. Moreover, due to the intricate relationship between $T_\textsc{ubl}$ and the thickness of the upper thermal boundary layer, its become more convenient to evaluate the derivative numerically.
+
+Just as the mantle volume-averaged melt fraction was defined, the volume-averaged melt fraction in the asthenosphere can also be defined in a completely analogous way \citep{breueryspohn2003,breueryspohn2006}:
+\begin{equation}
+      \label{ec:def_fmelt_ast}
+      \valmed{\phi}_\textsc{a} = \frac{1}{V_\textsc{a}} \iiint\limits_{V_\textsc{a}} \phi (r) \, \text{d}V,
+\end{equation} where $V_\textsc{a}$ is the asthenosphere volume. Once again, considering Equation~\eqref{ec:def_fmelt}, the volume integral is reduced to a one-dimensional integral:
+\begin{equation}
+      \label{ec:def_fmelt_ast_r}
+      \valmed{\phi}_\textsc{a} = \frac{3}{R_\ell^3 - R_\textsc{a}^3} \int_{R_\textsc{a}}^{R_\ell} \phi (r) \, r^2 \, \text{d}r.
+\end{equation} Now, taking into account Equation~\eqref{ec:vol_ints_limits}, we arrive to:
+\begin{equation}
+      \label{ec:vol_fmelt_rel}
+      \valmed{\phi}_\text{m} V_\text{m} = \valmed{\phi}_\textsc{a} V_\textsc{a},
+\end{equation} wherefrom we obtain:
+\begin{equation}
+      \label{ec:Vm_VA}
+      \valmed{\phi}_\text{m} = \frac{V_\textsc{a}}{V_\text{m}} \valmed{\phi}_\textsc{a}.
+\end{equation} This expression leads us to an alternative definition of the Stefan number:
+\begin{equation}
+      \label{ec:stefan_alt}
+      \text{St} = \frac{L_\text{m}}{c_\text{m}} \fdiff{}{T_\textsc{ubl}} \left(\frac{V_\textsc{a}}{V_\text{m}} \valmed{\phi}_\textsc{a}\right).
+\end{equation} Several works on the thermal evolution of terrestrial planets \citep[e.g.][postfix]{breueryspohn2006,shojiykurita2014} give the following definition of the Stefan number:
+\begin{equation}
+      \label{ec:stefan_not_exact}
+      \text{St} = \frac{L_\text{m}}{c_\text{m}} \frac{V_\textsc{a}}{V_\text{m}} \fdiff{\valmed{\phi}_\textsc{a}}{T_\textsc{ubl}}.
+\end{equation} Under the light of the derivation we offered of St, it seems that the definition of Equation~\eqref{ec:stefan_not_exact} at least neglects the dependence of the limits of the asthenosphere on the temperature at the base of the upper thermal boundary layer. The investigation of to what extent this approximation is valid is out of the scope of our work. We simply want to put the discussion on the table and to stress the fact that we would recommend the use of the definition of the Stefan number given by Equation~\eqref{ec:stefan_integral}, evaluating the derivative of the integral with respect to $T_\textsc{ubl}$ numerically. However, instead of using the Stefan number, we prefer the following expression for the time derivate of $T_\textsc{ubl}$:
+\begin{equation}
+      M_\text{m} \left[c_\text{m}\, \eta_\text{m} + \frac{L_\text{m}}{V_\text{m}} \fdiff{}{T_\textsc{ubl}} \left(V_\textsc{a} \valmed{\phi}_\textsc{a}\right)\right] \fdiff{T_\textsc{ubl}}{t} = \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t),
+\end{equation} which has a form analogous to Equation~\eqref{ec:dTcdt}.
 
 \subsection{Heat sources}
 
@@ -579,7 +687,25 @@ The radiogenic heat production rate in the mantle takes into account the decay o
 \begin{multline}
     \label{ec:Hdt_tot}
     H (t) = 0.9928 \, C_0^{\text{U}} H_0 \left(^{238}\mbox{U}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}} \left(^{238}\mbox{U}\right)} (t - t_0) \right] + 0.0071 \, C_0^{\text{U}} H_0 \left(^{235}\mbox{U}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}}\left(^{235}\mbox{U}\right)} (t - t_0) \right] \\ + C_0^{\text{Th}} H_0 \left(^{232}\mbox{Th}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}} \left(^{232}\mbox{Th}\right)} (t - t_0) \right] + 1.19 \times 10^{-4} C_0^{\text{K}} H_0 \left(^{40}\mbox{K}\right) \exp \left[- \frac{\ln 2}{\tau_{\frac{1}{2}} \left(^{40}\mbox{K}\right)} (t - t_0) \right].
-\end{multline} where $C_0$ and $H_0$ are the concentration and heat production rate per unit mass of each isotope at instant $t_0$, while $\tau_\frac{1}{2}$ is the corresponding half-life.
+\end{multline} where $C_0$ and $H_0$ are the concentration and heat production rate per unit mass of each isotope at instant $t_0$, while $\tau_\frac{1}{2}$ is the corresponding half-life. The corresponding values of these parameters are shown in Table~\ref{tab:params_elem_rads}.
+
+\begin{table}[t]
+      \centering
+      \caption{Thermally relevant radioactive isotopes together with the corresponding values of the parameters needed to compute the respective heat production rate per unit mass \protect\citep{turcotte2014}.}
+      \begin{tabular}{cccc}
+      \hline
+      Isotope              & $H_0$ [$\text{W}\,\text{kg}^{-1}$] & $\tau_{\frac{1}{2}}$ [yr] & $C_0$ [$\mbox{kg} \, \mbox{kg}^{-1}$] \\
+      \hline
+      $^{238}\mbox{U}$  & $9.46 \times 10^{-5}$                        & $4.47 \times 10^{9}$             & $30.8 \times 10^{-9}$ \\
+      $^{235}\mbox{U}$  & $5.69 \times 10^{-4}$                        & $7.04 \times 10^{8}$             & $0.22 \times 10^{-9}$ \\
+      $\mbox{U}$     & $9.81 \times 10^{-5}$                        &                          & $31.0 \times 10^{-9}$ \\
+      $^{232}\mbox{Th}$ & $2.64 \times 10^{-5}$                        & $1.40 \times 10^{10}$            & $124 \times 10^{-9}$ \\
+      $^{40}\mbox{K}$   & $2.92 \times 10^{-5}$                        & $1.25 \times 10^{9}$             & $36.9 \times 10^{-9}$ \\
+      $\mbox{K}$     & $3.48 \times 10^{-9}$                        &                          & $31.0 \times 10^{-5}$ \\
+      \hline
+      \end{tabular}
+      \label{tab:params_elem_rads}
+\end{table}
 
 \subsubsection{Tidal heating}
 
@@ -792,7 +918,63 @@ The dimensionless complex compliance function for Maxwell-Andrade rheology is gi
 
 \section{Model implementation\label{sec:model}}
 
-\bibliographystyle{aa}
+\begin{center}
+\begin{longtable}{cm{0.55\textwidth}c}
+ \caption{Constants, physical and orbital parameters of the Earth-Moon system gathered from the work by \citep{schubertetal2001}}  \label{tab:params_fis_1} \\
+  \hline
+  Symbol                & Description &  Value  \\
+  \hline
+  $G$                   & Gravitational constant& $6.67408 \times 10^{-11} \mbox{kg}^{-1} \, \mbox{m}^3 \, \mbox{s}^{-2}$ \\
+  $R_\text{gas}$        & Gas constant & $8.31447 \, \mbox{J} \, \mbox{K}^{-1} \, \mbox{mol}^{-1}$ \\
+  $M_\oplus$            & Earth's mass & $5.9722 \times 10^{24} \mbox{kg}$ \\
+  $R_\oplus$            & Earth's mean radius & $6.371 \times 10^{6} \, \mbox{m}$ \\
+  $R_\text{c}$          & Earth's core radius & $3.480 \times 10^{6} \, \mbox{m}$ \\
+  $M_{\leftmoon}$       & Moon's mass & $7.342 \times 10^{22} \, \mbox{kg}$ \\
+  $g$                   & Earth's surface gravity & $9.8 \, \text{m} \, \text{s}^{-2}$ \\
+  $\rho_\oplus$         & Earth's mean density & $5134 \, \text{kg} \, \text{m}^{-3}$ \\
+  $\rho_\text{m}$       & Mantle's mean density & $4600 \, \text{kg} \, \text{m}^{-3}$ \\
+  $\rho_\text{c}$       & Core's mean density & $13000 \, \text{kg} \, \text{m}^{-3}$ \\ \hline
+  $\mu$                 & Shear rigidity modulus & $8.0 \times 10^{10} \, \mbox{Pa}$ \\
+  $E^\ast$              & Activation energy & $3.0 \times 10^{5} \, \mbox{J} \, \mbox{mol}^{-1}$ \\
+  $\eta_\text{ref}$     & Reference dynamic viscosity & $4.5 \times 10^{21}$ Pa s \\
+  $\alpha$              & Andrade's parameter & $0.2$ \\
+  $\zeta_\text{A}$      & Ratio of Andrade's time to Maxwell time & $1$ \\
+  $T_\text{ref}$        & Temperature corresponding to reference viscosity & $1600.0 \, \mbox{K}$ \\
+  $\zeta_\text{J}$      & Ratio of unrelaxed to relaxed compliance & $0.2$ \\
+  $\zeta_\eta$          & Ratio of unrelaxed to relaxed viscosity & $0.02$ \\
+  $k_\text{m}$          & Mantle's thermal conductivity & $4 \, \text{W} \, \text{m}^{-1} \, \text{K}^{-1}$ \\
+  $\alpha_\text{m}$     & Mantle's thermal expansivity & $2.4 \E{-5} \, \text{K}^{-1}$ \\
+  $\kappa_\text{m}$     & Mantle's thermal diffusivity & $1 \E{-6} \, \text{m}^2 \, \text{s}^{-1}$ \\
+  $c_\text{m}$          & Mantle's heat capacity & $1100 \, \text{J} \, \text{kg}^{-1} \, \text{K}^{-1}$ \\
+  $L_\text{m}$          & Mantle's latent heat & $6 \E{5} \, \text{J} \, \text{kg}^{-1}$ \\
+  $\eta_\text{m}$ & Ratio of mean mantle's temperature to the temperature at the base of the upper thermal boundary layer & $1.3$ \\
+  $c_\text{c}$          & Core's heat capacity & $800 \, \text{J} \, \text{kg}^{-1} \, \text{K}^{-1}$ \\
+  $L_\text{c} + E_\textsc{g}$          & Core's latent heat plus gravitational energy release per unit mass & $1 - 2 \, \text{J} \, \text{kg}^{-1}$ \\
+  $\eta_\text{c}$ & Ratio of mean core's temperature to the temperature at the top of the lower thermal boundary layer & $1.2$ \\
+  $\mbox{Ra}_\text{cr}$ & Critical Rayleigh number at the top thermal boundary layer & $500$ \\
+  $\mbox{Ra}_\text{cr (\textsc{cmb})}$ & Critical Rayleigh number at the CMB & $2000$ \\
+  $T_\text{s}$          & Surface temperature & $300.0 \, \mbox{K}$ \\
+  $T_\textsc{ubl} (0)$  & Initial temperature at the base of the upper thermal boudary layer & $\ldots \, \text{K}$ \\
+  $T_\textsc{lbl} (0)$  & Initial temperature at the top of the lower thermal boudary layer & $\ldots \, \text{K}$ \\
+  $\chi_0$              & Initial concentration of ligh alloy within Earth's core & $0.1$ \\
+  $\beta$               & Exponent of the Nu--Ra relationship & $\frac{1}{3}$ \\
+  $P_\textsc{cmb}$      & Pressure at the CMB & $140 \, \text{GPa}$ \\
+  $P_{\text{c},\oplus}$ & Pressure at the Earth's centre & $360 \, \text{GPa}$ \\
+  $T_{\text{a},1}$      & Linear coefficient of the core's adiabatic temperature profile & $3.96 \, \text{K} \, \text{TPa}^{-1}$ \\
+  $T_{\text{a},2}$      & Quadratic coefficient of the core's adiabatic temperature profile & $-3.3 \, \text{K} \, \text{TPa}^{-2}$ \\
+  $T_{\text{liq,c},0}$  & Temperature at zero pressure and zero concentration of light alloy in the core & $1950 \, \text{K}$; $1980 \, \text{K}$ \\
+  $T_{\text{liq,c},1}$  & Linear coefficient of the core's adiabatic temperature profile & $6.14 \, \text{K} \, \text{TPa}^{-1}$ \\
+  $T_{\text{liq,c},2}$  & Quadratic coefficient of the core's adiabatic temperature profile & $-4.5 \, \text{K} \, \text{TPa}^{-2}$ \\
+  $a_0$                   & Current major semiaxis & $3.844 \times 10^{8} \, \mbox{m} $ \\
+  $e$                   & Current eccentricity & $0.0549$ \\
+  $i$                   & Current inclination & $\sim 23.5 ^{\circ}$ \\
+  $P_\text{orb}$        & Current orbital period & $27.322 \, \mbox{days}$ \\
+  $\text{LOD}_0$        & Current length of day & $23.59$ hr. \\
+  \hline
+\end{longtable}
+\end{center}
+
+\bibliographystyle{baaa}
 \bibliography{refs}{}
 
 \end{document}
