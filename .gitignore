@@ -10,6 +10,7 @@
 *.log
 *.ps
 *.pdf
+!thermev2_doc.pdf
 *.png
 *.bbl
 *.blg
