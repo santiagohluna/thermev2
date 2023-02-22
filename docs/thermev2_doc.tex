@@ -718,7 +718,11 @@ Concerning the tidal heating source, the corresponding heat production rate is g
 \begin{equation}
     \label{ec:ftvf}
     f_\text{tvf} = \frac{R_\phi^3 - R_\text{c}^3}{R_\oplus^3},
-\end{equation} where $R_\phi$ is the distance from the center of the Earth where the melt fraction ($\phi$) is equal to the disaggregation point $\phi_\textsc{d}$, which is a critical value of the melt fraction above which mantle material can no longer behave as a solid. Thus, $f_\text{tvf}$ represents the Earth's tidally active fraction. On the other hand, $\left\langle P \right\rangle_\oplus^\text{tide}$ is given by:
+\end{equation} where $R_\phi$ is the distance from the center of the Earth where the melt fraction ($\phi$) is equal to the disaggregation point $\phi_\textsc{d}$, which is a critical value of the melt fraction above which mantle material can no longer behave as a solid. Mathematically expressed, we have:
+\begin{equation}
+      \label{ec:def_Rphi}
+      \phi (R_\phi) = \phi_\textsc{d}.
+\end{equation} Thus, $f_\text{tvf}$ represents the Earth's tidally active fraction. On the other hand, $\left\langle P \right\rangle_\oplus^\text{tide}$ is given by:
 \begin{equation}\label{ec:potdis_mareas}
       \left\langle P \right\rangle_\oplus^\text{tide} = \frac{G \, M_{\leftmoon}^2}{a} \sum_{l=2}^\infty \left(\frac{R_\oplus}{a}\right)^{2l+1} \sum_{m=0}^l \frac{(l-m)!}{(l+m)!} \left(2-\delta_{0m}\right) \sum_{p=0}^l F_{lmp}^2 (i) \sum_{q=-\infty}^{\infty} G_{lpq}^2 (e) \, \omega_{lmpq} \, K_{\text{I}} \left(l,\omega_{lmpq}\right),
 \end{equation} where $G$ is the gravitation constant, $M_{\leftmoon}$ is the mass of the Moon, $R_\oplus$ is the mean Earth radius, $a$ is the major semiaxis, $\delta_{0m}$ is the Kronecker delta distribution, $F_{lmp} (i)$ and $G_{lpq} (e)$ are the inclination \citep{goodwagner2008} and eccentricity \citep{giacaglia1976b} functions, respectively.
