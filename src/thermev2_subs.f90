@@ -187,9 +187,11 @@ module thermev2_subs
                       dtlbl,dtmelt,mmeltp,qcmb,qconv,qmelt,qradm, &
                       qradc,Tcmb,Tlbl,dvupdt,qtidal, &
                       ur,urtot,radic,num,etavg, &
-                      tmelt,zmelt,zum,dpiodtc,ftvf,Pio,St
+                      tmelt,zmelt,zum,dpiodtc,ftvf,Pio,St,dphimdT,err
+    real(kind=dp), parameter :: h = 10.d0
     !real(kind=dp) :: delt,a1,a2,int
-!    real (kind=dp) :: asumaq(4)
+    integer :: k
+    real (kind=dp) :: asumaq(4)
 !   --------------------------------------------------------------------
     Tcmb = y(1)
     Tubl = y(2)
@@ -220,11 +222,11 @@ module thermev2_subs
 !   calculo de qradm
 !   --------------------------------------------------------------------
     if (lradm) then
-        !do k=1,4
-        !    asumaq(k) = mm*fc(k)*c0(k)*hi(k)*dexp(lam(k)*(t0-t))
-        !end do
-        !qradm = sumar(4,asumaq)
-        Qradm = Qrad0*dexp((t0-t)/taurad)
+        do k=1,4
+            asumaq(k) = Mm*fc(k)*c0(k)*hi(k)*dexp(lam(k)*(t0-t))
+        end do
+        Qradm = sumar(4,asumaq)
+        !Qradm = Qrad0*dexp((t0-t)/taurad)
     else
         Qradm = 0.d0
     end if
@@ -255,10 +257,6 @@ module thermev2_subs
     else
         Qtidal = 0.d0
     end if
-!   --------------------------------------------------------------------
-!   calculo del número de Stefan
-!   --------------------------------------------------------------------
-    St = stefan(Tubl,dubl)
 !   --------------------------------------------------------------------
 !   calculo de las razones de urey
 !   --------------------------------------------------------------------
@@ -297,15 +295,20 @@ module thermev2_subs
     !   --------------------------------------------------------------------
         dricdt = - (dn**2)/(2.d0*Rc*Tcmb*num)
     !   --------------------------------------------------------------------
-        dydt(1) = (qradc - qcmb)*ga/(mc*cc - aic*rhoic*etac*dricdt*(lfe+eg))
+        dydt(1) = (Qradc - Qcmb)*ga/(Mc*Cc - Aic*rhoic*etac*dricdt*(lfe+eg))
     !   --------------------------------------------------------------------
     end if
-
+!   ------------------------------------------------------------------------
+!   Cálculo de la derivada de la fracción de material fundido en el manto
+!   respecto a T_ubl
+!   --------------------------------------------------------------------
+    dphimdT = dfridr(avgfmelt,Tcmb,Tubl,h,err)
+!   --------------------------------------------------------------------
     if (ltherm) then
-        dydt(2) = (qcmb + qradm - qconv - qmelt)*ga/(epsm*mm*cm)
+        dydt(2) = (Qcmb + Qradm - Qconv - Qmelt)*ga/(epsm*Mm*cm)
     else
-        dydt(2) = (qcmb + qradm + qtidal - qconv - qmelt)*ga/ &
-                  (mm*cm*(epsm + St))
+        dydt(2) = (Qcmb + Qradm + Qtidal - Qconv - Qmelt)*ga/ &
+                  (Mm*(cm*epsm + Lmelt*dphimdT))
     end if
 !   --------------------------------------------------------------------
     printout(1) = ur 
