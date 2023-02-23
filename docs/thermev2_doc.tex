@@ -605,15 +605,15 @@ Now we can reshape Equations~\eqref{ec:dTmdt_core_gral} and \eqref{ec:dTmdt_mant
       \valmed{T}_\text{m} = \eta_\text{m} \, T_\textsc{ubl},
 \end{equation} where $\eta_\text{m}$ is another constant. Thus, by replacing Equations~\eqref{ec:eta_c} and \eqref{ec:eta_m} into Equations~\eqref{ec:dTcdt_gral} and \eqref{ec:dTmdt_gral}, respectively, we finally obtain the differential equations describing the thermal evolution of the Earth's interior:
 \begin{align}
-      \left[M_\text{c} \, c_\text{c} \, \eta_\text{c} - \left(L_\text{c} + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \right] \fdiff{T_\textsc{cmb}}{t} &= \dot{Q}_\text{rad,c} (t) - \dot{Q}_\textsc{cmb} (t), \label{ec:dTcdt} \\
-      M_\text{m} \left[c_\text{m} \, \eta_\text{m} + L_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}}\right] \fdiff{T_\textsc{ubl}}{t} &= \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t). \label{ec:dTmdt}
+      \left[M_\text{c} \, c_\text{c} \, \eta_\text{c} - \left(L_\text{c} + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \right] \fdiff{T_\textsc{cmb}}{t} &= \dot{Q}_\text{rad,c} (t) - \dot{Q}_\textsc{cmb} (t), \label{ec:dTcmbdt} \\
+      M_\text{m} \left[c_\text{m} \, \eta_\text{m} + L_\text{m} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}}\right] \fdiff{T_\textsc{ubl}}{t} &= \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t). \label{ec:dTubldt}
 \end{align} These are the main equations of our model. They clearly show that the characteristic temperature of both the core and the mantle, which characterize their thermal state, evolve in time as consequence of the balance between heat sources and sinks.
 
 \subsection{Stefan number}
 
 Several works on the thermal evolution of the Earth \citep[e.g.][]{tosietal2017} and of other rocky planets, such as Mars \citep[e.g.][]{breueryspohn2003,breueryspohn2006} and putative rocky exoplanets \citep[e.g.][]{shojiykurita2014,renaudhenning2018,walterova_behounkova_2020,Rovira-Navarro_2021}, that include the effect of partial melt within mantle, make use of a dimensionless quantity called the \emph{Stefan number} (St).
 
-The definition of the Stefan number can be obtained by rewriting Equation~\eqref{ec:dTmdt} as:
+The definition of the Stefan number can be obtained by rewriting Equation~\eqref{ec:dTubldt} as:
 \begin{equation}
       M_\text{m} \, c_\text{m} \left(\eta_\text{m} + \text{St}\right) \fdiff{T_\textsc{ubl}}{t} = \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t),
 \end{equation} where \citep{walterova_behounkova_2020}:
@@ -622,7 +622,7 @@ The definition of the Stefan number can be obtained by rewriting Equation~\eqref
       \text{St} = \frac{L_\text{m}}{c_\text{m}} \fdiff{\valmed{\phi}_\text{m}}{T_\textsc{ubl}}.
 \end{equation} It has to be pointed out that for Mars-sized planets, $\eta_\text{c}$ and $\eta_\text{m}$ are close to unity. However, we should expect that these parameters become larger than 1 for bigger planets. For example, for the Earth $\eta_\text{c} \approx 1.2$ and $\eta_\text{m} \approx 1.3$ \citep{stevensonetal1983}.
 
-It becomes necessary to stop for a while at this point and discuss some issues regarding the computation of the derivative of the average melt fraction in the mantle with respect to the temperature at the base of the upper thermal boundary layer, appearing in Equations~\eqref{ec:dTmdt} and \eqref{ec:def_St_phim}.
+It becomes necessary to stop for a while at this point and discuss some issues regarding the computation of the derivative of the average melt fraction in the mantle with respect to the temperature at the base of the upper thermal boundary layer, appearing in Equations~\eqref{ec:dTubldt} and \eqref{ec:def_St_phim}.
 
 The volume-averaged melt fraction in the mantle is computed by Equation~\eqref{ec:fmeltm}. Since the local melt fraction, at a radius $r$, depends only on the radial distance from Earth's center, then the volume integral of Equation~\eqref{ec:fmeltm} can be rewritten as:
 \begin{equation}
@@ -662,11 +662,9 @@ Just as the mantle volume-averaged melt fraction was defined, the volume-average
 \begin{equation}
       \label{ec:stefan_not_exact}
       \text{St} = \frac{L_\text{m}}{c_\text{m}} \frac{V_\textsc{a}}{V_\text{m}} \fdiff{\valmed{\phi}_\textsc{a}}{T_\textsc{ubl}}.
-\end{equation} Under the light of the derivation we offered of St, it seems that the definition of Equation~\eqref{ec:stefan_not_exact} at least neglects the dependence of the limits of the asthenosphere on the temperature at the base of the upper thermal boundary layer. The investigation of to what extent this approximation is valid is out of the scope of our work. We simply want to put the discussion on the table and to stress the fact that we would recommend the use of the definition of the Stefan number given by Equation~\eqref{ec:stefan_integral}, evaluating the derivative of the integral with respect to $T_\textsc{ubl}$ numerically. However, we prefer an expression for the time derivate of $T_\textsc{ubl}$ which avoids the use of the Stefan number and is analogous Equation~\eqref{ec:dTcdt}. Presented together, the main equations giving the thermal evolution of the Earth's interior corresponding to the model considered in this work, are:
-\begin{align}
-      \left[M_\text{c} \, c_\text{c} \, \eta_\text{c} - \left(L_\text{c} + E_G\right) \, \frac{A_\text{c} \, R_\text{ic}}{g \, R_\text{c}} \fdiff{P_\text{io}}{T_\textsc{cmb}} \right] \fdiff{T_\textsc{cmb}}{t} &= \dot{Q}_\text{rad,c} (t) - \dot{Q}_\textsc{cmb} (t), \label{ec:dTcmbdt} \\
-      M_\text{m} \left[c_\text{m}\, \eta_\text{m} + \frac{L_\text{m}}{V_\text{m}} \fdiff{}{T_\textsc{ubl}} \left(V_\textsc{a} \valmed{\phi}_\textsc{a}\right)\right] \fdiff{T_\textsc{ubl}}{t} &= \dot{Q}_\textsc{cmb} (t) + \dot{Q}_\text{rad,m} (t) + \dot{Q}_\text{tidal} (t) - \dot{Q}_\text{conv} (t). \label{ec:dTubldt}
-\end{align} In Section~\ref{sec:model} we offer a detailed explanation on the implementation of our model that allows to simulate the thermal history of our planet.
+\end{equation} Under the light of the derivation we offered of St, it seems that the definition of Equation~\eqref{ec:stefan_not_exact} at least neglects the dependence of the limits of the asthenosphere on the temperature at the base of the upper thermal boundary layer. The investigation of to what extent this approximation is valid is out of the scope of our work. We simply want to put the discussion on the table and to stress the fact that we would recommend the use of the definition of the Stefan number given by Equation~\eqref{ec:stefan_integral}, evaluating the derivative of the integral with respect to $T_\textsc{ubl}$ numerically. However, we prefer an expression for the time derivate of $T_\textsc{ubl}$ which avoids the use of the Stefan number and is analogous Equation~\eqref{ec:dTcmbdt}. For this reason, we will use Equations~\eqref{ec:dTcmbdt} and \eqref{ec:dTubldt} to model the thermal evolution of Earth's interior.
+
+In Section~\ref{sec:model} we offer a detailed explanation on the implementation of our model that allows to simulate the thermal history of our planet.
 
 \subsection{Heat sources}
 
